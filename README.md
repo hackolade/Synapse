@@ -1,5 +1,7 @@
 # Azure Synapse
-Hackolade plugin for Azure Synapse and Azure SQL Data Warehouse
+Hackolade plugin for Azure Synapse (SQL Data Warehouse) and Parallel Data Warehouse
+
+!! NOT READY FOR PRODUCTION !!
 
 <div class="main-content">
 

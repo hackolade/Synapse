@@ -14,11 +14,8 @@
 				"inputType": "select",
 				"defaultValue": "On-premise",
 				"options": [{
-					"value": "On-premise",
-					"label": "On-premise database"
-				},{
 					"value": "azure",
-					"label": "Azure SQL database"
+					"label": "Azure Synapse"
 				}]
 			},
 			{
@@ -45,8 +42,9 @@
 			{
 				"inputLabel": "Host",
 				"inputKeyword": "host",
-				"description": "Specify host IP address or DNS name of Microsoft SQL server",
+				"description": "Specify Azure Synapse server name",
 				"inputType": "text",
+				"inputPlaceholder": "<database>.database.windows.net",
 				"dependency": {
 					"key": "authMethod",
 					"value": "Username / Password"
@@ -56,7 +54,7 @@
 			{
 				"inputLabel": "Port",
 				"inputKeyword": "port",
-				"description": "Specify port number of Microsoft SQL server",
+				"description": "Specify port number",
 				"inputType": "numeric",
 				"defaultValue": 1433,
 				"dependency": {
