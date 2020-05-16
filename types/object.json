@@ -1,0 +1,29 @@
+{
+	"name": "object",
+	"parentType": "document",
+	"structureType": true,
+	"defaultValues": {
+		"subtype": "object",
+		"properties": []
+	},
+	"subtypes": {
+		"object": {
+			"childValueType": [
+				"char",
+				"numeric",
+				"binary",
+				"datetime",
+				"geography",
+				"geometry",
+				"hierarchyid",
+				"sql_variant",
+				"uniqueidentifier",
+				"xml",
+				"rowversion",
+				"table",
+				"reference",
+				"multiple"
+			]
+		}
+	}
+}

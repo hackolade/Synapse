@@ -1,0 +1,40 @@
+{
+    "name": "Synapse",
+    "version": "0.0.1",
+    "versionDate": "2020-05-15",
+    "author": "hackolade",
+    "engines": {
+        "hackolade": "4.0.0",
+        "hackoladePlugin": "1.2.0"
+    },
+    "contributes": {
+        "target": {
+            "applicationTarget": "Synapse",
+            "title": "Azure Synapse",
+            "versions": [
+            ]
+        },
+        "features": {
+            "nestedCollections": false,
+            "disablePatternField": false,
+            "disableMultipleTypes": true,
+            "enableForwardEngineering": true,
+            "disableReverseEngineering": false,
+            "disableChoices": true,
+            "enableJsonType": true,
+            "useJsonTypesWithComplexTypes": true,
+            "reverseSchemaIntoOneColumn": true,
+			"disableDenormalization": true,
+			"enableComplexTypesNormalization": true,
+            "views": {
+                "enabled": true,
+                "viewLevel": "model",
+                "disablePipelines": true
+            },
+			"compositeRelationship": true
+        }
+    },
+    "description": "Hackolade plugin for Azure Synpase and Azure SQL Data Warehouse",
+    "icon_url": "logo.jpg",
+    "disabled": false
+}

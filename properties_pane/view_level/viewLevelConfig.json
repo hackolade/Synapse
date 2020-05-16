@@ -1,0 +1,237 @@
+/*
+* Copyright © 2016-2017 by IntegrIT S.A. dba Hackolade.  All rights reserved.
+*
+* The copyright to the computer software herein is the property of IntegrIT S.A.
+* The software may be used and/or copied only with the written permission of 
+* IntegrIT S.A. or in accordance with the terms and conditions stipulated in 
+* the agreement/contract under which the software has been supplied. 
+*/
+
+[
+	{
+		"lowerTab": "Details",
+		"structure": [
+			{
+				"propertyName": "View Attribute",
+				"propertyKeyword": "viewAttrbute",
+				"propertyType": "select",
+				"options": [
+					"",
+					"ENCRYPTION",
+					"SCHEMABINDING",
+					"VIEW_METADATA"
+				]
+			},
+			{
+				"propertyName": "Select Statement",
+				"propertyKeyword": "selectStatement",
+				"propertyType": "details",
+				"propertyTooltip": "select statement. To reference on partitioned table you shoud use ${tableName} template",
+				"template": "textarea",
+				"markdown": false
+			},
+			{
+				"propertyName": "Partitioned",
+				"propertyKeyword": "partitioned",
+				"shouldValidate": false,
+				"propertyTooltip": "",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Partitioned tables",
+				"propertyKeyword": "partitionedTables",
+				"shouldValidate": false,
+				"propertyTooltip": "",
+				"propertyType": "group",
+				"dependency": {
+					"key": "partitioned",
+					"value": true
+				},
+				"structure": [{
+					"propertyName": "Table",
+					"propertyKeyword": "table",
+					"shouldValidate": false,
+					"propertyTooltip": "",
+					"propertyType": "selecthashed",
+					"template": "entities",
+					"options": []	
+				}]
+			},
+			{
+				"propertyName": "With Check Option",
+				"propertyKeyword": "withCheckOption",
+				"shouldValidate": false,
+				"propertyTooltip": "",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Comments",
+				"propertyKeyword": "description",
+				"shouldValidate": false,
+				"propertyTooltip": "comments",
+				"propertyType": "details",
+				"template": "textarea"
+			},
+			{
+				"propertyName": "Remarks",
+				"propertyKeyword": "comments",
+				"shouldValidate": false,
+				"propertyTooltip": "remarks",
+				"propertyType": "details",
+				"template": "textarea"
+			},
+			{
+				"propertyKeyword": "pipeline",
+				"hidden": true
+			},
+			{
+				"propertyKeyword": "viewOn",
+				"hidden": true
+			}
+		]
+	},
+	{
+		"lowerTab": "Indexes",
+		"structure": [{
+			"propertyName": "Index",
+			"propertyType": "group",
+			"propertyKeyword": "Indxs",
+			"propertyTooltip": "",
+			"structure": [
+				{
+					"propertyName": "Name",
+					"propertyKeyword": "indxName",
+					"propertyTooltip": "",
+					"propertyType": "text"
+				},
+				{
+					"propertyName": "Type",
+					"propertyKeyword": "indxType",
+					"propertyType": "select",
+					"options": [
+						"Index",
+						"Columnstore"
+					]
+				},
+				{
+					"propertyName": "Unique",
+					"propertyKeyword": "uniqueIndx",
+					"propertyType": "checkbox",
+					"dependency": {
+						"key": "indxType",
+						"value": "Index"
+					}
+				},
+				{
+					"propertyName": "Clustered",
+					"propertyKeyword": "clusteredIndx",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Keys",
+					"propertyKeyword": "indxKey",
+					"propertyType": "fieldList",
+					"template": "orderedList",
+					"attributeList": [
+						"ascending",
+						"descending"
+					]
+				},
+				{
+					"propertyName": "Include non-key columns",
+					"propertyKeyword": "indxInclude",
+					"propertyType": "fieldList",
+					"template": "orderedList"
+				},
+				{
+					"propertyName": "Description",
+					"propertyKeyword": "indxDescription",
+					"propertyTooltip": "description",
+					"propertyType": "details",
+					"template": "textarea"
+				},
+				{
+					"propertyName": "Pad index",
+					"propertyKeyword": "PAD_INDEX",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Fill factor",
+					"propertyKeyword": "FILLFACTOR",
+					"propertyType": "numeric",
+					"valueType": "number",
+					"allowNegative": false,
+					"minValue": 0,
+					"maxValue": 100
+				},
+				{
+					"propertyName": "Ignore duplicate key",
+					"propertyKeyword": "IGNORE_DUP_KEY",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Included columns",
+					"propertyKeyword": "indxIncludedColumn",
+					"propertyType": "fieldList",
+					"template": "orderedList",
+					"attributeList": [
+						"ascending",
+						"descending"
+					]
+				},
+				{
+					"propertyName": "Statistics no recompute",
+					"propertyKeyword": "STATISTICS_NORECOMPUTE",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Statistics incremental",
+					"propertyKeyword": "STATISTICS_INCREMENTAL",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Allow row locks",
+					"propertyKeyword": "ALLOW_ROW_LOCKS",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Allow page locks",
+					"propertyKeyword": "ALLOW_PAGE_LOCKS",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Optimize for sequential key",
+					"propertyKeyword": "OPTIMIZE_FOR_SEQUENTIAL_KEY",
+					"propertyType": "checkbox"
+				},
+				{
+					"propertyName": "Compression delay (minutes)",
+					"propertyKeyword": "COMPRESSION_DELAY",
+					"propertyType": "numeric",
+					"valueType": "number",
+					"allowNegative": false
+				},
+				{
+					"propertyName": "Data compression",
+					"propertyKeyword": "DATA_COMPRESSION",
+					"propertyType": "select",
+					"options": [
+						"NONE",
+						"ROW",
+						"PAGE",
+						"COLUMNSTORE",
+						"COLUMNSTORE_ARCHIVE"
+					]
+				},
+				{
+					"propertyName": "Comments",
+					"propertyKeyword": "indxComments",
+					"propertyTooltip": "comments",
+					"addTimestampButton": false,
+					"propertyType": "details",
+					"template": "textarea"
+				}
+			]
+		}]
+	}
+]

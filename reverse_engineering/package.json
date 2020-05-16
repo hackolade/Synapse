@@ -1,0 +1,10 @@
+{
+  "name": "MSSQLServer",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Hackolade",
+  "dependencies": {
+    "mssql": "^3.3.0"
+  },
+  "installed": true
+}

@@ -1,0 +1,28 @@
+{
+	"name": "numeric",
+	"erdAbbreviation": "<num>",
+	"dtdAbbreviation": "{123}",
+	"parentType": "numeric",
+	"sample": 15,
+	"useSample": true,
+	"hiddenOnEntity": "view",
+	"defaultValues": {
+		"unit": "",
+		"minimum": "",
+		"exclusiveMinimum": false,
+		"maximum": "",
+		"exclusiveMaximum": false,
+		"multipleOf": "",
+		"divisibleBy": "",
+		"default": "",
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"enum": [],
+		"mode": "int",
+		"sample": ""
+	}
+}
