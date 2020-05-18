@@ -88,7 +88,6 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			COL_NAME(t.object_id, ic.column_id) as columnName,
 			OBJECT_SCHEMA_NAME(t.object_id) as schemaName,
 			p.data_compression_desc as dataCompression,
-			hs.total_bucket_count,
 			ind.*
 		FROM sys.indexes ind
 		LEFT JOIN sys.tables t
@@ -97,84 +96,11 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
 		INNER JOIN sys.partitions p
 			ON p.object_id = t.object_id AND ind.index_id = p.index_id
-		LEFT JOIN sys.dm_db_xtp_hash_index_stats hs
-			ON ind.index_id = hs.index_id
 		WHERE
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
 			AND t.is_ms_shipped = 0
 		`;
-};
-
-const getSpatialIndexes = async (connectionClient, dbName, logger) => {
-	try {
-		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-		return await currentDbConnectionClient.query`
-			SELECT
-				TableName = t.name,
-				IndexName = ind.name,
-				COL_NAME(t.object_id, ic.column_id) as columnName,
-				OBJECT_SCHEMA_NAME(t.object_id) as schemaName,
-				sit.bounding_box_xmin AS XMIN,
-				sit.bounding_box_ymin AS YMIN,
-				sit.bounding_box_xmax AS XMAX,
-				sit.bounding_box_ymax AS YMAX,
-				sit.level_1_grid_desc AS LEVEL_1,
-				sit.level_2_grid_desc AS LEVEL_2,
-				sit.level_3_grid_desc AS LEVEL_3,
-				sit.level_4_grid_desc AS LEVEL_4,
-				sit.cells_per_object AS CELLS_PER_OBJECT,
-				p.data_compression_desc as dataCompression,
-				ind.*
-			FROM sys.spatial_indexes ind
-			LEFT JOIN sys.tables t
-				ON ind.object_id = t.object_id
-			INNER JOIN sys.index_columns ic
-				ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
-			LEFT JOIN sys.spatial_index_tessellations sit
-				ON ind.object_id = sit.object_id AND ind.index_id = sit.index_id
-			LEFT JOIN sys.partitions p
-				ON p.object_id = t.object_id AND ind.index_id = p.index_id`;
-	} catch (error) {
-		logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering spatial indexes');
-		return [];
-	}
-};
-
-const getFullTextIndexes = async (connectionClient, dbName, logger) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	
-	try {
-		const result = await currentDbConnectionClient.query`
-			SELECT
-				OBJECT_SCHEMA_NAME(F.object_id) as schemaName,
-				OBJECT_NAME(F.object_id) as TableName,
-				COL_NAME(FC.object_id, FC.column_id) as columnName,
-				COL_NAME(FC.object_id, FC.type_column_id) as columnTypeName,
-				FC.statistical_semantics AS statistical_semantics,
-				FC.language_id AS language,
-				I.name AS indexKeyName,
-				F.change_tracking_state_desc AS changeTracking,
-				CASE WHEN F.stoplist_id IS NULL THEN 'OFF' WHEN F.stoplist_id = 0 THEN 'SYSTEM' ELSE SL.name END AS stopListName,
-				SPL.name AS searchPropertyList,
-				FG.name AS fileGroup,
-				FCAT.name AS catalogName,
-				type = 'FullText',
-				IndexName = 'full_text_idx'
-			FROM sys.fulltext_indexes F
-			INNER JOIN sys.fulltext_index_columns FC ON FC.object_id = F.object_id
-			LEFT JOIN sys.indexes I ON F.unique_index_id = I.index_id AND I.object_id = F.object_id
-			LEFT JOIN sys.fulltext_stoplists SL ON SL.stoplist_id = F.stoplist_id
-			LEFT JOIN sys.registered_search_property_lists SPL ON SPL.property_list_id = F.property_list_id
-			LEFT JOIN sys.filegroups FG ON FG.data_space_id = F.data_space_id
-			LEFT JOIN sys.fulltext_catalogs FCAT ON FCAT.fulltext_catalog_id = F.fulltext_catalog_id
-			WHERE F.is_enabled = 1`;
-
-		return result;
-	} catch (error) {
-		logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering full text indexes');
-		return [];
-	}
 };
 
 const getViewsIndexes = async (connectionClient, dbName) => {
@@ -240,25 +166,6 @@ const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
 
 		return [];
 	}
-};
-
-const getDatabaseCheckConstraints = async (connectionClient, dbName) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient.query`
-		select con.[name],
-			t.[name] as [table],
-			col.[name] as column_name,
-			con.[definition],
-			con.[is_not_trusted],
-			con.[is_disabled],
-			con.[is_not_for_replication]
-		from sys.check_constraints con
-		left outer join sys.objects t
-			on con.parent_object_id = t.object_id
-		left outer join sys.all_columns col
-			on con.parent_column_id = col.column_id
-			and con.parent_object_id = col.object_id
-	`;
 };
 
 const getViewTableInfo = async (connectionClient, dbName, viewName, schemaName) => {
@@ -352,27 +259,6 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 	`;
 };
 
-const getTableMaskedColumns = async (connectionClient, dbName, tableName, schemaName) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const objectId = `${schemaName}.${tableName}`;
-	return currentDbConnectionClient.query`
-		select name, masking_function from sys.masked_columns
-		where object_id=object_id(${objectId})
-	`;
-};
-
-const getDatabaseXmlSchemaCollection = async (connectionClient, dbName) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient.query`
-		SELECT xsc.name as collectionName,
-				SCHEMA_NAME(xsc.schema_id) as schemaName,
-				OBJECT_NAME(xcu.object_id) as tableName,
-				COL_NAME(xcu.object_id, xcu.column_id) as columnName
-		FROM sys.column_xml_schema_collection_usages xcu
-		LEFT JOIN sys.xml_schema_collections xsc ON xsc.xml_collection_id=xcu.xml_collection_id
-	`
-};
-
 const getTableDefaultConstraintNames = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	return currentDbConnectionClient.query`
@@ -413,16 +299,11 @@ module.exports = {
 	getDatabaseIndexes,
 	getTableColumnsDescription,
 	getDatabaseMemoryOptimizedTables,
-	getDatabaseCheckConstraints,
 	getViewTableInfo,
 	getTableKeyConstraints,
 	getViewColumnRelations,
-	getTableMaskedColumns,
-	getDatabaseXmlSchemaCollection,
 	getTableDefaultConstraintNames,
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
 	getViewsIndexes,
-	getFullTextIndexes,
-	getSpatialIndexes,
 }

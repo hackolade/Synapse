@@ -36,7 +36,6 @@ const getIndexData = index => ({
 	FILLFACTOR: index.fill_factor,
 	DATA_COMPRESSION: handleDataCompression(index.dataCompression || ''),
 	indxHash: index.type_desc === "NONCLUSTERED HASH",
-	indxBucketCount: !isNaN(Number(index.total_bucket_count)) ? Number(index.total_bucket_count) : '',
 	indxFilterExpression: index.has_filter ? index.filter_definition : '',
 });
 
