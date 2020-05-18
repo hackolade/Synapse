@@ -6,8 +6,8 @@ const {
 	getTableColumnsDescription,
 	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
+	getViewColumns,
 	getTableKeyConstraints,
-	getViewColumnRelations,
 	getTableDefaultConstraintNames,
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
@@ -20,13 +20,13 @@ const {
 	defineRequiredFields,
 	defineFieldsDescription,
 	doesViewHaveRelatedTables,
-	changeViewPropertiesToReferences,
 	defineFieldsKeyConstraints,
 	defineJSONTypes,
 	defineFieldsDefaultConstraintNames,
 	defineFieldsCompositeKeyConstraints,
 	getUserDefinedTypes,
 	reorderTableRows,
+	handleType,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
@@ -77,26 +77,6 @@ const isViewPartitioned = (viewStatement) => {
 	const hasUnionAll = content.toLowerCase().split(/union[\s\S]+?all/i).length > 1;
 
 	return hasUnionAll;
-};
-
-const getPartitionedJsonSchema = (viewInfo, viewColumnRelations) => {
-	const aliasToName = viewInfo.reduce((aliasToName, item) => ({
-		...aliasToName,
-		[item.ColumnName]: item.ReferencedColumnName
-	}), {});
-	const tableName = viewInfo[0]['ReferencedTableName'];
-
-	const properties = viewColumnRelations.reduce((properties, column) => ({
-		...properties,
-		[column.name]: {
-			$ref: `#collection/definitions/${tableName}/${aliasToName[column.name]}`,
-			bucketName: column['source_schema'] || '',
-		}
-	}), {});
-
-	return {
-		properties
-	};
 };
 
 const getPartitionedTables = (viewInfo) => {
@@ -154,27 +134,33 @@ const getViewProperties = (viewData) => {
 	}; 
 };
 
+const addViewProperties = (jsonSchema, viewColumns) => {
+	const properties = viewColumns.reduce((properties, column) => {
+		return Object.assign({}, properties, {
+			[column.name]: column.is_user_defined ? {
+				"ref": '#model/definitions/' + column.type
+			} : handleType(column.type)
+		});
+	}, {});
+
+	return Object.assign({}, jsonSchema, {
+		properties: Object.assign(
+			{}, jsonSchema.properties, properties
+		)
+	});
+};
+
 const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => async jsonSchema => {
-	const [viewInfo, viewColumnRelations, viewStatement] = await Promise.all([
+	const [viewInfo, viewColumns, viewStatement] = await Promise.all([
 		await getViewTableInfo(dbConnectionClient, dbName, viewName, schemaName),
-		await getViewColumnRelations(dbConnectionClient, dbName, viewName, schemaName),
+		await getViewColumns(dbConnectionClient, dbName, viewName, schemaName),
 		await getViewStatement(dbConnectionClient, dbName, viewName, schemaName),
 	]);
 	if (isViewPartitioned(viewStatement[0].definition)) {
-		const partitionedSchema = getPartitionedJsonSchema(
-			viewInfo,
-			viewColumnRelations
-		);
 		const partitionedTables = getPartitionedTables(viewInfo);
 
 		return {
-			jsonSchema: JSON.stringify({
-				...jsonSchema,
-				properties: {
-					...(jsonSchema.properties || {}),
-					...partitionedSchema.properties,
-				}
-			}),
+			jsonSchema: JSON.stringify(addViewProperties(jsonSchema, viewColumns)),
 			data: {
 				...getViewProperties(viewStatement[0]),
 				selectStatement: getPartitionedSelectStatement(cleanComments(String(viewStatement[0].definition)), (partitionedTables[0] || {}).table, dbName),
@@ -189,7 +175,9 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 		};
 	} else {
 		return {
-			jsonSchema: JSON.stringify(changeViewPropertiesToReferences(jsonSchema, viewInfo, viewColumnRelations)),
+			jsonSchema: JSON.stringify(
+				addViewProperties(jsonSchema, viewColumns)
+			),
 			name: viewName,
 			data: {
 				...getViewProperties(viewStatement[0]),
@@ -255,7 +243,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings),
 					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName)
 				]);
-				// const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
+				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
 
 				const jsonSchema = pipe(
 					transformDatabaseTableInfoToJSON(tableInfo),
@@ -294,19 +282,19 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					views: [],
 				};
 
-				// if (isView) {
-				// 	const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema)
-				// 	const indexes = viewsIndexes.filter(index => index.TableName === tableName && index.schemaName === schemaName);
+				if (isView) {
+					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema)
+					const indexes = viewsIndexes.filter(index => index.TableName === tableName && index.schemaName === schemaName);
 
-				// 	result = {
-				// 		...result,
-				// 		...viewData,
-				// 		data: {
-				// 			...(viewData.data || {}),
-				// 			Indxs: reverseTableIndexes(indexes),
-				// 		}
-				// 	};
-				// }
+					result = {
+						...result,
+						...viewData,
+						data: {
+							...(viewData.data || {}),
+							Indxs: reverseTableIndexes(indexes),
+						}
+					};
+				}
 
 				return result;
 			})
