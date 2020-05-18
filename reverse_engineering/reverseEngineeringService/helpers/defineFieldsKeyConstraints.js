@@ -27,6 +27,8 @@ const handleKey = (field, keyConstraintInfo) => {
 				primaryKeyOptions: reverseKeyConstraint(keyConstraintInfo),
 			};
 		};
+		default:
+			return {};
 	}
 };
 

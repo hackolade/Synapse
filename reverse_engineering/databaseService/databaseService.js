@@ -25,12 +25,13 @@ const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) =>
 		SELECT c.*,
 				ic.SEED_VALUE,
 				ic.INCREMENT_VALUE,
-				COLUMNPROPERTY(object_id(${objectId}), c.column_name, 'IsSparse') AS IS_SPARSE,
-				COLUMNPROPERTY(object_id(${objectId}), c.column_name, 'IsIdentity') AS IS_IDENTITY,
+				sc.is_sparse AS IS_SPARSE,
+				sc.is_identity AS IS_IDENTITY,
 				o.type AS TABLE_TYPE
 		FROM information_schema.columns as c
 		LEFT JOIN SYS.IDENTITY_COLUMNS ic ON ic.object_id=object_id(${objectId})
 		LEFT JOIN sys.objects o ON o.object_id=object_id(${objectId})
+		LEFT JOIN sys.columns as sc ON object_id(${objectId}) = sc.object_id AND c.column_name = sc.name
 		WHERE c.table_name = ${tableName}
 		AND c.table_schema = ${tableSchema}
 	;`
@@ -86,7 +87,7 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			ic.is_descending_key,
 			ic.is_included_column,
 			COL_NAME(t.object_id, ic.column_id) as columnName,
-			OBJECT_SCHEMA_NAME(t.object_id) as schemaName,
+			S.name as schemaName,
 			p.data_compression_desc as dataCompression,
 			ind.*
 		FROM sys.indexes ind
@@ -96,6 +97,8 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
 		INNER JOIN sys.partitions p
 			ON p.object_id = t.object_id AND ind.index_id = p.index_id
+		INNER JOIN sys.objects O ON O.object_id = t.object_id
+		INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
 		WHERE
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
@@ -238,24 +241,30 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${tableName}`;
 	return currentDbConnectionClient.query`
-		SELECT TC.TABLE_NAME as tableName, TC.Constraint_Name as constraintName,
-		CC.Column_Name as columnName, TC.constraint_type as constraintType, ind.type_desc as typeDesc,
-		p.data_compression_desc as dataCompression,
-		ds.name as dataSpaceName,
-		st.no_recompute as statisticNoRecompute, st.is_incremental as statisticsIncremental,
-		ic.is_descending_key as isDescending,
-		ind.*
-		FROM information_schema.table_constraints TC
-		INNER JOIN information_schema.constraint_column_usage CC on TC.Constraint_Name = CC.Constraint_Name
-			AND TC.TABLE_NAME=${tableName} AND TC.TABLE_SCHEMA=${schemaName}
-		INNER JOIN sys.indexes ind ON ind.name = TC.CONSTRAINT_NAME
-		INNER JOIN sys.stats st ON st.name = TC.CONSTRAINT_NAME
-		INNER JOIN sys.data_spaces ds ON ds.data_space_id = ind.data_space_id
-		INNER JOIN sys.index_columns ic ON ic.object_id = object_id(${objectId})
-			AND ind.index_id=ic.index_id
-			AND ic.column_id=COLUMNPROPERTY(object_id(${objectId}), CC.column_name, 'ColumnId')
-		INNER JOIN sys.partitions p ON p.object_id = object_id(${objectId}) AND p.index_id = ind.index_id
-		ORDER BY TC.Constraint_Name
+		SELECT
+			'${tableName}' as tableName,
+			ind.name as constraintName,
+			sc.name as columnName,
+			constraintType = CASE
+				WHEN ind.is_unique_constraint=1 THEN 'UNIQUE'   
+				WHEN ind.is_primary_key=1 THEN 'PRIMARY KEY'
+				ELSE 'FOREIGN KEY'
+			END,
+			ind.type_desc as typeDesc,
+			p.data_compression_desc as dataCompression,
+			ds.name as dataSpaceName,
+			st.no_recompute as statisticNoRecompute,
+			st.is_incremental as statisticsIncremental,
+			ic.is_descending_key as isDescending,
+			ind.*
+		FROM sys.indexes ind
+			INNER JOIN sys.stats st ON st.name = ind.name AND st.object_id = object_id(${objectId})
+			INNER JOIN sys.data_spaces ds ON ds.data_space_id = ind.data_space_id
+			INNER JOIN sys.index_columns ic ON ind.index_id=ic.index_id AND ic.object_id = object_id(${objectId})
+			INNER JOIN sys.columns sc ON sc.column_id = ic.column_id AND sc.object_id = object_id(${objectId})
+			INNER JOIN sys.partitions p ON p.index_id = ind.index_id AND p.object_id = object_id(${objectId})
+		WHERE ind.object_id=object_id(${objectId}) AND (ind.is_unique_constraint=1 OR ind.is_primary_key=1)
+		ORDER BY ind.name
 	`;
 };
 
