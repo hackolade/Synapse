@@ -171,45 +171,41 @@ const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
 	}
 };
 
+const getViewColumns = async (connectionClient, dbName, viewName, schemaName) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const objectId = `${schemaName}.${viewName}`;
+
+	return currentDbConnectionClient.query`
+		select c.name as name,
+			v.name as viewName,
+			m.name as type,
+			m.is_user_defined 
+		from sys.columns c
+		join sys.views v on v.object_id = c.object_id
+		join sys.types as m on
+			m.system_type_id = c.system_type_id and
+			m.user_type_id = c.user_type_id
+		where c.object_id=object_id(${objectId})
+	`;
+};
+
 const getViewTableInfo = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
+
 	return currentDbConnectionClient.query`
-		SELECT
-			ViewName = O.name,
-			ColumnName = A.name,
-			ReferencedSchemaName = SCHEMA_NAME(X.schema_id),
-			ReferencedTableName = X.name,
-			ReferencedColumnName = C.name,
-			T.is_selected,
-			T.is_updated,
-			T.is_select_all,
-			ColumnType = M.name,
-			M.max_length,
-			M.precision,
-			M.scale
-		FROM
-			sys.sql_dependencies AS T
-			INNER JOIN sys.objects AS O ON T.object_id = O.object_id
-			INNER JOIN sys.objects AS X ON T.referenced_major_id = X.object_id
-			INNER JOIN sys.columns AS C ON
-				C.object_id = X.object_id AND
-				C.column_id = T.referenced_minor_id
-			INNER JOIN sys.types AS M ON
-				M.system_type_id = C.system_type_id AND
-				M.user_type_id = C.user_type_id
-			INNER JOIN sys.columns AS A ON
-				A.object_id = object_id(${objectId}) AND
-				T.referenced_minor_id = A.column_id
-		WHERE
-			O.type = 'V'
-		AND
-			O.name = ${viewName}
-		And O.schema_id=schema_id(${schemaName})
-		ORDER BY
-			O.name,
-			X.name,
-			C.name
+		select
+			schema_name(v.schema_id) as schema_name,
+			v.name as ViewName,
+			schema_name(o.schema_id) as ReferencedSchemaName,
+			o.name as ReferencedTableName
+		from sys.views v
+			join sys.sql_expression_dependencies d
+				on d.referencing_id = v.object_id
+				and d.referenced_id is not null
+			join sys.objects o
+				on o.object_id = d.referenced_id
+		WHERE v.object_id=object_id(${objectId})
 	`;
 };
 
@@ -315,4 +311,5 @@ module.exports = {
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
 	getViewsIndexes,
+	getViewColumns,
 }
