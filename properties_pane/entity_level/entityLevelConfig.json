@@ -118,6 +118,17 @@ making sure that you maintain a proper JSON format.
 		"lowerTab": "Details",
 		"structure": [
 			{
+				"propertyName": "Table role",
+				"propertyKeyword": "tableRole",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": [
+					"Dimension",
+					"Fact",
+					"Outrigger"
+				]
+			},
+			{
 				"propertyName": "Comments",
 				"propertyKeyword": "description",
 				"shouldValidate": false,
