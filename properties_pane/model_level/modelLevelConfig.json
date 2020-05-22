@@ -59,7 +59,6 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "DB vendor",
 				"propertyKeyword": "dbVendor",
-				"shouldValidate": false,
 				"propertyTooltip": "DB vendor",
 				"propertyType": "select",
 				"options": [
@@ -70,7 +69,6 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "DB version",
 				"propertyKeyword": "dbVersion",
-				"shouldValidate": false,
 				"propertyTooltip": "DB version",
 				"propertyType": "select",
 				"options": [
@@ -78,11 +76,140 @@ making sure that you maintain a proper JSON format.
 				"disabledOption": true
 			},
 			{
+				"propertyName": "Tenant",
+				"propertyKeyword": "tenant",
+				"propertyTooltip": "Azure tenant",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Account ID",
+				"propertyKeyword": "accountID",
+				"propertyTooltip": "Azure CosmosDB account ID",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Resource group",
+				"propertyKeyword": "resGrp",
+				"propertyTooltip": "Resource Group",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Subscription",
+				"propertyKeyword": "subscription",
+				"propertyTooltip": "Subscription",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Preferred location",
+				"propertyKeyword": "preferredLocation",
+				"propertyTooltip": "Default experience",
+				"propertyType": "select",
+				"options": [
+					"",
+					"Central US", 
+					"East US",
+					"East US 2", 
+					"North Central US", 
+					"South Central US", 
+					"West US", 
+					"West US 2", 
+					"West Central US", 
+					"Canada East", 
+					"Canada Central",
+					"Mexico Central",
+					"Brazil South", 
+					"North Europe", 
+					"West Europe", 
+					"France Central",
+					"France South",
+					"Germany Central", 
+					"Germany North",
+					"Germany Northeast",
+					"Germany West Central",
+					"Norway West",
+					"Norway East",
+					"Spain Central",
+					"Switzerland North",
+					"Switzerland West",
+					"UK South", 
+					"UK West", 
+					"East Asia", 
+					"Southeast Asia", 
+					"Australia Central",
+					"Australia Central 2",
+					"Australia East", 
+					"Australia Southeast", 
+					"China East", 
+					"Chine East 2",
+					"China North", 
+					"China North 2", 
+					"Central India", 
+					"South India", 
+					"West India", 
+					"Japan East", 
+					"Japan West", 
+					"Korea Central",
+					"Korea South", 
+					"South Africa North",
+					"South Africa West",
+					"Israel Central",
+					"Qatar Central",
+					"UAE Central",
+					"UAE North",
+					"US DoD Central",
+					"US DoD East",
+					"US Gov Arizona",
+					"US Gov Iowa",
+					"US Gov Texas",
+					"US Gov Virginia",
+					"US Sec West",
+					"US Sec East"
+				]
+			},
+			{
+				"propertyName": "Tags",
+				"propertyKeyword": "tags",
+				"propertyTooltip": "A list of key-value pairs that describe the resource",
+				"propertyType": "group",
+				"structure": [
+					{
+						"propertyName": "Name",
+						"propertyKeyword": "tagName",
+						"shouldValidate": false,
+						"propertyTooltip": "Tag name",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Value",
+						"propertyKeyword": "tagValue",
+						"shouldValidate": false,
+						"propertyTooltip": "Tag value",
+						"propertyType": "text"
+					}
+				]
+			},
+			{
+				"propertyName": "Performance level",
+				"propertyKeyword": "perfLevel",
+				"propertyTooltip": "Performance level",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Maintenance schedule",
+				"propertyKeyword": "maintSched",
+				"propertyTooltip": "Maintenance schedule",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Geo-backup policy",
+				"propertyKeyword": "geoBackupPolicy",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Comments",
 				"propertyKeyword": "comments",
-				"shouldValidate": false,
 				"propertyTooltip": "comments",
-				"addTimestampButton": false,
+				"addTimestampButton": true,
 				"propertyType": "details",
 				"template": "textarea"
 			}
