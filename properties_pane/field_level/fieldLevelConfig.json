@@ -290,69 +290,6 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
-				"propertyName": "Sparse",
-				"propertyKeyword": "sparse",
-				"propertyType": "checkbox",
-				"dependency": {
-					"type": "or",
-					"values": [
-						{
-							"key": "mode",
-							"value": "char"
-						},
-						{
-							"key": "mode",
-							"value": "nchar"
-						},
-						{
-							"key": "mode",
-							"value": "nvarchar"
-						},
-						{
-							"key": "mode",
-							"value": "varchar"
-						}
-					]
-				}
-			},
-			{
-				"propertyName": "Masked with function",
-				"propertyKeyword": "maskedWithFunction",
-				"propertyTooltip": "Limit exposure of sensitive data with this function",
-				"propertyType": "details",
-				"template": "textarea",
-				"markdown": false
-			},
-			{
-				"propertyName": "Encryption",
-				"propertyType": "block",
-				"propertyKeyword": "encryption",
-				"propertyTooltip": "",
-				"structure": [
-					{
-						"propertyName": "Key name",
-						"propertyKeyword": "COLUMN_ENCRYPTION_KEY",
-						"propertyType": "text"
-					},
-					{
-						"propertyName": "Type",
-						"propertyKeyword": "ENCRYPTION_TYPE",
-						"propertyType": "select",
-						"options": [
-							"DETERMINISTIC",
-							"RANDOMIZED"
-						],
-						"data": "options",
-						"valueType": "string"
-					},
-					{
-						"propertyName": "Algorithm",
-						"propertyKeyword": "ENCRYPTION_ALGORITHM",
-						"propertyType": "text"
-					}
-				]
-			},
-			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
@@ -803,19 +740,6 @@ making sure that you maintain a proper JSON format.
 				]
 			},
 			{
-				"propertyName": "Sparse",
-				"propertyKeyword": "sparse",
-				"propertyType": "checkbox"
-			},
-			{
-				"propertyName": "Masked with function",
-				"propertyKeyword": "maskedWithFunction",
-				"propertyTooltip": "Limit exposure of sensitive data with this function",
-				"propertyType": "details",
-				"template": "textarea",
-				"markdown": false
-			},
-			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
@@ -1232,32 +1156,6 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
-				"propertyName": "Sparse",
-				"propertyKeyword": "sparse",
-				"propertyType": "checkbox",
-				"dependency": {
-					"type": "or",
-					"values": [
-						{
-							"key": "mode",
-							"value": "binary"
-						},
-						{
-							"key": "mode",
-							"value": "varbinary"
-						}
-					]
-				}
-			},
-			{
-				"propertyName": "Masked with function",
-				"propertyKeyword": "maskedWithFunction",
-				"propertyTooltip": "Limit exposure of sensitive data with this function",
-				"propertyType": "details",
-				"template": "textarea",
-				"markdown": false
-			},
-			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
@@ -1651,61 +1549,6 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
-				"propertyName": "Sparse",
-				"propertyKeyword": "sparse",
-				"propertyType": "checkbox",
-				"dependency": {
-					"type": "or",
-					"values": [
-						{
-							"key": "mode",
-							"value": "date"
-						},
-						{
-							"key": "mode",
-							"value": "datetime"
-						},
-						{
-							"key": "mode",
-							"value": "datetime2"
-						},
-						{
-							"key": "mode",
-							"value": "datetimeoffset"
-						},
-						{
-							"key": "mode",
-							"value": "smalldatetime"
-						},
-						{
-							"key": "mode",
-							"value": "time"
-						}
-					]
-				}
-			},
-			{
-				"propertyName": "Masked with function",
-				"propertyKeyword": "maskedWithFunction",
-				"propertyTooltip": "Limit exposure of sensitive data with this function",
-				"propertyType": "details",
-				"template": "textarea",
-				"markdown": false
-			},
-			{
-				"propertyName": "Generated always as row",
-				"propertyKeyword": "GENERATED_ALWAYS_AS_ROW",
-				"propertyType": "select",
-				"options": [
-					"START",
-					"END"
-				],
-				"dependency": {
-					"key": "mode",
-					"value": "datetime2"
-				}
-			},
-			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
@@ -2062,16 +1905,6 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Not null",
 				"propertyKeyword": "required",
 				"enableForReference": true,
-				"propertyType": "checkbox"
-			},
-			{
-				"propertyName": "Sparse",
-				"propertyKeyword": "sparse",
-				"propertyType": "checkbox"
-			},
-			{
-				"propertyName": "Row GUID Column",
-				"propertyKeyword": "ROWGUIDCOL",
 				"propertyType": "checkbox"
 			},
 			{
