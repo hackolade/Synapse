@@ -10,19 +10,8 @@
 	},
 	"collection": {
 		"collectionName": "New table",
-		"memory_optimized": false,
-		"collectionUsers": [],
-		"collation": {},
-		"chkConstr": {
-			"constrCheck": true,
-			"constrEnforceUpserts": true,
-			"constrEnforceReplication": true
-		},
-		"Indxs": {
-			"indxType": "Index",
-			"ALLOW_ROW_LOCKS": true,
-			"ALLOW_PAGE_LOCKS": true
-		}
+		"persistence": "regular",
+		"indexing": "clustered columnstore index"
 	},
 	"field": {
 		"name": "New column",

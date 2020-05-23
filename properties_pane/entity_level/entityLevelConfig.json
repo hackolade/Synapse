@@ -1,5 +1,5 @@
 /*
-* Copyright © 2016-2017 by IntegrIT S.A. dba Hackolade.  All rights reserved.
+* Copyright © 2016-2020 by IntegrIT S.A. dba Hackolade.  All rights reserved.
 *
 * The copyright to the computer software herein is the property of IntegrIT S.A.
 * The software may be used and/or copied only with the written permission of 
@@ -118,17 +118,6 @@ making sure that you maintain a proper JSON format.
 		"lowerTab": "Details",
 		"structure": [
 			{
-				"propertyName": "Table role",
-				"propertyKeyword": "tableRole",
-				"propertyTooltip": "Select from list of options",
-				"propertyType": "select",
-				"options": [
-					"Dimension",
-					"Fact",
-					"Outrigger"
-				]
-			},
-			{
 				"propertyName": "Comments",
 				"propertyKeyword": "description",
 				"shouldValidate": false,
@@ -138,67 +127,115 @@ making sure that you maintain a proper JSON format.
 				"template": "textarea"
 			},
 			{
-				"propertyName": "Memory optimized",
-				"propertyKeyword": "memory_optimized",
-				"propertyType": "checkbox"
-			},
-			{
-				"propertyName": "Durability",
-				"propertyKeyword": "durability",
+				"propertyName": "Table role",
+				"propertyKeyword": "tableRole",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
 				"options": [
-					"",
-					"SCHEMA_ONLY",
-					"SCHEMA_AND_DATA"
+					"Dimension",
+					"Fact",
+					"Outrigger",
+					"Staging"
+				]
+			},
+			{
+				"propertyName": "Distribution",
+				"propertyKeyword": "distribution",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": [
+					"hash",
+					"replicate",
+					"round_robin"
+				]
+			},
+			{
+				"propertyName": "Distribution column name",
+				"propertyKeyword": "hashColumn",
+				"propertyType": "primaryKeySetter",
+				"dependency": {
+					"key": "distribution",
+					"value": "hash"
+				}
+			}, 
+			{
+				"propertyName": "Persistence",
+				"propertyKeyword": "persistence",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": [
+					"regular",
+					"temporary",
+					"external"
+				]
+			},
+			{
+				"propertyName": "SQL pool indexing",
+				"propertyKeyword": "indexing",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": [
+					"clustered columnstore index",
+					"clustered columnstore index order",
+					"heap",
+					"clustered index"
+				]
+			},
+			{
+				"propertyName": "Column",
+				"propertyKeyword": "indexingOrderColumn",
+				"propertyType": "primaryKeySetter",
+				"dependency": {
+					"key": "indexing",
+					"value": "clustered columnstore index order"
+				}
+			}, 
+			{
+				"propertyName": "Index column",
+				"propertyKeyword": "compositeClusteringKey",
+				"propertyType": "primaryKeySetter",
+				"attributeList": [
+					{ "name": "ascending", "abbr": "\u2191" },
+					{ "name": "descending", "abbr": "\u2193" }
 				],
 				"dependency": {
-					"key": "memory_optimized",
-					"value": true
+					"key": "indexing",
+					"value": "clustered index"
 				}
 			},
 			{
-				"propertyName": "System versioning",
-				"propertyKeyword": "systemVersioning",
-				"propertyType": "checkbox",
-				"dependency": {
-					"key": "memory_optimized",
-					"value": true
-				}
+				"propertyName": "Partion",
+				"propertyKeyword": "partition",
+				"propertyType": "primaryKeySetter"
+			}, 
+			{
+				"propertyName": "CTAS query",
+				"propertyKeyword": "textareaProp",
+				"propertyTooltip": "Popup for multi-line text entry",
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false,
+				"addTimestampButton": false
 			},
 			{
-				"propertyName": "History table",
-				"propertyKeyword": "historyTable",
-				"shouldValidate": false,
-				"propertyTooltip": "",
-				"propertyType": "text",
-				"dependency": {
-					"type": "and",
-					"values": [{
-						"key": "memory_optimized",
-						"value": true
-					}, {
-						"key": "systemVersioning",
-						"value": true
-					}]
-				}
+				"propertyName": "Range for values",
+				"propertyKeyword": "rangeForValues",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": [
+					"left",
+					"right"
+				]
 			},
 			{
-				"propertyName": "Data consistency check",
-				"propertyKeyword": "dataConsistencyCheck",
-				"shouldValidate": false,
-				"propertyTooltip": "",
-				"propertyType": "checkbox",
-				"dependency": {
-					"type": "and",
-					"values": [{
-						"key": "memory_optimized",
-						"value": true
-					}, {
-						"key": "systemVersioning",
-						"value": true
-					}]
-				}
+				"propertyName": "Boundary value",
+				"propertyKeyword": "boundaryValue",
+				"propertyTooltip": "Boundary value expression",
+				"addTimestampButton": false,
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false,
+				"valueType": "string"
 			},
 			{
 				"propertyName": "Remarks",
@@ -211,974 +248,5 @@ making sure that you maintain a proper JSON format.
 			}
 		],
 		"columnsRatio": [3.7, 5]
-	},
-	{
-		"lowerTab": "Composite keys",
-		"structure": [{
-			"propertyName": "Primary key",
-			"propertyType": "group",
-			"groupItemLimit": 1,
-			"propertyKeyword": "primaryKey",
-			"propertyTooltip": "",
-			"structure": [{
-				"propertyName": "Constraint name",
-				"propertyKeyword": "constraintName",
-				"propertyTooltip": "",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Key",
-				"propertyKeyword": "compositePrimaryKey",
-				"propertyType": "primaryKeySetter",
-				"abbr": "pk",
-				"attributeList": [
-					"ascending",
-					"descending"
-				]
-			}, {
-				"propertyName": "Partition name",
-				"propertyKeyword": "partitionName",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Statistics no recompute",
-				"propertyKeyword": "staticticsNorecompute",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Statistics incremental",
-				"propertyKeyword": "statisticsIncremental",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Ignore duplicate",
-				"propertyKeyword": "ignoreDuplicate",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Allow row locks",
-				"propertyKeyword": "allowRowLocks",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Allow page locks",
-				"propertyKeyword": "allowPageLocks",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Padded",
-				"propertyKeyword": "isPadded",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Fill factor",
-				"propertyKeyword": "fillFactor",
-				"propertyType": "numeric",
-				"valueType": "number",
-				"allowNegative": false,
-				"minValue": 0,
-				"maxValue": 100
-			}, {
-				"propertyName": "Optimize for sequential key",
-				"propertyKeyword": "isOptimizedForSequentialKey",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Clustered",
-				"propertyKeyword": "clustered",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Data compression",
-				"propertyKeyword": "dataCompression",
-				"propertyType": "select",
-				"options": [
-					"NONE",
-					"ROW",
-					"PAGE",
-					"COLUMNSTORE",
-					"COLUMNSTORE_ARCHIVE"
-				]
-			}]
-		}, {
-			"propertyName": "Unique key",
-			"propertyType": "group",
-			"propertyKeyword": "uniqueKey",
-			"propertyTooltip": "",
-			"structure": [{
-				"propertyName": "Constraint name",
-				"propertyKeyword": "constraintName",
-				"propertyTooltip": "",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Key",
-				"propertyKeyword": "compositeUniqueKey",
-				"propertyType": "primaryKeySetter",
-				"abbr": " ",
-				"attributeList": [
-					"ascending",
-					"descending"
-				]
-			}, {
-				"propertyName": "Partition name",
-				"propertyKeyword": "partitionName",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Statistics no recompute",
-				"propertyKeyword": "staticticsNorecompute",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Statistics incremental",
-				"propertyKeyword": "statisticsIncremental",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Ignore duplicate",
-				"propertyKeyword": "ignoreDuplicate",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Allow row locks",
-				"propertyKeyword": "allowRowLocks",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Allow page locks",
-				"propertyKeyword": "allowPageLocks",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Padded",
-				"propertyKeyword": "isPadded",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Fill factor",
-				"propertyKeyword": "fillFactor",
-				"propertyType": "numeric",
-				"valueType": "number",
-				"allowNegative": false,
-				"minValue": 0,
-				"maxValue": 100
-			}, {
-				"propertyName": "Optimize for sequential key",
-				"propertyKeyword": "isOptimizedForSequentialKey",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Clustered",
-				"propertyKeyword": "clustered",
-				"propertyType": "checkbox"
-			}, {
-				"propertyName": "Data compression",
-				"propertyKeyword": "dataCompression",
-				"propertyType": "select",
-				"options": [
-					"NONE",
-					"ROW",
-					"PAGE",
-					"COLUMNSTORE",
-					"COLUMNSTORE_ARCHIVE"
-				]
-			}]
-		}]
-	},
-	{
-		"lowerTab": "Indexes",
-		"structure": [{
-			"propertyName": "Index",
-			"propertyType": "group",
-			"propertyKeyword": "Indxs",
-			"propertyTooltip": "",
-			"dependency": {
-				"key": "memory_optimized",
-				"value": true
-			},
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "indxName",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending"
-					]
-				},
-				{
-					"propertyName": "Clustered",
-					"propertyKeyword": "clusteredIndx",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Unique",
-					"propertyKeyword": "uniqueIndx",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "clusteredIndx",
-							"exist": false
-						}, {
-							"key": "clusteredIndx",
-							"value": false
-						}]
-					}
-				},
-				{
-					"propertyName": "Hash",
-					"propertyKeyword": "indxHash",
-					"propertyTooltip": "",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "clusteredIndx",
-							"exist": false
-						}, {
-							"key": "clusteredIndx",
-							"value": false
-						}]
-					}
-				},
-				{
-					"propertyName": "Bucket count",
-					"propertyKeyword": "indxBucketCount",
-					"propertyTooltip": "",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"dependency": {
-						"type": "and",
-						"values": [
-							{
-								"key": "indxHash",
-								"value": true
-							},
-							{
-								"type": "or",
-								"values": [{
-									"key": "clusteredIndx",
-									"exist": false
-								}, {
-									"key": "clusteredIndx",
-									"value": false
-								}]
-							}
-						]
-					}
-				},
-				{
-					"propertyName": "Compression delay (minutes)",
-					"propertyKeyword": "COMPRESSION_DELAY",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"dependency": {
-						"key": "clusteredIndx",
-						"value": true
-					}
-				},
-				{
-					"propertyName": "Filegroup name",
-					"propertyKeyword": "indxFileGroupName",
-					"propertyTooltip": "",
-					"propertyType": "text",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxHash",
-							"value": false
-						}, {
-							"key": "indxHash",
-							"exist": false
-						}]
-					}
-				}
-			]
-		}, {
-			"propertyName": "Index",
-			"propertyType": "group",
-			"propertyKeyword": "Indxs",
-			"propertyTooltip": "",
-			"dependency": {
-				"type": "or",
-				"values": [{
-					"key": "memory_optimized",
-					"value": false
-				}, {
-					"key": "memory_optimized",
-					"exist": false
-				}]
-			},
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "indxName",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Type",
-					"propertyKeyword": "indxType",
-					"propertyType": "select",
-					"options": [
-						"Index",
-						"Columnstore",
-						"FullText",
-						"Spatial"
-					]
-				},
-				{
-					"propertyName": "Unique",
-					"propertyKeyword": "uniqueIndx",
-					"propertyType": "checkbox",
-					"dependency": {
-						"key": "indxType",
-						"value": "Index"
-					}
-				},
-				{
-					"propertyName": "Clustered",
-					"propertyKeyword": "clusteredIndx",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending"
-					],
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [],
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					},
-					"templateOptions": {
-						"maxFields": 1
-					}
-				},
-				{
-					"propertyName": "Include non-key columns",
-					"propertyKeyword": "indxInclude",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Filter Expression",
-					"propertyKeyword": "indxFilterExpression",
-					"propertyTooltip": "Expression for index WHERE clause",
-					"propertyType": "details",
-					"template": "textarea",
-					"markdown": false,
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Description",
-					"propertyKeyword": "indxDescription",
-					"propertyTooltip": "description",
-					"propertyType": "details",
-					"template": "textarea"
-				},
-				{
-					"propertyName": "Using",
-					"propertyKeyword": "indxUsing",
-					"propertyType": "select",
-					"options": [
-						"GEOMETRY_GRID",
-						"GEOGRAPHY_GRID",
-						"GEOMETRY_AUTO_GRID",
-						"GEOGRAPHY_AUTO_GRID"
-					],
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					}
-				},
-				{
-					"propertyName": "Bounding box",
-					"propertyKeyword": "indxBoundingBox",
-					"propertyType": "block",
-					"dependency": {
-						"type": "and",
-						"values": [{
-							"key": "indxType",
-							"value": "Spatial"
-						}, {
-							"type": "or",
-							"values": [{
-								"key": "indxUsing",
-								"value": "GEOMETRY_AUTO_GRID"
-							}, {
-								"key": "indxUsing",
-								"value": "GEOMETRY_GRID"
-							}]
-						}]
-					},
-					"structure": [{
-						"propertyName": "XMIN",
-						"propertyKeyword": "XMIN",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false
-					}, {
-						"propertyName": "YMIN",
-						"propertyKeyword": "YMIN",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false
-					}, {
-						"propertyName": "XMAX",
-						"propertyKeyword": "XMAX",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false
-					}, {
-						"propertyName": "YMAX",
-						"propertyKeyword": "YMAX",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false
-					}]
-				}, {
-					"propertyName": "Grids",
-					"propertyKeyword": "indxGrids",
-					"propertyType": "block",
-					"dependency": {
-						"type": "and",
-						"values": [{
-							"key": "indxType",
-							"value": "Spatial"
-						}, {
-							"type": "or",
-							"values": [{
-								"key": "indxUsing",
-								"value": "GEOMETRY_GRID"
-							}, {
-								"key": "indxUsing",
-								"value": "GEOGRAPHY_GRID"
-							}]
-						}]
-					},
-					"structure": [{
-						"propertyName": "LEVEL_1",
-						"propertyKeyword": "LEVEL_1",
-						"propertyType": "select",
-						"options": [
-							"",
-							"LOW",
-							"MEDIUM",
-							"HIGH"
-						]
-					}, {
-						"propertyName": "LEVEL_2",
-						"propertyKeyword": "LEVEL_2",
-						"propertyType": "select",
-						"options": [
-							"",
-							"LOW",
-							"MEDIUM",
-							"HIGH"
-						]
-					}, {
-						"propertyName": "LEVEL_3",
-						"propertyKeyword": "LEVEL_3",
-						"propertyType": "select",
-						"options": [
-							"",
-							"LOW",
-							"MEDIUM",
-							"HIGH"
-						]
-					}, {
-						"propertyName": "LEVEL_4",
-						"propertyKeyword": "LEVEL_4",
-						"propertyType": "select",
-						"options": [
-							"",
-							"LOW",
-							"MEDIUM",
-							"HIGH"
-						]
-					}]
-				},
-				{
-					"propertyName": "Cells per object",
-					"propertyKeyword": "CELLS_PER_OBJECT",
-					"propertyType": "numeric",
-					"valueType": "integer",
-					"allowNegative": false,
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					}
-				},
-				{
-					"propertyName": "Sort in tempdb",
-					"propertyKeyword": "SORT_IN_TEMPDB",
-					"propertyType": "checkbox",
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					}
-				},
-				{
-					"propertyName": "Drop existing",
-					"propertyKeyword": "DROP_EXISTING",
-					"propertyType": "checkbox",
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					}
-				},
-				{
-					"propertyName": "Max degree of parallelism",
-					"propertyKeyword": "MAXDOP",
-					"propertyType": "numeric",
-					"allowNegative": false,
-					"dependency": {
-						"key": "indxType",
-						"value": "Spatial"
-					}
-				},
-				{
-					"propertyName": "Pad index",
-					"propertyKeyword": "PAD_INDEX",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Fill factor",
-					"propertyKeyword": "FILLFACTOR",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"minValue": 0,
-					"maxValue": 100,
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Ignore duplicate key",
-					"propertyKeyword": "IGNORE_DUP_KEY",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Included columns",
-					"propertyKeyword": "indxIncludedColumn",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending"
-					],
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Statistics no recompute",
-					"propertyKeyword": "STATISTICS_NORECOMPUTE",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Statistics incremental",
-					"propertyKeyword": "STATISTICS_INCREMENTAL",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Allow row locks",
-					"propertyKeyword": "ALLOW_ROW_LOCKS",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Allow page locks",
-					"propertyKeyword": "ALLOW_PAGE_LOCKS",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Optimize for sequential key",
-					"propertyKeyword": "OPTIMIZE_FOR_SEQUENTIAL_KEY",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Compression delay (minutes)",
-					"propertyKeyword": "COMPRESSION_DELAY",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
-					}
-				},
-				{
-					"propertyName": "Data compression",
-					"propertyKeyword": "DATA_COMPRESSION",
-					"propertyType": "select",
-					"options": [
-						"NONE",
-						"ROW",
-						"PAGE",
-						"COLUMNSTORE",
-						"COLUMNSTORE_ARCHIVE"
-					],
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}, {
-							"key": "indxType",
-							"value": "Columnstore"
-						}, {
-							"key": "indxType",
-							"value": "Spatial"
-						}]
-					}
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [],
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					}
-				},
-				{
-					"propertyName": "Keys properties",
-					"propertyKeyword": "indxFullTextKeysProperties",
-					"propertyType": "group",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					},
-					"structure": [{
-						"propertyName": "Type column name",
-						"propertyKeyword": "columnType",
-						"propertyType": "text"
-					}, {
-						"propertyName": "Language term",
-						"propertyKeyword": "languageTerm",
-						"propertyType": "text"
-					}, {
-						"propertyName": "Statistical semantics",
-						"propertyKeyword": "statisticalSemantics",
-						"propertyType": "checkbox"
-					}]
-				},
-				{
-					"propertyName": "Key index",
-					"propertyKeyword": "indxFullTextKeyIndex",
-					"propertyType": "text",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					}
-				},
-				{
-					"propertyName": "Catalog name",
-					"propertyKeyword": "indxFullTextCatalogName",
-					"propertyType": "text",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					}
-				},
-				{
-					"propertyName": "File group",
-					"propertyKeyword": "indxFullTextFileGroup",
-					"propertyType": "text",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					}
-				},
-				{
-					"propertyName": "Change tracking",
-					"propertyKeyword": "indxFullTextChangeTracking",
-					"propertyType": "select",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					},
-					"options": [
-						"",
-						"MANUAL",
-						"AUTO",
-						"OFF"
-					]
-				},
-				{
-					"propertyName": "No population",
-					"propertyKeyword": "indxFullTextNoPopulation",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "and",
-						"values": [{
-							"key": "indxType",
-							"value": "FullText"
-						}, {
-							"key": "indxFullTextChangeTracking",
-							"value": "OFF"
-						}]
-					}
-				},
-				{
-					"propertyName": "Stop list",
-					"propertyKeyword": "indxFullTextStopList",
-					"propertyType": "select",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					},
-					"options": [
-						"",
-						"OFF",
-						"SYSTEM",
-						"Stoplist name"
-					]
-				},
-				{
-					"propertyName": "Stoplist name",
-					"propertyKeyword": "indxFullTextStopListName",
-					"propertyType": "text",
-					"dependency": {
-						"type": "and",
-						"values": [{
-							"key": "indxType",
-							"value": "FullText"
-						}, {
-							"key": "indxFullTextStopList",
-							"value": "Stoplist name"
-						}]
-					}
-				},
-				{
-					"propertyName": "Search property list",
-					"propertyKeyword": "indxFullTextSearchPropertyList",
-					"propertyType": "text",
-					"dependency": {
-						"key": "indxType",
-						"value": "FullText"
-					}
-				},
-				{
-					"propertyName": "Comments",
-					"propertyKeyword": "indxComments",
-					"propertyTooltip": "comments",
-					"addTimestampButton": false,
-					"propertyType": "details",
-					"template": "textarea"
-				}
-			]
-		}]
-	},
-	{
-		"lowerTab": "Check Constraints",
-		"structure": [{
-			"propertyName": "Check Constraint",
-			"propertyType": "group",
-			"propertyKeyword": "chkConstr",
-			"propertyTooltip": "",
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "chkConstrName",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Expression",
-					"propertyKeyword": "constrExpression",
-					"propertyTooltip": "Expression",
-					"propertyType": "details",
-					"template": "textarea",
-					"markdown": false
-				},
-				{
-					"propertyName": "Description",
-					"propertyKeyword": "constrDescription",
-					"propertyTooltip": "description",
-					"propertyType": "details",
-					"template": "textarea"
-				},
-				{
-					"propertyName": "Check Existing Data",
-					"propertyKeyword": "constrCheck",
-					"propertyTooltip": "Check existing data on Creation or Re-Enabling",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Enforce for Upserts",
-					"propertyKeyword": "constrEnforceUpserts",
-					"propertyTooltip": "Enforce for INSERTs and UPDATEs",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Enforce for Replication",
-					"propertyKeyword": "constrEnforceReplication",
-					"propertyTooltip": "Enforce for replication",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Comments",
-					"propertyKeyword": "constrComments",
-					"propertyTooltip": "comments",
-					"addTimestampButton": false,
-					"propertyType": "details",
-					"template": "textarea"
-				}
-			]
-		}]
 	}
 ]

@@ -367,84 +367,16 @@ making sure that you maintain a proper JSON format.
 				},
 				"structure": [
 					{
-						"propertyName": "Constraint name",
-						"propertyKeyword": "constraintName",
-						"propertyType": "text"
-					},
-					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
-					},
-					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
-						"propertyType": "select",
-						"options": [
-							"ASC",
-							"DESC"
-						]
-					},
-					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
+						"propertyKeyword": "pkClustered",
+						"propertyType": "checkbox",
+						"disabledOption": true
 					},
 					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
-						"propertyType": "select",
-						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
-						]
+						"propertyName": "Enforced",
+						"propertyKeyword": "pkEnforced",
+						"propertyType": "checkbox",
+						"disabledOption": true
 					}
 				]
 			},
@@ -526,84 +458,10 @@ making sure that you maintain a proper JSON format.
 				},
 				"structure": [
 					{
-						"propertyName": "Constraint name",
-						"propertyKeyword": "constraintName",
-						"propertyType": "text"
-					},
-					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
-					},
-					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
-						"propertyType": "select",
-						"options": [
-							"ASC",
-							"DESC"
-						]
-					},
-					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
-						"propertyType": "select",
-						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
-						]
+						"propertyName": "Enforced",
+						"propertyKeyword": "ukEnforced",
+						"propertyType": "checkbox",
+						"disabledOption": true
 					}
 				]
 			},
@@ -1500,8 +1358,7 @@ making sure that you maintain a proper JSON format.
 					"datetime2",
 					"datetimeoffset",
 					"smalldatetime",
-					"time",
-					"timestamp"
+					"time"
 				],
 				"data": "options",
 				"valueType": "string"
