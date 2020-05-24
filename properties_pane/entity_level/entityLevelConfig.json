@@ -204,7 +204,7 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Partion",
+				"propertyName": "Partition",
 				"propertyKeyword": "partition",
 				"propertyType": "primaryKeySetter"
 			}, 
