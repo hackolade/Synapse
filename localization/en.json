@@ -126,7 +126,7 @@
 	"TOOLTIPS___MAX_VARIABLE": "max variable",
 	"TOOLTIPS___BACKWARDS": "Backwards",
 	"TOOLTIPS___NORMALIZATION": "Normalization",
-	"MAIN_MENU___FORWARD_DB_BUCKETS": "MS SQL DDL...",
+	"MAIN_MENU___FORWARD_DB_BUCKETS": "Synapse DDL...",
 	"NEW___MODEL_NAME": "New model",
 	"NEW___BUCKET_NAME": "New schema",
 	"NEW___COLLECTION_NAME": "New table",
