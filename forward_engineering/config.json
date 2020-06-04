@@ -1,7 +1,7 @@
 {
 	"type": "ddl",
 	"ddlType": "mssql",
-	"namePrefix": "MS SQL Server",
+	"namePrefix": "Synapse",
 	"level": {
 		"container": true,
 		"entity": true,
