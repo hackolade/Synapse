@@ -143,11 +143,17 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Distribution column name",
 				"propertyKeyword": "hashColumn",
-				"propertyType": "primaryKeySetter",
+				"propertyType": "compositeKeySetter",
 				"dependency": {
 					"key": "distribution",
 					"value": "hash"
-				}
+				},
+				"disabledItemStrategy": "default",
+				"setPrimaryKey": false,
+				"abbr": " ",
+				"attributeList": [],
+				"template": "collectiontree",
+				"isCompositeKey": true
 			}, 
 			{
 				"propertyName": "Select Statement",

@@ -152,11 +152,17 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Distribution column name",
 				"propertyKeyword": "hashColumn",
-				"propertyType": "primaryKeySetter",
+				"propertyType": "compositeKeySetter",
 				"dependency": {
 					"key": "distribution",
 					"value": "hash"
-				}
+				},
+				"disabledItemStrategy": "default",
+				"setPrimaryKey": false,
+				"abbr": " ",
+				"attributeList": [],
+				"template": "collectiontree",
+				"isCompositeKey": true
 			}, 
 			{
 				"propertyName": "Persistence",
@@ -184,11 +190,17 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Column",
 				"propertyKeyword": "indexingOrderColumn",
-				"propertyType": "primaryKeySetter",
+				"propertyType": "compositeKeySetter",
 				"dependency": {
 					"key": "indexing",
 					"value": "clustered columnstore index order"
-				}
+				},
+				"disabledItemStrategy": "default",
+				"setPrimaryKey": false,
+				"abbr": " ",
+				"attributeList": [],
+				"template": "collectiontree",
+				"isCompositeKey": true
 			}, 
 			{
 				"propertyName": "Index column",
@@ -206,7 +218,13 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Partition",
 				"propertyKeyword": "partition",
-				"propertyType": "primaryKeySetter"
+				"propertyType": "compositeKeySetter",
+				"disabledItemStrategy": "default",
+				"setPrimaryKey": false,
+				"abbr": " ",
+				"attributeList": [],
+				"template": "collectiontree",
+				"isCompositeKey": true
 			}, 
 			{
 				"propertyName": "CTAS query",
