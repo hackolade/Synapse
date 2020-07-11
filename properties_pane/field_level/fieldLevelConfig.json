@@ -271,6 +271,114 @@ making sure that you maintain a proper JSON format.
 			},
 			"default",
 			{
+				"propertyName": "Collate",
+				"propertyKeyword": "collate",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Locale",
+				"propertyKeyword": "locale",
+				"propertyType": "text",
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},
+			{
+				"propertyName": "Case-sensitivity",
+				"propertyKeyword": "caseSensitivity",
+				"propertyType": "select",
+				"options": [
+					"",
+					"CS",
+					"CI"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},
+			{
+				"propertyName": "Accent-sensitivity",
+				"propertyKeyword": "accentSensitivity",
+				"propertyType": "select",
+				"options": [
+					"",
+					"AS",
+					"AI"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},	
+			{
+				"propertyName": "Kana-sensitivity",
+				"propertyKeyword": "kanaSensitivity",
+				"propertyType": "select",
+				"options": [
+					"",
+					"KS"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},	
+			{
+				"propertyName": "Width-sensitivity",
+				"propertyKeyword": "widthSensitivity",
+				"propertyType": "select",
+				"options": [
+					"",
+					"WS"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},	
+			{
+				"propertyName": "Variation-selector-sensitivity",
+				"propertyKeyword": "variationSelectorSensitivity",
+				"propertyType": "select",
+				"options": [
+					"",
+					"VSS"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},	
+			{
+				"propertyName": "Binary sort order",
+				"propertyKeyword": "binarySort",
+				"propertyType": "select",
+				"options": [
+					"",
+					"BIN",
+					"BIN2"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},
+			{
+				"propertyName": "UTF-8",
+				"propertyKeyword": "utf8",
+				"propertyType": "select",
+				"options": [
+					"",
+					"UTF8"
+				],
+				"dependency": {
+					"key": "collate",
+					"value": true
+				}
+			},
+			{
 				"propertyName": "Default constraint name",
 				"propertyKeyword": "defaultConstraintName",
 				"propertyType": "text"

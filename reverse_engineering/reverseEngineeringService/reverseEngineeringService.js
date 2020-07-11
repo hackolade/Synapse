@@ -13,6 +13,7 @@ const {
 	getViewStatement,
 	getViewsIndexes,
 	getDistributedColumns,
+	getViewDistributedColumns,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -100,8 +101,12 @@ const cleanComments = (definition) => {
 	return definition.split('\n').filter(line => !/^--/.test(line.trim())).join('\n');
 };
 
+const isMaterialized = definition => {
+	return /CREATE\s+MATERIALIZED\s+VIEW/i.test(definition || '');
+};
+
 const getSelectStatementFromDefinition = (definition) => {
-	const regExp = /CREATE[\s]+VIEW[\s\S]+?(?:WITH[\s]+(?:ENCRYPTION,?|SCHEMABINDING,?|VIEW_METADATA,?)+[\s]+)?AS\s+((?:WITH|SELECT)[\s\S]+?)(WITH\s+CHECK\s+OPTION|$)/i;
+	const regExp = /CREATE(?:\s+MATERIALIZED)?[\s]+VIEW[\s\S]+?(?:WITH[\s]+(?:ENCRYPTION,?|SCHEMABINDING,?|VIEW_METADATA,?)+[\s]+)?AS\s+((?:WITH|SELECT)[\s\S]+?)(WITH\s+CHECK\s+OPTION|$)/i;
 
 	if (!regExp.test(definition.trim())) {
 		return '';
@@ -151,22 +156,48 @@ const addViewProperties = (jsonSchema, viewColumns) => {
 	});
 };
 
+const filterCbViewColumn = jsonSchema => {
+	if (!jsonSchema || !jsonSchema.properties) {
+		return jsonSchema;
+	}
+
+	return {
+		...jsonSchema,
+		properties: Object.keys(jsonSchema.properties).reduce((schema, key) => {
+			if (key === 'cb') {
+				return schema;
+			}
+
+			return {
+				...schema,
+				[key]: jsonSchema.properties[key]
+			};
+		}, {})
+	};
+};
+
 const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => async jsonSchema => {
 	const [viewInfo, viewColumns, viewStatement] = await Promise.all([
 		await getViewTableInfo(dbConnectionClient, dbName, viewName, schemaName),
 		await getViewColumns(dbConnectionClient, dbName, viewName, schemaName),
 		await getViewStatement(dbConnectionClient, dbName, viewName, schemaName),
 	]);
+	const materialized = isMaterialized(viewStatement[0].definition);
+	if (materialized) {
+		jsonSchema = filterCbViewColumn(addViewProperties(jsonSchema, viewColumns));
+	}
+
 	if (isViewPartitioned(viewStatement[0].definition)) {
 		const partitionedTables = getPartitionedTables(viewInfo);
 
 		return {
-			jsonSchema: JSON.stringify(addViewProperties(jsonSchema, viewColumns)),
+			jsonSchema: JSON.stringify(jsonSchema),
 			data: {
 				...getViewProperties(viewStatement[0]),
 				selectStatement: getPartitionedSelectStatement(cleanComments(String(viewStatement[0].definition)), (partitionedTables[0] || {}).table, dbName),
 				partitioned: true,
 				partitionedTables,
+				materialized
 			},
 			name: viewName,
 			relatedTables: [{
@@ -176,13 +207,12 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 		};
 	} else {
 		return {
-			jsonSchema: JSON.stringify(
-				addViewProperties(jsonSchema, viewColumns)
-			),
+			jsonSchema: JSON.stringify(jsonSchema),
 			name: viewName,
 			data: {
 				...getViewProperties(viewStatement[0]),
-				selectStatement: getSelectStatementFromDefinition(cleanComments(String(viewStatement[0].definition)))
+				selectStatement: getSelectStatementFromDefinition(cleanComments(String(viewStatement[0].definition))),
+				materialized
 			},
 			relatedTables: viewInfo.map((columnInfo => ({
 				tableName: columnInfo['ReferencedTableName'],
@@ -225,7 +255,7 @@ const getDistribution = tableInfo => {
 		4: 'round_robin'
 	};
 
-	return distributionMap[tableInfo.DISTRIBUTION_POLICY];
+	return distributionMap[tableInfo.DISTRIBUTION_POLICY || tableInfo.VIEW_DISTRIBUTION_POLICY];
 };
 
 const getIndexing = (indexingInfo, order) => {
@@ -291,14 +321,18 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				);
 				logger.progress({ message: 'Fetching table information', containerName: dbName, entityName: tableName });
 
-				const [tableInfo, tableRows, fieldsKeyConstraints, distributedColumns] = await Promise.all([
+				const [tableInfo, tableRows, fieldsKeyConstraints] = await Promise.all([
 					await getTableInfo(dbConnectionClient, dbName, tableName, schemaName),
 					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings),
-					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName),
-					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName)
+					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName)
 				]);
-				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
+
+				const distributedColumns = isView ?
+					await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
+					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+
+				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 
 				const jsonSchema = pipe(
 					transformDatabaseTableInfoToJSON(tableInfo),
@@ -330,7 +364,8 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 						tableRole: getTableRole(distribution, indexing),
 						distribution,
 						indexing,
-						hashColumn
+						hashColumn,
+						persistence,
 					},
 					standardDoc: standardDoc,
 					documentTemplate: standardDoc,
@@ -348,13 +383,14 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				};
 
 				if (isView) {
-					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema)
+					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema);
 					const indexes = viewsIndexes.filter(index => index.TableName === tableName && index.schemaName === schemaName);
 
 					result = {
 						...result,
 						...viewData,
 						data: {
+							...result.entityLevel,
 							...(viewData.data || {}),
 							Indxs: reverseTableIndexes(indexes),
 						}
