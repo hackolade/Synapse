@@ -1,10 +1,13 @@
 {
-  "name": "MSSQLServer",
+  "name": "Synapse",
   "version": "1.0.0",
   "description": "",
   "author": "Hackolade",
   "dependencies": {
-    "mssql": "^3.3.0"
+    "mssql": "^3.3.0",
+    "axios": "^0.19.1",
+    "lodash": "^4.17.15",
+    "qs": "^6.9.1"
   },
   "installed": true
 }

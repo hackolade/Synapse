@@ -84,7 +84,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Account ID",
 				"propertyKeyword": "accountID",
-				"propertyTooltip": "Azure CosmosDB account ID",
+				"propertyTooltip": "Azure Synapse account ID",
 				"propertyType": "text"
 			},
 			{
