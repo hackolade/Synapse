@@ -12,6 +12,7 @@ const {
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
 	getViewsIndexes,
+	getDistributedColumns,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -217,6 +218,58 @@ const getMemoryOptimizedOptions = (options) => {
 	};
 };
 
+const getDistribution = tableInfo => {
+	const distributionMap = {
+		2: 'hash',
+		3: 'replicate',
+		4: 'round_robin'
+	};
+
+	return distributionMap[tableInfo.DISTRIBUTION_POLICY];
+};
+
+const getIndexing = (indexingInfo, order) => {
+	if (order.length) {
+		return 'clustered columnstore index order';
+	}
+
+	const indexingMap = {
+		0: 'heap',
+		1: 'clustered columnstore index',
+		5: 'clustered columnstore index',
+		6: 'heap',
+		7: 'heap'
+	};
+
+	return indexingMap[indexingInfo && indexingInfo.type] || 'clustered columnstore index';
+};
+
+const getOrder = indexingInfo => {
+	return indexingInfo
+		.filter(column => column.column_store_order_ordinal)
+		.map(column => column.COLUMN_NAME);
+};
+
+const getTableRole = (distribution, indexing) => {
+	if (distribution === 'hash' && indexing === 'clustered columnstore index') {
+		return 'Fact';
+	} else if (distribution === 'replicate' || distribution === 'hash') {
+		return 'Dimension';
+	} else if (distribution === 'round_robin') {
+		return 'Staging';
+	}
+
+	return '';
+};
+
+const getPersistence = tableName => {
+	if (tableName[0] === '#') {
+		return 'temporary';
+	}
+
+	return 'regular';
+};
+
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	const [
@@ -238,11 +291,13 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				);
 				logger.progress({ message: 'Fetching table information', containerName: dbName, entityName: tableName });
 
-				const [tableInfo, tableRows, fieldsKeyConstraints] = await Promise.all([
+				const [tableInfo, tableRows, fieldsKeyConstraints, distributedColumns] = await Promise.all([
 					await getTableInfo(dbConnectionClient, dbName, tableName, schemaName),
 					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings),
-					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName)
+					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName),
+					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName)
 				]);
+				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
 
 				const jsonSchema = pipe(
@@ -259,6 +314,11 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					? reorderedTableRows
 					: reorderTableRows([getStandardDocumentByJsonSchema(jsonSchema)], reverseEngineeringOptions.isFieldOrderAlphabetic);
 
+				const distribution = getDistribution(tableInfo[0]);
+				const persistence = getPersistence(tableName);
+				const order = getOrder(tableIndexes);
+				const indexing = getIndexing(tableIndexes[0], order);
+
 				let result = {
 					collectionName: tableName,
 					dbName: schemaName,
@@ -266,6 +326,11 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 						Indxs: reverseTableIndexes(tableIndexes),
 						...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
 						...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
+						indexingOrderColumn: order.map(column => ({ name: column })),
+						tableRole: getTableRole(distribution, indexing),
+						distribution,
+						indexing,
+						hashColumn
 					},
 					standardDoc: standardDoc,
 					documentTemplate: standardDoc,

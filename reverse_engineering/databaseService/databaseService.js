@@ -27,10 +27,12 @@ const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) =>
 				ic.INCREMENT_VALUE,
 				sc.is_sparse AS IS_SPARSE,
 				sc.is_identity AS IS_IDENTITY,
-				o.type AS TABLE_TYPE
+				o.type AS TABLE_TYPE,
+				td.distribution_policy as DISTRIBUTION_POLICY
 		FROM information_schema.columns as c
 		LEFT JOIN SYS.IDENTITY_COLUMNS ic ON ic.object_id=object_id(${objectId})
 		LEFT JOIN sys.objects o ON o.object_id=object_id(${objectId})
+		LEFT JOIN sys.pdw_table_distribution_properties as td ON object_id(${objectId}) = td.object_id
 		LEFT JOIN sys.columns as sc ON object_id(${objectId}) = sc.object_id AND c.column_name = sc.name
 		WHERE c.table_name = ${tableName}
 		AND c.table_schema = ${tableSchema}
@@ -78,6 +80,20 @@ const getTableForeignKeys = async (connectionClient, dbName) => {
 		`
 };
 
+const getDistributedColumns = async (connectionClient, dbName, tableName, tableSchema) => {
+	const objectId = `${tableSchema}.${tableName}`;
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+	return await currentDbConnectionClient.query`
+		SELECT
+			COL_NAME(object_id(${objectId}), column_id) as columnName
+		FROM sys.pdw_column_distribution_properties
+		WHERE
+			object_id = object_id(${objectId}) AND
+			distribution_ordinal <> 0
+		`;
+};
+
 const getDatabaseIndexes = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	return await currentDbConnectionClient.query`
@@ -86,6 +102,7 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			IndexName = ind.name,
 			ic.is_descending_key,
 			ic.is_included_column,
+			ic.column_store_order_ordinal,
 			COL_NAME(t.object_id, ic.column_id) as columnName,
 			S.name as schemaName,
 			p.data_compression_desc as dataCompression,
@@ -312,4 +329,5 @@ module.exports = {
 	getViewStatement,
 	getViewsIndexes,
 	getViewColumns,
+	getDistributedColumns,
 }

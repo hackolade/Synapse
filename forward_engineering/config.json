@@ -1,6 +1,6 @@
 {
 	"type": "ddl",
-	"ddlType": "mssql",
+	"ddlType": "synapse",
 	"namePrefix": "Synapse",
 	"level": {
 		"container": true,
