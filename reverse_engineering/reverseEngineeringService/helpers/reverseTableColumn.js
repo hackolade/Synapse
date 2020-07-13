@@ -1,4 +1,5 @@
 const handleType = require('./handleType');
+const parseRowCollations = require('../../helpers/parseRowCollations');
 
 const handleDefault = (typeObject, value) => {
 	if (!value) {
@@ -58,6 +59,7 @@ const handleColumnProperty = (column, propertyName, value) => {
 		case 'NUMERIC_PRECISION': return { precision: !isNaN(value) ? value : '' };
 		case 'IS_IDENTITY': return handleIdentity(column, value);
 		case 'IS_SPARSE': return { sparse: Boolean(value) };
+		case 'COLLATION_NAME': return parseRowCollations(column['COLLATION_NAME']);
 		default: return {};
 	}
 };

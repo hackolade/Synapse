@@ -1,6 +1,6 @@
 'use strict';
 
-const { getClient, setClient, clearClient } = require('./connectionState');
+const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
 const {
 	reverseCollectionsToJSON,
@@ -10,6 +10,7 @@ const {
 const logInfo = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
+const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
 
 module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
@@ -73,11 +74,22 @@ module.exports = {
 			}
 
 			const reverseEngineeringOptions = getOptionsFromConnectionInfo(collectionsInfo);
+			const additionalCollectionInfo = getConnectionInfo();
+			const additionalAccountInfo = await getAdditionalAccountInfo(additionalCollectionInfo, logger);
+
+			const modelInfo = Object.assign({
+				accountID: additionalCollectionInfo.accountId,
+				tenant: additionalCollectionInfo.tenantId,
+				resGrp: additionalCollectionInfo.resourceGroupName,
+				subscription: additionalCollectionInfo.subscriptionId,
+			}, additionalAccountInfo);
+
+			logger.log('info', modelInfo, 'Model info', collectionsInfo.hiddenKeys);
 			const [jsonSchemas, relationships] = await Promise.all([
 				await reverseCollectionsToJSON(logger)(client, collections, reverseEngineeringOptions),
 				await getCollectionsRelationships(logger)(client, collections),
 			]);
-			callback(null, mergeCollectionsWithViews(jsonSchemas), null, filterRelationships(relationships, jsonSchemas));
+			callback(null, mergeCollectionsWithViews(jsonSchemas), modelInfo, filterRelationships(relationships, jsonSchemas));
 		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering process failed');
 			callback({ message: error.message, stack: error.stack })

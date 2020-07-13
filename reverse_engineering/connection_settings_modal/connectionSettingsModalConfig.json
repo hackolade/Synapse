@@ -80,7 +80,7 @@
 		]
 	},
 	{
-		"tab": "Authentication",
+		"lowerTab": "Authentication",
 		"structure": [
 			{
 				"inputLabel": "User Name",
@@ -107,6 +107,68 @@
 				"isHiddenKey": true,
 				"validation": {
 					"regex": "([^\\s])"
+				}
+			}
+		]
+	},
+	{
+		"lowerTab": "Control Plane parameters",
+		"structure": [
+			{
+				"inputLabel": "Enable REST API connection",
+				"inputKeyword": "includeAccountInformation",
+				"inputType": "checkbox",
+				"inputTooltip": "Check this box if you want to include Synapse DB account information"
+			},
+			{
+				"inputLabel": "Resource group name",
+				"inputKeyword": "resourceGroupName",
+				"inputType": "text",
+				"inputTooltip": "Specify the Resource group name from the Overview screen of the Synapse DB instance",
+				"dependency": {
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
+				}
+			},
+			{
+				"inputLabel": "Subscription ID",
+				"inputKeyword": "subscriptionId",
+				"inputType": "text",
+				"inputTooltip": "Specify the Subscription ID from the Overview screen of the Synapse DB instance",
+				"dependency": {
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
+				}
+			},
+			{
+				"inputLabel": "Application (client) ID",
+				"inputKeyword": "clientId",
+				"inputType": "text",
+				"inputTooltip": "Azure Active Directory application id from the Overview screen of the App registration",
+				"dependency": {
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
+				}
+			},
+			{
+				"inputLabel": "Directory (tenant) ID",
+				"inputKeyword": "tenantId",
+				"inputType": "text",
+				"inputTooltip": "Specify the Directory (tenant) ID from the Overview screen of the App registration",
+				"dependency": {
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
+				}
+			},
+			{
+				"inputLabel": "Application secret",
+				"inputKeyword": "appSecret",
+				"inputType": "text",
+				"inputTooltip": "Specify the Application secret string",
+				"isHiddenKey": true,
+				"dependency": {
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
 				}
 			}
 		]
