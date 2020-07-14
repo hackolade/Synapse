@@ -135,6 +135,10 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "distribution",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
+				"dependency": {
+					"key": "materialized",
+					"value": true
+				},
 				"options": [
 					"hash",
 					"round_robin"
@@ -145,8 +149,17 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "hashColumn",
 				"propertyType": "compositeKeySetter",
 				"dependency": {
-					"key": "distribution",
-					"value": "hash"
+					"type": "and",
+					"values": [
+						{
+							"key": "materialized",
+							"value": true
+						},
+						{
+							"key": "distribution",
+							"value": "hash"
+						}
+					]
 				},
 				"disabledItemStrategy": "default",
 				"setPrimaryKey": false,
