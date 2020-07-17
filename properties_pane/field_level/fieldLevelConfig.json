@@ -530,11 +530,10 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Unique key options",
-				"propertyType": "group",
-				"propertyKeyword": "uniqueKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Unique key options",
+				"propertyName": "Enforced",
+				"propertyKeyword": "enforced",
+				"propertyType": "checkbox",
+				"disabled": true,
 				"dependency": {
 					"type": "and",
 					"values": [
@@ -838,11 +837,10 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Unique key options",
-				"propertyType": "group",
-				"propertyKeyword": "uniqueKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Unique key options",
+				"propertyName": "Enforced",
+				"propertyKeyword": "enforced",
+				"propertyType": "checkbox",
+				"disabled": true,
 				"dependency": {
 					"type": "and",
 					"values": [
@@ -1112,11 +1110,10 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Unique key options",
-				"propertyType": "group",
-				"propertyKeyword": "uniqueKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Unique key options",
+				"propertyName": "Enforced",
+				"propertyKeyword": "enforced",
+				"propertyType": "checkbox",
+				"disabled": true,
 				"dependency": {
 					"type": "and",
 					"values": [
@@ -1362,11 +1359,10 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Unique key options",
-				"propertyType": "group",
-				"propertyKeyword": "uniqueKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Unique key options",
+				"propertyName": "Enforced",
+				"propertyKeyword": "enforced",
+				"propertyType": "checkbox",
+				"disabled": true,
 				"dependency": {
 					"type": "and",
 					"values": [
@@ -1579,11 +1575,10 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Unique key options",
-				"propertyType": "group",
-				"propertyKeyword": "uniqueKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Unique key options",
+				"propertyName": "Enforced",
+				"propertyKeyword": "enforced",
+				"propertyType": "checkbox",
+				"disabled": true,
 				"dependency": {
 					"type": "and",
 					"values": [
@@ -1612,15 +1607,7 @@ making sure that you maintain a proper JSON format.
 							}]
 						}
 					]
-				},
-				"structure": [
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
+				}
 			},
 			"foreignCollection",
 			"foreignField",

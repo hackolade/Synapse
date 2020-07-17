@@ -147,7 +147,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Distribution column name",
 				"propertyKeyword": "hashColumn",
-				"propertyType": "compositeKeySetter",
+				"propertyType": "primaryKeySetter",
 				"dependency": {
 					"type": "and",
 					"values": [

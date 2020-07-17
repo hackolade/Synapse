@@ -24,8 +24,6 @@ const getIndexType = index => {
 
 const getIndexData = index => ({
 	indxName: index.IndexName,
-	ALLOW_ROW_LOCKS: index.allow_row_locks,
-	ALLOW_PAGE_LOCKS: index.allow_page_locks,
 	uniqueIndx: index.is_unique,
 	clusteredIndx: isClusteredIndex(index),
 	IGNORE_DUP_KEY: index.ignore_dup_key,
