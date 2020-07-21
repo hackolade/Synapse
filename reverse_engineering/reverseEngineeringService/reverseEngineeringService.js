@@ -105,6 +105,10 @@ const isMaterialized = definition => {
 	return /CREATE\s+MATERIALIZED\s+VIEW/i.test(definition || '');
 };
 
+const isForAppend = definition => {
+	return /FOR_APPEND/i.test(definition || '');
+};
+
 const getSelectStatementFromDefinition = (definition) => {
 	const regExp = /CREATE(?:\s+MATERIALIZED)?[\s]+VIEW[\s\S]+?(?:WITH[\s]+(?:ENCRYPTION,?|SCHEMABINDING,?|VIEW_METADATA,?)+[\s]+)?AS\s+((?:WITH|SELECT)[\s\S]+?)(WITH\s+CHECK\s+OPTION|$)/i;
 
@@ -196,6 +200,7 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 				...getViewProperties(viewStatement[0]),
 				selectStatement: getPartitionedSelectStatement(cleanComments(String(viewStatement[0].definition)), (partitionedTables[0] || {}).table, dbName),
 				partitioned: true,
+				forAppend: materialized && isForAppend(String(viewStatement[0].definition)),
 				partitionedTables,
 				materialized
 			},
@@ -212,6 +217,7 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 			data: {
 				...getViewProperties(viewStatement[0]),
 				selectStatement: getSelectStatementFromDefinition(cleanComments(String(viewStatement[0].definition))),
+				forAppend: materialized && isForAppend(String(viewStatement[0].definition)),
 				materialized
 			},
 			relatedTables: viewInfo.map((columnInfo => ({

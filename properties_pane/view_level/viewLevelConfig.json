@@ -169,6 +169,15 @@ making sure that you maintain a proper JSON format.
 				"isCompositeKey": true
 			}, 
 			{
+				"propertyName": "For append",
+				"propertyKeyword": "forAppend",
+				"propertyType": "checkbox",
+				"dependency": {
+					"key": "materialized",
+					"value": true
+				}
+			},
+			{
 				"propertyName": "Select Statement",
 				"propertyKeyword": "selectStatement",
 				"propertyType": "details",

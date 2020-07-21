@@ -1,7 +1,6 @@
 {
 	"model": {
 		"modelName": "New model",
-		"dbVersion": "",
 		"dbVendor": "Synapse"
 	},
 	"container": {
@@ -52,7 +51,8 @@
 	"user": {},
 	"view": {
 		"viewOn": "",
-		"pipeline": ""
+		"pipeline": "",
+		"forAppend": true
 	},
 	"UDFs": {
 		"name": "New UDF",
