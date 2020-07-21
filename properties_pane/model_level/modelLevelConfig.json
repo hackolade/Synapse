@@ -67,15 +67,6 @@ making sure that you maintain a proper JSON format.
 				"disabledOption": true
 			},
 			{
-				"propertyName": "DB version",
-				"propertyKeyword": "dbVersion",
-				"propertyTooltip": "DB version",
-				"propertyType": "select",
-				"options": [
-				],
-				"disabledOption": true
-			},
-			{
 				"propertyName": "Tenant",
 				"propertyKeyword": "tenant",
 				"propertyTooltip": "Azure tenant",
