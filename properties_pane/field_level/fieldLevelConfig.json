@@ -476,7 +476,7 @@ making sure that you maintain a proper JSON format.
 				"structure": [
 					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
+						"propertyKeyword": "clusteredDisabled",
 						"propertyType": "checkbox",
 						"disabled": true
 					},
@@ -783,7 +783,7 @@ making sure that you maintain a proper JSON format.
 				"structure": [
 					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
+						"propertyKeyword": "clusteredDisabled",
 						"propertyType": "checkbox",
 						"disabled": true
 					},
@@ -1056,7 +1056,7 @@ making sure that you maintain a proper JSON format.
 				"structure": [
 					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
+						"propertyKeyword": "clusteredDisabled",
 						"propertyType": "checkbox",
 						"disabled": true
 					},
@@ -1305,7 +1305,7 @@ making sure that you maintain a proper JSON format.
 				"structure": [
 					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
+						"propertyKeyword": "clusteredDisabled",
 						"propertyType": "checkbox",
 						"disabled": true
 					},
@@ -1521,7 +1521,7 @@ making sure that you maintain a proper JSON format.
 				"structure": [
 					{
 						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
+						"propertyKeyword": "clusteredDisabled",
 						"propertyType": "checkbox",
 						"disabled": true
 					},
