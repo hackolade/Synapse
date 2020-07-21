@@ -79,7 +79,7 @@ module.exports = {
 			const additionalAccountInfo = await getAdditionalAccountInfo(_, additionalCollectionInfo, logger);
 
 			const modelInfo = Object.assign({
-				accountID: additionalCollectionInfo.accountId,
+				accountID: additionalCollectionInfo.clientId,
 				tenant: additionalCollectionInfo.tenantId,
 				resGrp: additionalCollectionInfo.resourceGroupName,
 				subscription: additionalCollectionInfo.subscriptionId,
