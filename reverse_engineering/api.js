@@ -65,6 +65,7 @@ module.exports = {
 
 	async getDbCollectionsData(collectionsInfo, logger, callback, app) {
 		try {
+			const _ = app.require('lodash');
 			logger.log('info', collectionsInfo, 'Retrieving schema', collectionsInfo.hiddenKeys);
 			logger.progress({ message: 'Start reverse-engineering process', containerName: '', entityName: '' });
 			const { collections } = collectionsInfo.collectionData;
@@ -75,7 +76,7 @@ module.exports = {
 
 			const reverseEngineeringOptions = getOptionsFromConnectionInfo(collectionsInfo);
 			const additionalCollectionInfo = getConnectionInfo();
-			const additionalAccountInfo = await getAdditionalAccountInfo(additionalCollectionInfo, logger);
+			const additionalAccountInfo = await getAdditionalAccountInfo(_, additionalCollectionInfo, logger);
 
 			const modelInfo = Object.assign({
 				accountID: additionalCollectionInfo.accountId,

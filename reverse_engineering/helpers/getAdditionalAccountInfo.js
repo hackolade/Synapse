@@ -1,9 +1,8 @@
 
 const qs = require('qs');
-const _ = require('lodash');
 const axios = require('axios');
 
-async function getAdditionalAccountInfo(connectionInfo, logger) {
+async function getAdditionalAccountInfo(_, connectionInfo, logger) {
 	if (!connectionInfo.includeAccountInformation) {
 		return {};
 	}
