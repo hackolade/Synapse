@@ -1,8 +1,6 @@
 # Azure Synapse
 Hackolade plugin for Azure Synapse (SQL Data Warehouse) and Parallel Data Warehouse
 
-!! NOT READY FOR PRODUCTION !!
-
 <div class="main-content">
 
 <span class="rvts6">For each object in Hackolade, we've defined a set of standard properties that appear in the properties pane.  But it is possible that your company wants to define and track additional properties for models, containers, entities, and attributes.  Hackolade let's you do just that, by leveraging our plugin architecture (used also to integrate our modeling engine with all kinds of NoSQL document databases.)</span>
