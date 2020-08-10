@@ -206,10 +206,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Index column",
 				"propertyKeyword": "compositeClusteringKey",
 				"propertyType": "primaryKeySetter",
-				"attributeList": [
-					{ "name": "ascending", "abbr": "\u2191" },
-					{ "name": "descending", "abbr": "\u2193" }
-				],
+				"abbr": " ",
 				"dependency": {
 					"key": "indexing",
 					"value": "clustered index"
@@ -266,5 +263,42 @@ making sure that you maintain a proper JSON format.
 			}
 		],
 		"columnsRatio": [3.7, 5]
+	},
+	{
+		"lowerTab": "Composite keys",
+		"structure": [{
+			"propertyName": "Primary key",
+			"propertyType": "group",
+			"groupItemLimit": 1,
+			"propertyKeyword": "primaryKey",
+			"propertyTooltip": "",
+			"structure": [{
+				"propertyName": "Constraint name",
+				"propertyKeyword": "constraintName",
+				"propertyTooltip": "",
+				"propertyType": "text"
+			}, {
+				"propertyName": "Key",
+				"propertyKeyword": "compositePrimaryKey",
+				"propertyType": "primaryKeySetter",
+				"abbr": "pk"
+			}]
+		}, {
+			"propertyName": "Unique key",
+			"propertyType": "group",
+			"propertyKeyword": "uniqueKey",
+			"propertyTooltip": "",
+			"structure": [{
+				"propertyName": "Constraint name",
+				"propertyKeyword": "constraintName",
+				"propertyTooltip": "",
+				"propertyType": "text"
+			}, {
+				"propertyName": "Key",
+				"propertyKeyword": "compositeUniqueKey",
+				"propertyType": "primaryKeySetter",
+				"abbr": "pk"
+			}]
+		}]
 	}
 ]
