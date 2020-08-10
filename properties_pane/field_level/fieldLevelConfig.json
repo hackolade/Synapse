@@ -146,15 +146,35 @@ making sure that you maintain a proper JSON format.
 				},
 				"cleanDependency": true,
 				"dependency": {
-					"type": "or",
+					"type": "and",
 					"values": [
 						{
-							"key": "mode",
-							"value": "nvarchar"
+							"type": "not",
+							"values": [
+								{
+									"level": "parent",
+									"key": "indexing",
+									"value": "clustered columnstore index"
+								},
+								{
+									"level": "parent",
+									"key": "indexing",
+									"value": "clustered columnstore index order"
+								}
+							]
 						},
 						{
-							"key": "mode",
-							"value": "varchar"
+							"type": "or",
+							"values": [
+								{
+									"key": "mode",
+									"value": "nvarchar"
+								},
+								{
+									"key": "mode",
+									"value": "varchar"
+								}
+							]
 						}
 					]
 				}
