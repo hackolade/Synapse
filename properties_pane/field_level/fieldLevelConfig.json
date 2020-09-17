@@ -1,5 +1,5 @@
 /*
-* Copyright © 2016-2017 by IntegrIT S.A. dba Hackolade.  All rights reserved.
+* Copyright © 2016-2020 by IntegrIT S.A. dba Hackolade.  All rights reserved.
 *
 * The copyright to the computer software herein is the property of IntegrIT S.A.
 * The software may be used and/or copied only with the written permission of 
@@ -459,56 +459,6 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Primary key options",
-				"propertyType": "block",
-				"propertyKeyword": "primaryKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Primary key options",
-				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "primaryKey",
-							"value": true
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositePrimaryKey",
-								"value": false
-							}, {
-								"key": "compositePrimaryKey",
-								"exist": false
-							}]
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositeUniqueKey",
-								"value": false
-							}, {
-								"key": "compositeUniqueKey",
-								"exist": false
-							}]
-						}
-					]
-				},
-				"structure": [
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clusteredDisabled",
-						"propertyType": "checkbox",
-						"disabled": true
-					},
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
-			},
-			{
 				"propertyName": "Unique",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
@@ -766,56 +716,6 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Primary key options",
-				"propertyType": "block",
-				"propertyKeyword": "primaryKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Primary key options",
-				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "primaryKey",
-							"value": true
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositePrimaryKey",
-								"value": false
-							}, {
-								"key": "compositePrimaryKey",
-								"exist": false
-							}]
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositeUniqueKey",
-								"value": false
-							}, {
-								"key": "compositeUniqueKey",
-								"exist": false
-							}]
-						}
-					]
-				},
-				"structure": [
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clusteredDisabled",
-						"propertyType": "checkbox",
-						"disabled": true
-					},
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
-			},
-			{
 				"propertyName": "Unique",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
@@ -1039,56 +939,6 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Primary key options",
-				"propertyType": "block",
-				"propertyKeyword": "primaryKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Primary key options",
-				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "primaryKey",
-							"value": true
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositePrimaryKey",
-								"value": false
-							}, {
-								"key": "compositePrimaryKey",
-								"exist": false
-							}]
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositeUniqueKey",
-								"value": false
-							}, {
-								"key": "compositeUniqueKey",
-								"exist": false
-							}]
-						}
-					]
-				},
-				"structure": [
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clusteredDisabled",
-						"propertyType": "checkbox",
-						"disabled": true
-					},
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
-			},
-			{
 				"propertyName": "Unique",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
@@ -1288,56 +1138,6 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			{
-				"propertyName": "Primary key options",
-				"propertyType": "block",
-				"propertyKeyword": "primaryKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Primary key options",
-				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "primaryKey",
-							"value": true
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositePrimaryKey",
-								"value": false
-							}, {
-								"key": "compositePrimaryKey",
-								"exist": false
-							}]
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositeUniqueKey",
-								"value": false
-							}, {
-								"key": "compositeUniqueKey",
-								"exist": false
-							}]
-						}
-					]
-				},
-				"structure": [
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clusteredDisabled",
-						"propertyType": "checkbox",
-						"disabled": true
-					},
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
-			},
-			{
 				"propertyName": "Unique",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
@@ -1502,56 +1302,6 @@ making sure that you maintain a proper JSON format.
 						}
 					]
 				}
-			},
-			{
-				"propertyName": "Primary key options",
-				"propertyType": "block",
-				"propertyKeyword": "primaryKeyOptions",
-				"enableForReference": true,
-				"propertyTooltip": "Primary key options",
-				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "primaryKey",
-							"value": true
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositePrimaryKey",
-								"value": false
-							}, {
-								"key": "compositePrimaryKey",
-								"exist": false
-							}]
-						},
-						{
-							"type": "or",
-							"values": [{
-								"key": "compositeUniqueKey",
-								"value": false
-							}, {
-								"key": "compositeUniqueKey",
-								"exist": false
-							}]
-						}
-					]
-				},
-				"structure": [
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clusteredDisabled",
-						"propertyType": "checkbox",
-						"disabled": true
-					},
-					{
-						"propertyName": "Enforced",
-						"propertyKeyword": "enforced",
-						"propertyType": "checkbox",
-						"disabled": true
-					}
-				]
 			},
 			{
 				"propertyName": "Unique",
