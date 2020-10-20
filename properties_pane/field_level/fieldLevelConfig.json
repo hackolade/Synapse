@@ -422,8 +422,41 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositePrimaryKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositePrimaryKey",
+							"value": true
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -454,6 +487,24 @@ making sure that you maintain a proper JSON format.
 								"key": "compositeUniqueKey",
 								"exist": false
 							}]
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
 						}
 					]
 				}
@@ -463,8 +514,33 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositeUniqueKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositeUniqueKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -493,6 +569,16 @@ making sure that you maintain a proper JSON format.
 								"value": false
 							}, {
 								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
 								"exist": false
 							}]
 						}
@@ -679,8 +765,41 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositePrimaryKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositePrimaryKey",
+							"value": true
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -711,6 +830,24 @@ making sure that you maintain a proper JSON format.
 								"key": "compositeUniqueKey",
 								"exist": false
 							}]
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
 						}
 					]
 				}
@@ -720,8 +857,33 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositeUniqueKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositeUniqueKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -750,6 +912,16 @@ making sure that you maintain a proper JSON format.
 								"value": false
 							}, {
 								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
 								"exist": false
 							}]
 						}
@@ -902,8 +1074,41 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositePrimaryKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositePrimaryKey",
+							"value": true
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -934,6 +1139,24 @@ making sure that you maintain a proper JSON format.
 								"key": "compositeUniqueKey",
 								"exist": false
 							}]
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
 						}
 					]
 				}
@@ -943,8 +1166,33 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositeUniqueKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositeUniqueKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -973,6 +1221,16 @@ making sure that you maintain a proper JSON format.
 								"value": false
 							}, {
 								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
 								"exist": false
 							}]
 						}
@@ -1101,8 +1359,41 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositePrimaryKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositePrimaryKey",
+							"value": true
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -1133,6 +1424,24 @@ making sure that you maintain a proper JSON format.
 								"key": "compositeUniqueKey",
 								"exist": false
 							}]
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
 						}
 					]
 				}
@@ -1142,8 +1451,33 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositeUniqueKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositeUniqueKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -1172,6 +1506,16 @@ making sure that you maintain a proper JSON format.
 								"value": false
 							}, {
 								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
 								"exist": false
 							}]
 						}
@@ -1267,8 +1611,41 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositePrimaryKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositePrimaryKey",
+							"value": true
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -1299,6 +1676,24 @@ making sure that you maintain a proper JSON format.
 								"key": "compositeUniqueKey",
 								"exist": false
 							}]
+						},
+						{
+							"type": "not",
+							"values": [{
+								"level": "parent",
+								"key": "indexing",
+								"value": "clustered index"
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "unique",
+								"value": false
+							}, {
+								"key": "unique",
+								"exist": false
+							}]
 						}
 					]
 				}
@@ -1308,8 +1703,33 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "checkbox",
 				"dependency": {
-					"key": "compositeUniqueKey",
-					"value": true
+					"type": "and",
+					"values": [
+						{
+							"key": "compositeUniqueKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						}
+					]
 				},
 				"disabled": true
 			},
@@ -1338,6 +1758,16 @@ making sure that you maintain a proper JSON format.
 								"value": false
 							}, {
 								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "primaryKey",
+								"value": false
+							}, {
+								"key": "primaryKey",
 								"exist": false
 							}]
 						}

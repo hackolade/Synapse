@@ -205,8 +205,12 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Index column",
 				"propertyKeyword": "compositeClusteringKey",
-				"propertyType": "primaryKeySetter",
+				"propertyType": "compositeKeySetter",
 				"abbr": " ",
+				"attributeList": [],
+				"disabledItemStrategy": "default",
+				"template": "collectiontree",
+				"isCompositeKey": true,
 				"dependency": {
 					"key": "indexing",
 					"value": "clustered index"
@@ -296,8 +300,13 @@ making sure that you maintain a proper JSON format.
 			}, {
 				"propertyName": "Key",
 				"propertyKeyword": "compositeUniqueKey",
-				"propertyType": "primaryKeySetter",
-				"abbr": "pk"
+				"propertyType": "compositeKeySetter",
+				"disabledItemStrategy": "default",
+				"setPrimaryKey": false,
+				"abbr": " ",
+				"attributeList": [],
+				"template": "collectiontree",
+				"isCompositeKey": true
 			}]
 		}]
 	}

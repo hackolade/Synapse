@@ -1,6 +1,6 @@
 {
     "name": "Synapse",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "versionDate": "2020-08-10",
     "author": "hackolade",
     "engines": {
@@ -30,9 +30,6 @@
                 "enabled": true,
                 "viewLevel": "model",
                 "disablePipelines": true
-            },
-            "relationships": {
-                "compositeRelationships": true
             }
         }
     },
