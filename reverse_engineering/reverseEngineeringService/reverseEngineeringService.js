@@ -319,11 +319,13 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
 		logger.progress({ message: 'Fetching database information', containerName: dbName, entityName: '' });
+		const isSystemIndex = index => /^ClusteredIndex_[a-f0-9]{32}$/m.test(index.name || '');
 		const tablesInfo = await Promise.all(
 			tableNames.map(async untrimmedTableName => {
 				const tableName = untrimmedTableName.replace(/ \(v\)$/, '');
 				const tableIndexes = databaseIndexes.filter(
-					index => index.TableName === tableName && index.schemaName === schemaName
+					index => index.TableName === tableName && index.schemaName === schemaName &&
+					!isSystemIndex(index)
 				);
 				logger.progress({ message: 'Fetching table information', containerName: dbName, entityName: tableName });
 
