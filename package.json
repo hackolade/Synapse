@@ -30,7 +30,8 @@
                 "enabled": true,
                 "viewLevel": "model",
                 "disablePipelines": true
-            }
+            },
+            "FEScriptCommentsSupported": true
         }
     },
     "description": "Hackolade plugin for Azure Synpase and Azure SQL Data Warehouse",
