@@ -1,7 +1,7 @@
 {
     "name": "Synapse",
-    "version": "0.1.7",
-    "versionDate": "2020-10-28",
+    "version": "0.1.8",
+    "versionDate": "2020-10-30",
     "author": "hackolade",
     "engines": {
         "hackolade": "4.1.10",
@@ -30,7 +30,8 @@
                 "enabled": true,
                 "viewLevel": "model",
                 "disablePipelines": true
-            }
+            },
+            "FEScriptCommentsSupported": true
         }
     },
     "description": "Hackolade plugin for Azure Synpase and Azure SQL Data Warehouse",
