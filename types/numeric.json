@@ -52,17 +52,38 @@
 		},
 		{
 			"schema": {
-				"mode": "float"
+				"mode": "real"
 			},
 			"capacity": 4,
 			"mode": "floating"
 		},
 		{
 			"schema": {
-				"mode": "decimal"
+				"mode": "float"
 			},
 			"capacity": 8,
 			"mode": "floating"
+		},
+		{
+			"schema": {
+				"mode": "smallmoney"
+			},
+			"capacity": 4,
+			"mode": "decimal"
+		},
+		{
+			"schema": {
+				"mode": "money"
+			},
+			"capacity": 8,
+			"mode": "decimal"
+		},
+		{
+			"schema": {
+				"mode": "numeric"
+			},
+			"capacity": 12,
+			"mode": "decimal"
 		},
 		{
 			"schema": {
