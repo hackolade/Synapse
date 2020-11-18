@@ -8,5 +8,13 @@
 	"defaultValues": {
 		"primaryKey": false,
 		"mode": "binary"
-	}
+	},
+	"descriptor": [
+		{
+			"schema": {
+				"mode": "binary"
+			},
+			"mode": "binary"
+		}
+	]
 }
