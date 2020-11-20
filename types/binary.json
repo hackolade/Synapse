@@ -8,5 +8,20 @@
 	"defaultValues": {
 		"primaryKey": false,
 		"mode": "binary"
-	}
+	},
+	"descriptor": [
+		{
+			"schema": {
+				"mode": "binary"
+			},
+			"mode": "binary"
+		},
+		{
+			"schema": {
+				"mode": "varbinary"
+			},
+			"size": 2147483649,
+			"mode": "binary"
+		}
+	]
 }
