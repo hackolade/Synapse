@@ -208,7 +208,7 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "compositeKeySetter",
 				"abbr": " ",
 				"attributeList": [],
-				"disabledItemStrategy": "default",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"template": "collectiontree",
 				"isCompositeKey": true,
 				"dependency": {
@@ -285,7 +285,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "primaryKeySetter",
-				"disabledItemStrategy": "compositeKey",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"abbr": "pk"
 			}]
 		}, {
@@ -302,7 +302,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "compositeKeySetter",
-				"disabledItemStrategy": "compositeKey",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"setPrimaryKey": false,
 				"abbr": " ",
 				"attributeList": [],
@@ -334,7 +334,6 @@ making sure that you maintain a proper JSON format.
 					"propertyKeyword": "indxKey",
 					"propertyType": "fieldList",
 					"template": "orderedList",
-					"disabledItemStrategy": "compositeKey",
 					"attributeList": [
 						"ascending",
 						"descending"
@@ -493,7 +492,6 @@ making sure that you maintain a proper JSON format.
 					"propertyKeyword": "indxKey",
 					"propertyType": "fieldList",
 					"template": "orderedList",
-					"disabledItemStrategy": "compositeKey",
 					"attributeList": [
 						"ascending",
 						"descending"
