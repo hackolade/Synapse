@@ -208,7 +208,7 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "compositeKeySetter",
 				"abbr": " ",
 				"attributeList": [],
-				"disabledItemStrategy": "default",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"template": "collectiontree",
 				"isCompositeKey": true,
 				"dependency": {
@@ -285,6 +285,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "primaryKeySetter",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"abbr": "pk"
 			}]
 		}, {
@@ -301,7 +302,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key",
 				"propertyKeyword": "compositeUniqueKey",
 				"propertyType": "compositeKeySetter",
-				"disabledItemStrategy": "default",
+				"disabledItemStrategy": "compositeKeyWithClusteringKey",
 				"setPrimaryKey": false,
 				"abbr": " ",
 				"attributeList": [],
