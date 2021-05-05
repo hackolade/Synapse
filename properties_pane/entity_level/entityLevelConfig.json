@@ -144,6 +144,7 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
 				"options": [
+					"",
 					"hash",
 					"replicate",
 					"round_robin"

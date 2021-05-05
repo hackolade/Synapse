@@ -11,9 +11,9 @@ const {
 	getTableDefaultConstraintNames,
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
-	getViewsIndexes,
 	getDistributedColumns,
 	getViewDistributedColumns,
+	queryDistribution,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -254,15 +254,19 @@ const getMemoryOptimizedOptions = (options) => {
 	};
 };
 
-const getDistribution = tableInfo => {
+const getDistribution = distributionData => {
+	if (!Array.isArray(distributionData) || !distributionData.length) {
+		return '';
+	}
+
 	const distributionMap = {
 		2: 'hash',
 		3: 'replicate',
 		4: 'round_robin'
 	};
 
-	return distributionMap[tableInfo.DISTRIBUTION_POLICY || tableInfo.VIEW_DISTRIBUTION_POLICY];
-};
+	return distributionMap[distributionData[0]?.DISTRIBUTION_POLICY || distributionData[0]?.VIEW_DISTRIBUTION_POLICY] || '';
+};	
 
 const getIndexing = (indexingInfo, order) => {
 	if (order.length) {
@@ -309,12 +313,11 @@ const getPersistence = tableName => {
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	const [
-		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, viewsIndexes
+		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT
 	] = await Promise.all([
 		getDatabaseIndexes(dbConnectionClient, dbName),
 		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger),
 		getDatabaseUserDefinedTypes(dbConnectionClient, dbName),
-		getViewsIndexes(dbConnectionClient, dbName),
 	]);
 
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
@@ -329,16 +332,23 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				);
 				logger.progress({ message: 'Fetching table information', containerName: dbName, entityName: tableName });
 
-				const [tableInfo, tableRows, fieldsKeyConstraints] = await Promise.all([
+				const [tableInfo, tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
 					await getTableInfo(dbConnectionClient, dbName, tableName, schemaName),
 					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings),
-					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName)
+					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName),
+					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName),
 				]);
 				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
 
-				const distributedColumns = isView ?
-					await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
-					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+				let distributedColumns = [];
+
+				try {
+					distributedColumns = isView ?
+						await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
+						await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+				} catch (e) {
+					logger.log('error', { type: 'warning', message: e.message });
+				}
 
 				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 
@@ -356,7 +366,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					? reorderedTableRows
 					: reorderTableRows([getStandardDocumentByJsonSchema(jsonSchema)], reverseEngineeringOptions.isFieldOrderAlphabetic);
 
-				const distribution = getDistribution(tableInfo[0]);
+				const distribution = getDistribution(distributionData);
 				const persistence = getPersistence(tableName);
 				const order = getOrder(tableIndexes);
 				const indexing = getIndexing(tableIndexes[0], order);
@@ -392,7 +402,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 
 				if (isView) {
 					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema);
-					const indexes = viewsIndexes.filter(index => index.TableName === tableName && index.schemaName === schemaName);
 
 					result = {
 						...result,
@@ -400,7 +409,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 						data: {
 							...result.entityLevel,
 							...(viewData.data || {}),
-							Indxs: reverseTableIndexes(indexes),
 						}
 					};
 				}
