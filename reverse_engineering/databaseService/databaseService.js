@@ -56,7 +56,7 @@ const queryDistribution = async (connectionClient, dbName, tableName, tableSchem
 	}
 };
 
-const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions) => {
+const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const percentageWord = reverseEngineeringOptions.isAbsoluteValue ? '' : 'PERCENT';
 	try {
@@ -68,6 +68,7 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rev
 			.input('percent', sql.VarChar, percentageWord)
 			.query`EXEC('SELECT TOP '+ @Amount +' '+ @Percent +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`;
 	} catch (e) {
+		logger.log('error', { type: 'Error getting rows for sampling', message: e.message, stack: e.stack }, `${dbName}.${tableName}`);
 		return [];
 	}
 };
