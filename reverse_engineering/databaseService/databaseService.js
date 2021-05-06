@@ -12,6 +12,8 @@ const getConnectionClient = async connectionInfo => {
 			options: {
 				encrypt: true,
 			},
+			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
+			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
 		});
 	}
 
