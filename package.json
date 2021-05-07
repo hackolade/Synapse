@@ -1,7 +1,7 @@
 {
     "name": "Synapse",
-    "version": "0.1.15",
-    "versionDate": "2021-05-06",
+    "version": "0.1.16",
+    "versionDate": "2021-05-07",
     "author": "hackolade",
     "engines": {
         "hackolade": "4.1.10",
