@@ -11,6 +11,7 @@ const getConnectionClient = async connectionInfo => {
 			database: connectionInfo.databaseName,
 			options: {
 				encrypt: true,
+				enableArithAbort: true
 			},
 			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,

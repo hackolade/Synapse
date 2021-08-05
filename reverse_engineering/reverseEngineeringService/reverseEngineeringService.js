@@ -29,6 +29,7 @@ const {
 	getUserDefinedTypes,
 	reorderTableRows,
 	handleType,
+	containsJson,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
@@ -333,10 +334,12 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					!isSystemIndex(index)
 				);
 				progress(logger, 'Fetching table information', dbName, tableName);
+				const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info'));
 
-				const [tableInfo, tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
-					await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info')),
-					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings, logger).catch(logError(logger, 'Getting table rows')),
+				const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
+					containsJson(tableInfo)
+						? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings, logger).catch(logError(logger, 'Getting table rows'))
+						: Promise.resolve([]),
 					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
 					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
 				]);
