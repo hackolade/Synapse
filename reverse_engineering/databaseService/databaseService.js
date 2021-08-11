@@ -3,8 +3,11 @@ const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helper
 
 const getConnectionClient = async connectionInfo => {
 	if (connectionInfo.authMethod === 'Username / Password') {
+		const hostName = getHostName(connectionInfo.host);
+		const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
+
 		return await sql.connect({
-			user: connectionInfo.userName,
+			user: userName,
 			password: connectionInfo.userPassword,
 			server: connectionInfo.host,
 			port: connectionInfo.port,
@@ -20,6 +23,10 @@ const getConnectionClient = async connectionInfo => {
 
 	return await sql.connect(connectionInfo.connectionString);
 };
+
+const isEmail = name => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(name || '');
+
+const getHostName = url => (url || '').split('.')[0];
 
 const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
