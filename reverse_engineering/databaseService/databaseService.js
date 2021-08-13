@@ -1,6 +1,9 @@
 const sql = require('mssql');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 
+
+const QUERY_REQUEST_TIMEOUT = 60000;
+
 const getConnectionClient = async connectionInfo => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
@@ -30,8 +33,8 @@ const getConnectionClient = async connectionInfo => {
 			authentication: {
 				type: 'azure-active-directory-password',
 			},
-			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
-			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000
+			connectTimeout: QUERY_REQUEST_TIMEOUT,
+			requestTimeout: QUERY_REQUEST_TIMEOUT
 		});
 	}
 
