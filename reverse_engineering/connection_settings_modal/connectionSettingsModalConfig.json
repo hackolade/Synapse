@@ -35,6 +35,9 @@
 					"value": "Username / Password",
 					"label": "Username / Password"
 				},{
+					"value": "Azure Active Directory (Username / Password)",
+					"label": "Azure Active Directory"
+				},{
 					"value": "Connection string",
 					"label": "Connection string"
 				}]
@@ -47,7 +50,7 @@
 				"inputPlaceholder": "<database>.database.windows.net",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				},
 				"regex": "([^\\s])"
 			},
@@ -59,7 +62,7 @@
 				"defaultValue": 1433,
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				}
 			},
 			{
@@ -89,7 +92,7 @@
 				"inputPlaceholder": "User Name",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				},
 				"validation": {
 					"regex": "([^\\s])"
@@ -102,7 +105,7 @@
 				"inputPlaceholder": "Password",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				},
 				"isHiddenKey": true,
 				"validation": {

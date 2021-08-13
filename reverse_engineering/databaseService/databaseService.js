@@ -1,11 +1,14 @@
 const sql = require('mssql');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 
-const getConnectionClient = async connectionInfo => {
-	if (connectionInfo.authMethod === 'Username / Password') {
-		const hostName = getHostName(connectionInfo.host);
-		const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
 
+const QUERY_REQUEST_TIMEOUT = 60000;
+
+const getConnectionClient = async connectionInfo => {
+	const hostName = getHostName(connectionInfo.host);
+	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
+
+	if (connectionInfo.authMethod === 'Username / Password') {
 		return await sql.connect({
 			user: userName,
 			password: connectionInfo.userPassword,
@@ -18,6 +21,23 @@ const getConnectionClient = async connectionInfo => {
 			},
 			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
+		});
+	} else if (connectionInfo.authMethod === 'Azure Active Directory (Username / Password)') {
+		return await sql.connect({
+			user: userName,
+			password: connectionInfo.userPassword,
+			server: connectionInfo.host,
+			port: +connectionInfo.port,
+			database: connectionInfo.databaseName,
+			options: {
+				encrypt: true,
+				enableArithAbort: true
+			},
+			authentication: {
+				type: 'azure-active-directory-password',
+			},
+			connectTimeout: QUERY_REQUEST_TIMEOUT,
+			requestTimeout: QUERY_REQUEST_TIMEOUT
 		});
 	}
 
