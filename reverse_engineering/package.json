@@ -4,8 +4,8 @@
   "description": "",
   "author": "Hackolade",
   "dependencies": {
-    "mssql": "^3.3.0",
     "axios": "^0.21.1",
+    "mssql": "^6.3.2",
     "qs": "^6.9.1"
   },
   "installed": true
