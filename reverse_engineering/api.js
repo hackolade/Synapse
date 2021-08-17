@@ -31,7 +31,7 @@ module.exports = {
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Test connection', connectionInfo, logger);
-			await this.connect(connectionInfo);
+			await this.connect(connectionInfo, logger);
 			callback(null);
 		} catch(error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
