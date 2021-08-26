@@ -5,5 +5,13 @@
 	},
 	"defaultDdlType": "msSqlServer",
 	"excludeDocKind": ["id"],
-	"connectionList": [ "name", "host", "port", "userName" ]
+	"connectionList": [ "name", "host", "port", "userName" ],
+	"scenario": [{
+		"dependency": {
+			"key": "authMethod",
+			"value": "Azure Active Directory (MFA)"
+		},
+		"value": "connectByExternalBrowser"
+	}],
+	"externalBrowserPort": 8080
 }

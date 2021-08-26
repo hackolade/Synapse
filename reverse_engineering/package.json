@@ -5,8 +5,11 @@
   "author": "Hackolade",
   "dependencies": {
     "axios": "^0.21.1",
-    "mssql": "^6.3.2",
-    "qs": "^6.9.1"
+    "base64url": "^3.0.1",
+    "crypto": "^1.0.1",
+    "mssql": "^7.2.1",
+    "qs": "^6.9.1",
+    "randomstring": "^1.2.1"
   },
   "installed": true
 }

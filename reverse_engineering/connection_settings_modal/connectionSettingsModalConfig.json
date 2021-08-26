@@ -35,8 +35,11 @@
 					"value": "Username / Password",
 					"label": "Username / Password"
 				},{
+					"value": "Azure Active Directory (MFA)",
+					"label": "Azure Active Directory (MFA)"
+				},{
 					"value": "Azure Active Directory (Username / Password)",
-					"label": "Azure Active Directory"
+					"label": "Azure Active Directory (Username / Password)"
 				},{
 					"value": "Connection string",
 					"label": "Connection string"
@@ -50,9 +53,19 @@
 				"inputPlaceholder": "<database>.database.windows.net",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
 				},
 				"regex": "([^\\s])"
+			},
+			{
+				"inputLabel": "Directory (tenant) ID",
+				"inputKeyword": "connectionTenantId",
+				"inputType": "text",
+				"inputTooltip": "Specify the Directory (tenant) ID from the Overview screen of the App registration",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+				}
 			},
 			{
 				"inputLabel": "Port",
