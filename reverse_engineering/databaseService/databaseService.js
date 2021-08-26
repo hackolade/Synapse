@@ -20,7 +20,10 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			database: connectionInfo.databaseName,
 			options: {
 				encrypt: true,
+				enableArithAbort: true
 			},
+			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
+			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
 		});
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
 		const params = new URLSearchParams()
@@ -96,21 +99,34 @@ const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) =>
 				ic.INCREMENT_VALUE,
 				sc.is_sparse AS IS_SPARSE,
 				sc.is_identity AS IS_IDENTITY,
-				o.type AS TABLE_TYPE,
-				td.distribution_policy as DISTRIBUTION_POLICY,
-				vd.distribution_policy as VIEW_DISTRIBUTION_POLICY
+				o.type AS TABLE_TYPE
 		FROM information_schema.columns as c
 		LEFT JOIN SYS.IDENTITY_COLUMNS ic ON ic.object_id=object_id(${objectId})
 		LEFT JOIN sys.objects o ON o.object_id=object_id(${objectId})
-		LEFT JOIN sys.pdw_table_distribution_properties as td ON object_id(${objectId}) = td.object_id
-		LEFT JOIN sys.pdw_materialized_view_distribution_properties as vd ON object_id(${objectId}) = vd.object_id
 		LEFT JOIN sys.columns as sc ON object_id(${objectId}) = sc.object_id AND c.column_name = sc.name
 		WHERE c.table_name = ${tableName}
 		AND c.table_schema = ${tableSchema}
 	;`);
 };
 
-const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions) => {
+const queryDistribution = async (connectionClient, dbName, tableName, tableSchema) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const objectId = `${tableSchema}.${tableName}`;
+
+	try {
+		return await currentDbConnectionClient.query`
+			SELECT td.distribution_policy as DISTRIBUTION_POLICY,
+				vd.distribution_policy as VIEW_DISTRIBUTION_POLICY
+			FROM sys.pdw_table_distribution_properties as td
+			LEFT JOIN sys.pdw_materialized_view_distribution_properties as vd ON td.object_id = vd.object_id
+			WHERE object_id(${objectId}) = td.object_id
+		`;
+	} catch (e) {
+		return [];
+	}
+};
+
+const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const percentageWord = reverseEngineeringOptions.isAbsoluteValue ? '' : 'PERCENT';
 	try {
@@ -122,6 +138,7 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rev
 			.input('percent', sql.VarChar, percentageWord)
 			.query`EXEC('SELECT TOP '+ @Amount +' '+ @Percent +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`);
 	} catch (e) {
+		logger.log('error', { type: 'Error getting rows for sampling', message: e.message, stack: e.stack }, `${dbName}.${tableName}`);
 		return [];
 	}
 };
@@ -418,4 +435,5 @@ module.exports = {
 	getViewColumns,
 	getDistributedColumns,
 	getViewDistributedColumns,
+	queryDistribution,
 }
