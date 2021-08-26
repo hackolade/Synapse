@@ -97,7 +97,7 @@ module.exports = {
 
 			const modelInfo = Object.assign({
 				accountID: additionalCollectionInfo.clientId,
-				tenant: additionalCollectionInfo.tenantId,
+				tenant: additionalCollectionInfo.connectionTenantId || additionalCollectionInfo.tenantId,
 				resGrp: additionalCollectionInfo.resourceGroupName,
 				subscription: additionalCollectionInfo.subscriptionId,
 			}, additionalAccountInfo);
