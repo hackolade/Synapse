@@ -4,7 +4,7 @@
     "versionDate": "2021-02-05",
     "author": "hackolade",
     "engines": {
-        "hackolade": "4.1.10",
+        "hackolade": "5.1.6",
         "hackoladePlugin": "1.2.0"
     },
     "contributes": {
