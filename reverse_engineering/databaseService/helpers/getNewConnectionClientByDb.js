@@ -5,7 +5,7 @@ const getNewConnectionClientByDb = async (connectionClient, currentDbName) => {
 		throw new Error('Connection client is missing');
 	}
 
-	const { database, user, password, port, server } = connectionClient.config;
+	const { database, user, password, port, server, connectTimeout, requestTimeout } = connectionClient.config;
 	if (database === currentDbName) {
 		return connectionClient;
 	}
@@ -15,6 +15,8 @@ const getNewConnectionClientByDb = async (connectionClient, currentDbName) => {
 		password,
 		server,
 		port,
+		connectTimeout,
+		requestTimeout,
 		options: {
 			encrypt: true,
 		},

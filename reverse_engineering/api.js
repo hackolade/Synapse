@@ -16,7 +16,7 @@ module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
 		const client = getClient();
 		if (!client) {
-			await setClient(connectionInfo);
+			await setClient(connectionInfo, logger);
 			return getClient();
 		}
 
@@ -31,7 +31,7 @@ module.exports = {
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Test connection', connectionInfo, logger);
-			await this.connect(connectionInfo);
+			await this.connect(connectionInfo, logger);
 			callback(null);
 		} catch(error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
@@ -50,7 +50,7 @@ module.exports = {
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Retrieving databases and tables information', connectionInfo, logger);
-			const client = await this.connect(connectionInfo);
+			const client = await this.connect(connectionInfo, logger);
 			if (!client.config.database) {
 				throw new Error('No database specified');
 			}

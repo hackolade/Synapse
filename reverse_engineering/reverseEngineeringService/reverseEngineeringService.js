@@ -11,9 +11,9 @@ const {
 	getTableDefaultConstraintNames,
 	getDatabaseUserDefinedTypes,
 	getViewStatement,
-	getViewsIndexes,
 	getDistributedColumns,
 	getViewDistributedColumns,
+	queryDistribution,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -29,6 +29,7 @@ const {
 	getUserDefinedTypes,
 	reorderTableRows,
 	handleType,
+	containsJson,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
@@ -54,6 +55,7 @@ const mergeCollectionsWithViews = jsonSchemas =>
 const getCollectionsRelationships = logger => async (dbConnectionClient) => {
 	const dbName = dbConnectionClient.config.database;
 	logger.progress({ message: 'Fetching tables relationships', containerName: dbName, entityName: '' });
+	logger.log('info', { message: 'Fetching tables relationships' }, '');
 	const tableForeignKeys = await getTableForeignKeys(dbConnectionClient, dbName);
 	return reverseTableForeignKeys(tableForeignKeys, dbName);
 };
@@ -254,15 +256,19 @@ const getMemoryOptimizedOptions = (options) => {
 	};
 };
 
-const getDistribution = tableInfo => {
+const getDistribution = distributionData => {
+	if (!Array.isArray(distributionData) || !distributionData.length) {
+		return '';
+	}
+
 	const distributionMap = {
 		2: 'hash',
 		3: 'replicate',
 		4: 'round_robin'
 	};
 
-	return distributionMap[tableInfo.DISTRIBUTION_POLICY || tableInfo.VIEW_DISTRIBUTION_POLICY];
-};
+	return distributionMap[distributionData[0]?.DISTRIBUTION_POLICY || distributionData[0]?.VIEW_DISTRIBUTION_POLICY] || '';
+};	
 
 const getIndexing = (indexingInfo, order) => {
 	if (order.length) {
@@ -308,17 +314,17 @@ const getPersistence = tableName => {
 
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
+	progress(logger, `RE data from database "${dbName}"`, dbName);
 	const [
-		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, viewsIndexes
+		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT
 	] = await Promise.all([
-		getDatabaseIndexes(dbConnectionClient, dbName),
-		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger),
-		getDatabaseUserDefinedTypes(dbConnectionClient, dbName),
-		getViewsIndexes(dbConnectionClient, dbName),
+		getDatabaseIndexes(dbConnectionClient, dbName).catch(logError(logger, 'Getting indexes')),
+		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting memory optimized tables')),
+		getDatabaseUserDefinedTypes(dbConnectionClient, dbName).catch(logError(logger, 'Getting user defined types')),
 	]);
 
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
-		logger.progress({ message: 'Fetching database information', containerName: dbName, entityName: '' });
+		progress(logger, 'Fetching database information', dbName);
 		const isSystemIndex = index => /^ClusteredIndex_[a-f0-9]{32}$/m.test(index.name || '');
 		const tablesInfo = await Promise.all(
 			tableNames.map(async untrimmedTableName => {
@@ -327,28 +333,40 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					index => index.TableName === tableName && index.schemaName === schemaName &&
 					!isSystemIndex(index)
 				);
-				logger.progress({ message: 'Fetching table information', containerName: dbName, entityName: tableName });
+				progress(logger, 'Fetching table information', dbName, tableName);
+				const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info'));
 
-				const [tableInfo, tableRows, fieldsKeyConstraints] = await Promise.all([
-					await getTableInfo(dbConnectionClient, dbName, tableName, schemaName),
-					await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings),
-					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName)
+				const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
+					containsJson(tableInfo)
+						? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings, logger).catch(logError(logger, 'Getting table rows'))
+						: Promise.resolve([]),
+					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
+					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
 				]);
 				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
 
-				const distributedColumns = isView ?
-					await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
-					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+				let distributedColumns = [];
+
+				try {
+					progress(logger, 'Fetching columns distribution info', dbName, tableName);
+
+					distributedColumns = isView ?
+						await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
+						await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+				} catch (e) {
+					logger.log('error', { type: 'warning', message: e.message });
+				}
 
 				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 
+				progress(logger, 'Create JSON schema', dbName, tableName);
 				const jsonSchema = pipe(
 					transformDatabaseTableInfoToJSON(tableInfo),
 					defineRequiredFields,
-					defineFieldsDescription(await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName)),
+					defineFieldsDescription(await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table column descriptions'))),
 					defineFieldsKeyConstraints(fieldsKeyConstraints),
 					defineJSONTypes(tableRows),
-					defineFieldsDefaultConstraintNames(await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName)),
+					defineFieldsDefaultConstraintNames(await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting default constraint names'))),
 				)({ required: [], properties: {} });
 
 				const reorderedTableRows = reorderTableRows(tableRows, reverseEngineeringOptions.isFieldOrderAlphabetic);
@@ -356,7 +374,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					? reorderedTableRows
 					: reorderTableRows([getStandardDocumentByJsonSchema(jsonSchema)], reverseEngineeringOptions.isFieldOrderAlphabetic);
 
-				const distribution = getDistribution(tableInfo[0]);
+				const distribution = getDistribution(distributionData);
 				const persistence = getPersistence(tableName);
 				const order = getOrder(tableIndexes);
 				const indexing = getIndexing(tableIndexes[0], order);
@@ -391,8 +409,8 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				};
 
 				if (isView) {
+					progress(logger, 'Getting view data', dbName, tableName);
 					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema);
-					const indexes = viewsIndexes.filter(index => index.TableName === tableName && index.schemaName === schemaName);
 
 					result = {
 						...result,
@@ -400,7 +418,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 						data: {
 							...result.entityLevel,
 							...(viewData.data || {}),
-							Indxs: reverseTableIndexes(indexes),
 						}
 					};
 				}
@@ -410,6 +427,16 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 		);
 		return [...await jsonSchemas, ...tablesInfo.filter(Boolean)];
 	}, Promise.resolve([]));
+};
+
+const progress = (logger, message, dbName = '', entityName = '') => {
+	logger.progress({ message, containerName: dbName, entityName });
+	logger.log('info', { message: `[info] ${message}` }, `${dbName}${entityName ? '.' + entityName : ''}`);
+};
+
+const logError = (logger, step) => (error) => {
+	logger.log('error', { type: 'error', step: step, message: error.message }, '');
+	throw error;
 };
 
 module.exports = {

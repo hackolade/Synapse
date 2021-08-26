@@ -1,20 +1,44 @@
 const sql = require('mssql');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 
-const getConnectionClient = async connectionInfo => {
-	if (connectionInfo.authMethod === 'Username / Password') {
-		const hostName = getHostName(connectionInfo.host);
-		const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
 
+const QUERY_REQUEST_TIMEOUT = 60000;
+
+const getConnectionClient = async (connectionInfo, logger) => {
+	const hostName = getHostName(connectionInfo.host);
+	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
+	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
+
+	if (connectionInfo.authMethod === 'Username / Password') {
 		return await sql.connect({
 			user: userName,
 			password: connectionInfo.userPassword,
 			server: connectionInfo.host,
-			port: connectionInfo.port,
+			port: +connectionInfo.port,
 			database: connectionInfo.databaseName,
 			options: {
 				encrypt: true,
+				enableArithAbort: true
 			},
+			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
+			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
+		});
+	} else if (connectionInfo.authMethod === 'Azure Active Directory (Username / Password)') {
+		return await sql.connect({
+			user: userName,
+			password: connectionInfo.userPassword,
+			server: connectionInfo.host,
+			port: +connectionInfo.port,
+			database: connectionInfo.databaseName,
+			options: {
+				encrypt: true,
+				enableArithAbort: true
+			},
+			authentication: {
+				type: 'azure-active-directory-password',
+			},
+			connectTimeout: QUERY_REQUEST_TIMEOUT,
+			requestTimeout: QUERY_REQUEST_TIMEOUT
 		});
 	}
 
@@ -28,45 +52,59 @@ const getHostName = url => (url || '').split('.')[0];
 const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${tableSchema}.${tableName}`;
-	return await currentDbConnectionClient.query`
+	return mapResponse(await currentDbConnectionClient.query`
 		SELECT c.*,
 				ic.SEED_VALUE,
 				ic.INCREMENT_VALUE,
 				sc.is_sparse AS IS_SPARSE,
 				sc.is_identity AS IS_IDENTITY,
-				o.type AS TABLE_TYPE,
-				td.distribution_policy as DISTRIBUTION_POLICY,
-				vd.distribution_policy as VIEW_DISTRIBUTION_POLICY
+				o.type AS TABLE_TYPE
 		FROM information_schema.columns as c
 		LEFT JOIN SYS.IDENTITY_COLUMNS ic ON ic.object_id=object_id(${objectId})
 		LEFT JOIN sys.objects o ON o.object_id=object_id(${objectId})
-		LEFT JOIN sys.pdw_table_distribution_properties as td ON object_id(${objectId}) = td.object_id
-		LEFT JOIN sys.pdw_materialized_view_distribution_properties as vd ON object_id(${objectId}) = vd.object_id
 		LEFT JOIN sys.columns as sc ON object_id(${objectId}) = sc.object_id AND c.column_name = sc.name
 		WHERE c.table_name = ${tableName}
 		AND c.table_schema = ${tableSchema}
-	;`
+	;`);
 };
 
-const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions) => {
+const queryDistribution = async (connectionClient, dbName, tableName, tableSchema) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const objectId = `${tableSchema}.${tableName}`;
+
+	try {
+		return await currentDbConnectionClient.query`
+			SELECT td.distribution_policy as DISTRIBUTION_POLICY,
+				vd.distribution_policy as VIEW_DISTRIBUTION_POLICY
+			FROM sys.pdw_table_distribution_properties as td
+			LEFT JOIN sys.pdw_materialized_view_distribution_properties as vd ON td.object_id = vd.object_id
+			WHERE object_id(${objectId}) = td.object_id
+		`;
+	} catch (e) {
+		return [];
+	}
+};
+
+const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const percentageWord = reverseEngineeringOptions.isAbsoluteValue ? '' : 'PERCENT';
 	try {
-		return await currentDbConnectionClient
+		return mapResponse(await currentDbConnectionClient
 			.request()
 			.input('tableName', sql.VarChar, tableName)
 			.input('tableSchema', sql.VarChar, tableSchema)
 			.input('amount', sql.Int, reverseEngineeringOptions.value)
 			.input('percent', sql.VarChar, percentageWord)
-			.query`EXEC('SELECT TOP '+ @Amount +' '+ @Percent +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`;
+			.query`EXEC('SELECT TOP '+ @Amount +' '+ @Percent +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`);
 	} catch (e) {
+		logger.log('error', { type: 'Error getting rows for sampling', message: e.message, stack: e.stack }, `${dbName}.${tableName}`);
 		return [];
 	}
 };
 
 const getTableForeignKeys = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return await currentDbConnectionClient.query`
+	return await mapResponse(currentDbConnectionClient.query`
 		SELECT obj.name AS FK_NAME,
 				sch.name AS [schema_name],
 				tab1.name AS [table],
@@ -86,38 +124,38 @@ const getTableForeignKeys = async (connectionClient, dbName) => {
 			ON tab2.object_id = fkc.referenced_object_id
 		INNER JOIN sys.columns col2
 			ON col2.column_id = referenced_column_id AND col2.object_id = tab2.object_id
-		`
+		`);
 };
 
 const getDistributedColumns = async (connectionClient, dbName, tableName, tableSchema) => {
 	const objectId = `${tableSchema}.${tableName}`;
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	return await currentDbConnectionClient.query`SELECT
+	return mapResponse(await currentDbConnectionClient.query`SELECT
 		COL_NAME(object_id(${objectId}), column_id) as columnName
 	FROM sys.pdw_column_distribution_properties
 	WHERE
 		object_id = object_id(${objectId}) AND
 		distribution_ordinal <> 0
-	`;
+	`);
 };
 
 const getViewDistributedColumns = async (connectionClient, dbName, tableName, tableSchema) => {
 	const objectId = `${tableSchema}.${tableName}`;
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	return await currentDbConnectionClient.query`SELECT
+	return mapResponse(await currentDbConnectionClient.query`SELECT
 		COL_NAME(object_id(${objectId}), column_id) as columnName
 	FROM sys.pdw_materialized_view_column_distribution_properties
 	WHERE
 		object_id = object_id(${objectId}) AND
 		distribution_ordinal <> 0
-	`;
+	`);
 };
 
 const getDatabaseIndexes = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return await currentDbConnectionClient.query`
+	return mapResponse(await currentDbConnectionClient.query`
 		SELECT
 			TableName = t.name,
 			IndexName = ind.name,
@@ -141,12 +179,12 @@ const getDatabaseIndexes = async (connectionClient, dbName) => {
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
 			AND t.is_ms_shipped = 0
-		`;
+		`);
 };
 
 const getViewsIndexes = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return await currentDbConnectionClient.query`
+	return mapResponse(await currentDbConnectionClient.query`
 		SELECT
 			TableName = t.name,
 			IndexName = ind.name,
@@ -167,12 +205,12 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
 			AND t.is_ms_shipped = 0
-		`;
+		`);
 };
 
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 		select
 			st.name [Table],
 			sc.name [Column],
@@ -184,14 +222,14 @@ const getTableColumnsDescription = async (connectionClient, dbName, tableName, s
 														and sep.name = 'MS_Description'
 		where st.name = ${tableName}
 		and st.schema_id=schema_id(${schemaName})
-	`;
+	`);
 };
 
 const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
 	try {
 		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-		return currentDbConnectionClient.query`
+		return mapResponse(currentDbConnectionClient.query`
 			SELECT
 				T.name,
 				T.durability,
@@ -201,7 +239,7 @@ const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
 				T.temporal_type_desc
 			FROM sys.tables T LEFT JOIN sys.objects O ON T.history_table_id = O.object_id
 			WHERE T.is_memory_optimized=1
-		`;
+		`);
 	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimzed tables');
 
@@ -213,7 +251,7 @@ const getViewColumns = async (connectionClient, dbName, viewName, schemaName) =>
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
 
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 		select c.name as name,
 			v.name as viewName,
 			m.name as type,
@@ -224,14 +262,14 @@ const getViewColumns = async (connectionClient, dbName, viewName, schemaName) =>
 			m.system_type_id = c.system_type_id and
 			m.user_type_id = c.user_type_id
 		where c.object_id=object_id(${objectId})
-	`;
+	`);
 };
 
 const getViewTableInfo = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
 
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 		select
 			schema_name(v.schema_id) as schema_name,
 			v.name as ViewName,
@@ -244,12 +282,12 @@ const getViewTableInfo = async (connectionClient, dbName, viewName, schemaName) 
 			join sys.objects o
 				on o.object_id = d.referenced_id
 		WHERE v.object_id=object_id(${objectId})
-	`;
+	`);
 };
 
 const getViewColumnRelations = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient
+	return mapResponse(currentDbConnectionClient
 		.request()
 		.input('tableName', sql.VarChar, viewName)
 		.input('tableSchema', sql.VarChar, schemaName)
@@ -258,23 +296,23 @@ const getViewColumnRelations = async (connectionClient, dbName, viewName, schema
 				source_table, source_column
 			FROM sys.dm_exec_describe_first_result_set(N'SELECT TOP 1 * FROM [' + @TableSchema + '].[' + @TableName + ']', null, 1)
 			WHERE is_hidden=0
-	`;
+	`);
 };
 
 const getViewStatement = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
-	return currentDbConnectionClient
+	return mapResponse(currentDbConnectionClient
 		.query`SELECT M.*, V.with_check_option
 			FROM sys.sql_modules M INNER JOIN sys.views V ON M.object_id=V.object_id
 			WHERE M.object_id=object_id(${objectId})
-		`;
+		`);
 };
 
 const getTableKeyConstraints = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${tableName}`;
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 		SELECT
 			'${tableName}' as tableName,
 			ind.name as constraintName,
@@ -299,12 +337,12 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 			INNER JOIN sys.partitions p ON p.index_id = ind.index_id AND p.object_id = object_id(${objectId})
 		WHERE ind.object_id=object_id(${objectId}) AND (ind.is_unique_constraint=1 OR ind.is_primary_key=1)
 		ORDER BY ind.name
-	`;
+	`);
 };
 
 const getTableDefaultConstraintNames = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 	SELECT
 		ac.name as columnName,
 		dc.name
@@ -322,15 +360,19 @@ const getTableDefaultConstraintNames = async (connectionClient, dbName, tableNam
 	WHERE 
 			schemas.name = ${schemaName}
 		AND tables.name = ${tableName}
-	`
+	`);
 };
 
 const getDatabaseUserDefinedTypes = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return currentDbConnectionClient.query`
+	return mapResponse(currentDbConnectionClient.query`
 		select * from sys.types
 		where is_user_defined = 1
-	`;
+	`);
+}
+
+const mapResponse = async (response = {}) => {
+	return (await response).recordset;
 }
 
 module.exports = {
@@ -352,4 +394,5 @@ module.exports = {
 	getViewColumns,
 	getDistributedColumns,
 	getViewDistributedColumns,
+	queryDistribution,
 }
