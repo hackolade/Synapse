@@ -35,14 +35,14 @@
 					"value": "Username / Password",
 					"label": "Username / Password"
 				},{
-					"value": "Azure Active Directory (MFA)",
-					"label": "Azure Active Directory (MFA)"
+					"value": "Connection string",
+					"label": "Connection string"
 				},{
 					"value": "Azure Active Directory (Username / Password)",
 					"label": "Azure Active Directory (Username / Password)"
 				},{
-					"value": "Connection string",
-					"label": "Connection string"
+					"value": "Azure Active Directory (MFA)",
+					"label": "Azure Active Directory (MFA)"
 				}]
 			},
 			{
@@ -58,16 +58,6 @@
 				"regex": "([^\\s])"
 			},
 			{
-				"inputLabel": "Directory (tenant) ID",
-				"inputKeyword": "connectionTenantId",
-				"inputType": "text",
-				"inputTooltip": "Specify the Directory (tenant) ID from the Overview screen of the App registration",
-				"dependency": {
-					"key": "authMethod",
-					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
-				}
-			},
-			{
 				"inputLabel": "Port",
 				"inputKeyword": "port",
 				"description": "Specify port number",
@@ -75,7 +65,17 @@
 				"defaultValue": 1433,
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+				}
+			},
+			{
+				"inputLabel": "Directory (tenant) ID",
+				"inputKeyword": "connectionTenantId",
+				"inputType": "text",
+				"inputTooltip": "Specify the Directory (tenant) ID from the Overview screen of the App registration",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
 				}
 			},
 			{
