@@ -50,7 +50,7 @@ module.exports = {
 			.digest("base64");
 		const challenge = base64url.fromBase64(base64Digest);
 		const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
-		const clientId = '2b134af8-dd48-4422-b7dc-11229eb9c30a';
+		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
 		const redirectUrl = `http://localhost:${connectionInfo.redirectPort || 8080}`;
 
 		cb(null, { proofKey: verifier, url:`https://login.microsoftonline.com/${tenantId}/oauth2/authorize?code_challenge_method=S256&code_challenge=${challenge}&response_type=code&response_mode=query&client_id=${clientId}&redirect_uri=${redirectUrl}&prompt=select_account&resource=https://database.windows.net/`});

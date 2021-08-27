@@ -28,7 +28,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
 		const params = new URLSearchParams()
 		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
-		params.append('client_id','2b134af8-dd48-4422-b7dc-11229eb9c30a');
+		params.append('client_id','0dc36597-bc44-49f8-a4a7-ae5401959b85');
 		params.append('redirect_uri',"http://localhost:8080");
 		params.append('grant_type',"authorization_code");
 		params.append('code_verifier', connectionInfo?.proofKey);
