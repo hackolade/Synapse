@@ -40,12 +40,9 @@
  * }
  */
  {
-	"add": {
-		"entity": [
-			{
-				"path": ["Indxs", "isActivated"],
-				"value": true
-			}
-		]
+	"delete": {
+		"field": {
+			"char": ["maxLength", "minLength"]
+		}
 	}
 }
