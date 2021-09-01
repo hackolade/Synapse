@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2021 by IntegrIT S.A. dba Hackolade.  All rights reserved.
+ * Copyright © 2016-2018 by IntegrIT S.A. dba Hackolade.  All rights reserved.
  *
  * The copyright to the computer software herein is the property of IntegrIT S.A.
  * The software may be used and/or copied only with the written permission of 
@@ -40,9 +40,25 @@
  * }
  */
  {
-	"delete": {
+    "modify": {
+        "field": [
+			{
+				"from": {
+                    "type": "Condition",
+                    "value": "maxLength,length,>"
+				},
+				"to": {
+					"length": {
+                        "type": "Source",
+                        "path": "maxLength"
+                    }
+				}
+			}
+		]
+    },
+    "delete": {
 		"field": {
-			"char": ["maxLength", "minLength"]
+			"char": ["maxLength"]
 		}
-	}
+	}  
 }
