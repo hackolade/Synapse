@@ -61,7 +61,7 @@
 				"inputLabel": "Directory (tenant) ID",
 				"inputKeyword": "connectionTenantId",
 				"inputType": "text",
-				"inputTooltip": "Specify the Directory (tenant) ID from the Overview screen of the App registration",
+				"inputTooltip": "Specify the Directory (tenant) ID from the Azure Active Directory service page",
 				"dependency": {
 					"key": "authMethod",
 					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
