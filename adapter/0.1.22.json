@@ -42,19 +42,22 @@
  {
     "modify": {
         "field": [
-			{
-				"from": {
-                    "type": "Condition",
-                    "value": "maxLength,length,>"
-				},
-				"to": {
-					"length": {
+            {
+                "from": {
+                    "type": "char",
+                    "maxLength": {
+                        "type": "Condition",
+                        "value": "maxLength,length,>"
+                    }
+                },
+                "to": {
+                    "length": {
                         "type": "Source",
                         "path": "maxLength"
                     }
-				}
-			}
-		]
+                }
+            }
+        ]
     },
     "delete": {
 		"field": {
