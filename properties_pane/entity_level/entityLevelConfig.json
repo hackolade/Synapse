@@ -309,6 +309,13 @@ making sure that you maintain a proper JSON format.
 				"attributeList": [],
 				"template": "collectiontree",
 				"isCompositeKey": true
+			}, 
+			{
+				"propertyName": "Alternate key",
+				"propertyKeyword": "alternateKey",
+				"propertyTooltip": "",
+				"propertyType": "checkbox",
+				"setFieldPropertyBy": "compositeUniqueKey"
 			}]
 		}]
 	},
