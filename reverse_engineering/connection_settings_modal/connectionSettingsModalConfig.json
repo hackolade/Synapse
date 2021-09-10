@@ -37,6 +37,12 @@
 				},{
 					"value": "Connection string",
 					"label": "Connection string"
+				},{
+					"value": "Azure Active Directory (Username / Password)",
+					"label": "Azure Active Directory (Username / Password)"
+				},{
+					"value": "Azure Active Directory (MFA)",
+					"label": "Azure Active Directory (MFA)"
 				}]
 			},
 			{
@@ -47,7 +53,7 @@
 				"inputPlaceholder": "<database>.database.windows.net",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
 				},
 				"regex": "([^\\s])"
 			},
@@ -59,7 +65,17 @@
 				"defaultValue": 1433,
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+				}
+			},
+			{
+				"inputLabel": "Tenant ID",
+				"inputKeyword": "connectionTenantId",
+				"inputType": "text",
+				"inputTooltip": "Specify the Tenant ID from the Overview screen of your Azure AD tenant",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
 				}
 			},
 			{
@@ -89,7 +105,7 @@
 				"inputPlaceholder": "User Name",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				},
 				"validation": {
 					"regex": "([^\\s])"
@@ -102,7 +118,7 @@
 				"inputPlaceholder": "Password",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
 				},
 				"isHiddenKey": true,
 				"validation": {
