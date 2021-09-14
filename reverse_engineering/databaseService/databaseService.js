@@ -1,7 +1,8 @@
 const axios = require('axios');
 const sql = require('mssql');
+const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
-
+const msal = require('@azure/msal-node');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -26,21 +27,9 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
 		});
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
-		const params = new URLSearchParams()
-		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
-		params.append('client_id','0dc36597-bc44-49f8-a4a7-ae5401959b85');
-		params.append('redirect_uri',"http://localhost:8080");
-		params.append('grant_type',"authorization_code");
-		params.append('code_verifier', connectionInfo?.proofKey);
-		params.append('resource',"https://database.windows.net/");
-
-		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		}).catch(error => {
-			logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA auth error');
-		});
+		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+		const redirectUri = 'http://localhost:8080';
+		const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
 
 		return await sql.connect({
 			server: connectionInfo.host,
@@ -53,7 +42,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			authentication: {
 				type: 'azure-active-directory-access-token',
 				options: {
-					token: responseData?.data?.access_token
+					token
 				}
 			},
 			connectTimeout: QUERY_REQUEST_TIMEOUT,
@@ -415,6 +404,83 @@ const getDatabaseUserDefinedTypes = async (connectionClient, dbName) => {
 const mapResponse = async (response = {}) => {
 	return (await response).recordset;
 }
+
+const getTokenByMSAL = async ({ connectionInfo, redirectUri, clientId, tenantId, logger }) => {
+	try {
+
+		const pca = new msal.PublicClientApplication(getAuthConfig(clientId, tenantId, logger.log));
+		const tokenRequest = {
+			code: connectionInfo?.externalBrowserQuery?.code || '',
+			scopes: ["https://database.windows.net//.default"],
+			redirectUri,
+			codeVerifier: connectionInfo?.proofKey, 
+			clientInfo: connectionInfo?.externalBrowserQuery?.client_info || ''
+		};
+	
+		const responseData = await pca.acquireTokenByCode(tokenRequest);
+
+		return responseData.accessToken;
+	} catch(error){
+		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA MSAL auth error');
+		return '';
+	}
+};
+
+const getAgent = (reject, cert, key) => {
+	return new https.Agent({ cert,key, rejectUnauthorized: !!reject });
+};
+
+const getTokenByAxios = async ({ connectionInfo, tenantId, redirectUri, clientId, logger, agent }) => {
+	try {
+		const params = new URLSearchParams()
+		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
+		params.append('client_id',clientId);
+		params.append('redirect_uri',redirectUri);
+		params.append('grant_type',"authorization_code");
+		params.append('code_verifier', connectionInfo?.proofKey);
+		params.append('resource',"https://database.windows.net/");
+
+		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			...(agent && { httpsAgent: agent })
+		})
+
+		return responseData?.data?.access_token || '';
+	} catch {
+		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
+		return '';
+	}
+};
+
+const getTokenByAxiosExtended = (params) => {
+	return getTokenByAxios({ ...params, agent: getAgent()})
+};
+
+const getToken = async ({ connectionInfo, tenantId, clientId, redirectUri, logger }) => {
+	return (
+		getTokenByMSAL({ connectionInfo, clientId, redirectUri, tenantId, logger }) ||
+		getTokenByAxios({ connectionInfo, clientId, redirectUri, tenantId, logger }) ||
+		getTokenByAxiosExtended({ connectionInfo, clientId, redirectUri, tenantId, logger})
+	);
+}
+
+const getAuthConfig = (clientId, tenantId, logger) => ({
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message) {
+                logger(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    },
+	auth: {
+		clientId,
+		authority: `https://login.microsoftonline.com/${tenantId}`
+	}
+});
 
 module.exports = {
 	getConnectionClient,
