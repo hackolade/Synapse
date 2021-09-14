@@ -11,6 +11,9 @@ const logInfo = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
+const crypto = require('crypto');
+const randomstring = require("randomstring");
+const base64url = require('base64url');
 
 module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
@@ -37,6 +40,20 @@ module.exports = {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
 			callback({ message: error.message, stack: error.stack });
 		}
+	},
+
+	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
+		const verifier = randomstring.generate(32);
+		const base64Digest = crypto
+			.createHash("sha256")
+			.update(verifier)
+			.digest("base64");
+		const challenge = base64url.fromBase64(base64Digest);
+		const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
+		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+		const redirectUrl = `http://localhost:${connectionInfo.redirectPort || 8080}`;
+
+		cb(null, { proofKey: verifier, url:`https://login.microsoftonline.com/${tenantId}/oauth2/authorize?code_challenge_method=S256&code_challenge=${challenge}&response_type=code&response_mode=query&client_id=${clientId}&redirect_uri=${redirectUrl}&prompt=select_account&resource=https://database.windows.net/`});
 	},
 
 	getDatabases(connectionInfo, logger, callback, app) {
@@ -80,7 +97,7 @@ module.exports = {
 
 			const modelInfo = Object.assign({
 				accountID: additionalCollectionInfo.clientId,
-				tenant: additionalCollectionInfo.tenantId,
+				tenant: additionalCollectionInfo.connectionTenantId || additionalCollectionInfo.tenantId,
 				resGrp: additionalCollectionInfo.resourceGroupName,
 				subscription: additionalCollectionInfo.subscriptionId,
 			}, additionalAccountInfo);

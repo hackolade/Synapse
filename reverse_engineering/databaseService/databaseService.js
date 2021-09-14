@@ -1,3 +1,4 @@
+const axios = require('axios');
 const sql = require('mssql');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 
@@ -7,6 +8,7 @@ const QUERY_REQUEST_TIMEOUT = 60000;
 const getConnectionClient = async (connectionInfo, logger) => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
+	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
 	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
 
 	if (connectionInfo.authMethod === 'Username / Password') {
@@ -23,6 +25,40 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
 		});
+	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
+		const params = new URLSearchParams()
+		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
+		params.append('client_id','0dc36597-bc44-49f8-a4a7-ae5401959b85');
+		params.append('redirect_uri',"http://localhost:8080");
+		params.append('grant_type',"authorization_code");
+		params.append('code_verifier', connectionInfo?.proofKey);
+		params.append('resource',"https://database.windows.net/");
+
+		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}
+		}).catch(error => {
+			logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA auth error');
+		});
+
+		return await sql.connect({
+			server: connectionInfo.host,
+			port: +connectionInfo.port,
+			database: connectionInfo.databaseName,
+			options: {
+				encrypt: true,
+				enableArithAbort: true,
+			},
+			authentication: {
+				type: 'azure-active-directory-access-token',
+				options: {
+					token: responseData?.data?.access_token
+				}
+			},
+			connectTimeout: QUERY_REQUEST_TIMEOUT,
+			requestTimeout: QUERY_REQUEST_TIMEOUT
+		});
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (Username / Password)') {
 		return await sql.connect({
 			user: userName,
@@ -36,6 +72,11 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			},
 			authentication: {
 				type: 'azure-active-directory-password',
+				options: {
+					userName: connectionInfo.userName,
+					password: connectionInfo.userPassword,
+					domain: tenantId
+				},
 			},
 			connectTimeout: QUERY_REQUEST_TIMEOUT,
 			requestTimeout: QUERY_REQUEST_TIMEOUT
