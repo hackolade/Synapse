@@ -634,7 +634,6 @@ making sure that you maintain a proper JSON format.
 			"foreignField",
 			"relationshipType",
 			"minLength",
-			"maxLength",
 			"pattern",
 			"format",
 			"enum",
