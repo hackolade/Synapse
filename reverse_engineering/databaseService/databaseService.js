@@ -448,7 +448,7 @@ const getTokenByAxios = async ({ connectionInfo, tenantId, redirectUri, clientId
 		})
 
 		return responseData?.data?.access_token || '';
-	} catch {
+	} catch(error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
 		return '';
 	}
@@ -459,11 +459,22 @@ const getTokenByAxiosExtended = (params) => {
 };
 
 const getToken = async ({ connectionInfo, tenantId, clientId, redirectUri, logger }) => {
-	return (
-		getTokenByMSAL({ connectionInfo, clientId, redirectUri, tenantId, logger }) ||
-		getTokenByAxios({ connectionInfo, clientId, redirectUri, tenantId, logger }) ||
-		getTokenByAxiosExtended({ connectionInfo, clientId, redirectUri, tenantId, logger})
-	);
+	const axiosExtendedToken = await getTokenByAxiosExtended({ connectionInfo, clientId, redirectUri, tenantId, logger});
+	if (axiosExtendedToken) {
+		return axiosExtendedToken;
+	}
+
+	const msalToken = await getTokenByMSAL({ connectionInfo, clientId, redirectUri, tenantId, logger });
+	if (msalToken) {
+		return msalToken;
+	}
+
+	const axiosToken = await getTokenByAxios({ connectionInfo, clientId, redirectUri, tenantId, logger });
+	if (axiosToken) {
+		return axiosToken;
+	}
+
+	return;
 }
 
 const getAuthConfig = (clientId, tenantId, logger) => ({
