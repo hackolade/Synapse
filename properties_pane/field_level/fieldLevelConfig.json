@@ -549,6 +549,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Unique",
 				"propertyKeyword": "unique",
+				"cleanDependency": true,
 				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
@@ -590,6 +591,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Alternate Key",
 				"propertyKeyword": "alternateKey",
+				"defaultValue": false,
+				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
 					"type": "or",
@@ -915,6 +918,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Unique",
 				"propertyKeyword": "unique",
+				"cleanDependency": true,
 				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
@@ -956,6 +960,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Alternate Key",
 				"propertyKeyword": "alternateKey",
+				"defaultValue": false,
+				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
 					"type": "or",
@@ -1248,6 +1254,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Unique",
 				"propertyKeyword": "unique",
+				"cleanDependency": true,
 				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
@@ -1289,6 +1296,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Alternate Key",
 				"propertyKeyword": "alternateKey",
+				"defaultValue": false,
+				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
 					"type": "or",
@@ -1557,6 +1566,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Unique",
 				"propertyKeyword": "unique",
+				"cleanDependency": true,
 				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
@@ -1598,6 +1608,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Alternate Key",
 				"propertyKeyword": "alternateKey",
+				"defaultValue": false,
+				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
 					"type": "or",
@@ -1833,6 +1845,7 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Unique",
 				"propertyKeyword": "unique",
+				"cleanDependency": true,
 				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
@@ -1874,6 +1887,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Alternate Key",
 				"propertyKeyword": "alternateKey",
+				"defaultValue": false,
+				"enableForReference": true,
 				"propertyType": "checkbox",
 				"dependency": {
 					"type": "or",
