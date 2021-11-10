@@ -51,9 +51,10 @@ module.exports = {
 		const challenge = base64url.fromBase64(base64Digest);
 		const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
 		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+		const loginHint = connectionInfo.loginHint ? `login_hint=${encodeURIComponent(connectionInfo.loginHint)}&` : '';
 		const redirectUrl = `http://localhost:${connectionInfo.redirectPort || 8080}`;
 
-		cb(null, { proofKey: verifier, url:`https://login.microsoftonline.com/${tenantId}/oauth2/authorize?code_challenge_method=S256&code_challenge=${challenge}&response_type=code&response_mode=query&client_id=${clientId}&redirect_uri=${redirectUrl}&prompt=select_account&resource=https://database.windows.net/`});
+		cb(null, { proofKey: verifier, url:`https://login.microsoftonline.com/${tenantId}/oauth2/authorize?${loginHint}code_challenge_method=S256&code_challenge=${challenge}&response_type=code&response_mode=query&client_id=${clientId}&redirect_uri=${redirectUrl}&prompt=select_account&resource=https://database.windows.net/`});
 	},
 
 	getDatabases(connectionInfo, logger, callback, app) {
