@@ -151,9 +151,6 @@
 				"dependency": {
 					"key": "authMethod",
 					"value": ["Azure Active Directory (MFA)"]
-				},
-				"validation": {
-					"regex": "([^\\s])"
 				}
 			}
 		]
