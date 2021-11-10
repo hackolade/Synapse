@@ -25,6 +25,21 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
 		});
+	} else if (connectionInfo.authMethod === 'Username / Password (Windows)') {
+		return await sql.connect({
+			user: userName,
+			password: connectionInfo.userPassword,
+			server: connectionInfo.host,
+			port: +connectionInfo.port,
+			database: connectionInfo.databaseName,
+			domain: connectionInfo.userDomain,
+			options: {
+				encrypt: false,
+				enableArithAbort: true
+			},
+			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
+			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000
+		});
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
 		const params = new URLSearchParams()
 		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
