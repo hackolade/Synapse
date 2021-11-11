@@ -6,7 +6,8 @@
 				"inputLabel": "Name",
 				"inputKeyword": "name",
 				"inputType": "text",
-				"inputPlaceholder": "Name"
+				"inputPlaceholder": "Name",
+				"description": "Choose a friendly connection name"
 			},
 			{
 				"inputLabel": "Source",
@@ -14,9 +15,29 @@
 				"inputType": "select",
 				"defaultValue": "On-premise",
 				"options": [{
+					"value": "On-premise",
+					"label": "On-premise database"
+				},{
 					"value": "azure",
-					"label": "Azure Synapse"
-				}]
+					"label": "Azure Synapse database"
+				}],
+				"customStyle": { "width": "43%" },
+				"description": "Choose source"
+			},
+			{
+				"inputLabel": "From connection string",
+				"inputKeyword": "connectionStringParser",
+				"inputType": "custom",
+				"inputPlaceholder": "mssql://username:password@localhost:1433/database?encrypt=true",
+				"modalTitle": "From connection string",
+				"modalInputs": [
+					{
+						"inputKeyword": "connectionString",
+						"inputType": "text",
+						"inputPlaceholder": "mssql://username:password@localhost:1433/database",
+						"description": "Specify URI or classic connection string"
+					}
+				]
 			},
 			{
 				"inputLabel": "Database name",
@@ -27,33 +48,13 @@
 				"regex": "([^\\s])"
 			},
 			{
-				"inputLabel": "Authentication method",
-				"inputKeyword": "authMethod",
-				"inputType": "select",
-				"defaultValue": "Username / Password",
-				"options": [{
-					"value": "Username / Password",
-					"label": "Username / Password"
-				},{
-					"value": "Connection string",
-					"label": "Connection string"
-				},{
-					"value": "Azure Active Directory (Username / Password)",
-					"label": "Azure Active Directory (Username / Password)"
-				},{
-					"value": "Azure Active Directory (MFA)",
-					"label": "Azure Active Directory (MFA)"
-				}]
-			},
-			{
 				"inputLabel": "Host",
 				"inputKeyword": "host",
 				"description": "Specify Azure Synapse server name",
 				"inputType": "text",
-				"inputPlaceholder": "<database>.database.windows.net",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
 				},
 				"regex": "([^\\s])"
 			},
@@ -65,7 +66,71 @@
 				"defaultValue": 1433,
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+				}
+			}
+		]
+	},
+	{
+		"tab": "Authentication",
+		"structure": [
+			{
+				"inputLabel": "Authentication method",
+				"inputKeyword": "authMethod",
+				"inputType": "select",
+				"defaultValue": "Username / Password",
+				"options": [{
+					"value": "Username / Password",
+					"label": "SQL Server"
+				},{
+					"value": "Username / Password (Windows)",
+					"label": "Windows"
+				},{
+					"value": "Azure Active Directory (Username / Password)",
+					"label": "Azure Active Directory (Username / Password)"
+				},{
+					"value": "Azure Active Directory (MFA)",
+					"label": "Azure Active Directory (MFA)"
+				}]
+			},
+			{
+				"inputLabel": "User Domain",
+				"inputKeyword": "userDomain",
+				"inputType": "text",
+				"inputPlaceholder": "User Domain",
+				"dependency": {
+					"key": "authMethod",
+					"value": "Username / Password (Windows)"
+				},
+				"validation": {
+					"regex": "([^\\s])"
+				}
+			},
+			{
+				"inputLabel": "User Name",
+				"inputKeyword": "userName",
+				"inputType": "text",
+				"inputPlaceholder": "User Name",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)"]
+				},
+				"validation": {
+					"regex": "([^\\s])"
+				}
+			},
+			{
+				"inputLabel": "Password",
+				"inputKeyword": "userPassword",
+				"inputType": "password",
+				"inputPlaceholder": "Password",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)"]
+				},
+				"isHiddenKey": true,
+				"validation": {
+					"regex": "([^\\s])"
 				}
 			},
 			{
@@ -79,50 +144,13 @@
 				}
 			},
 			{
-				"inputLabel": "Connection string",
-				"inputKeyword": "connectionString",
-				"inputType": "text",
-				"description": "Specify URI or classic connection string",
-				"inputPlaceholder": "mssql://username:password@localhost:1433/database?encrypt=true",
-				"dependency": {
-					"key": "authMethod",
-					"value": "Connection string"
-				},
-				"isHiddenKey": true,
-				"validation": {
-					"regex": "([^\\s])"
-				}
-			}
-		]
-	},
-	{
-		"lowerTab": "Authentication",
-		"structure": [
-			{
 				"inputLabel": "User Name",
-				"inputKeyword": "userName",
+				"inputKeyword": "loginHint",
 				"inputType": "text",
 				"inputPlaceholder": "User Name",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
-				},
-				"validation": {
-					"regex": "([^\\s])"
-				}
-			},
-			{
-				"inputLabel": "Password",
-				"inputKeyword": "userPassword",
-				"inputType": "password",
-				"inputPlaceholder": "Password",
-				"dependency": {
-					"key": "authMethod",
-					"value": ["Username / Password", "Azure Active Directory (Username / Password)"]
-				},
-				"isHiddenKey": true,
-				"validation": {
-					"regex": "([^\\s])"
+					"value": ["Azure Active Directory (MFA)"]
 				}
 			}
 		]
