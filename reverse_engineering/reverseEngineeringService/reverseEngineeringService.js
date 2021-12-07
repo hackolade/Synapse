@@ -122,6 +122,10 @@ const getSelectStatementFromDefinition = (definition) => {
 };
 
 const getPartitionedSelectStatement = (definition, table, dbName) => {
+	if (!table) {
+		return '';
+	}
+
 	const tableRef = new RegExp(`(\\[?${dbName}\\]?\\.)?(\\[?${table[0]}\\]?\\.)?\\[?${table[1]}\\]?`, 'i');
 	const statement = getSelectStatementFromDefinition(definition).split(/UNION\s+ALL/i).find(item => tableRef.test(item));
 
