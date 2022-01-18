@@ -47,9 +47,9 @@
 					"childType": "boolean"
 				},
 				"to": {
-                    "type": "number",
-                    "childType": "numeric",
-                    "mode": "bit"
+					"type": "number",
+					"childType": "numeric",
+					"mode": "bit"
 				}
 			}
 		]
