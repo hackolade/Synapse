@@ -13,5 +13,6 @@
 		},
 		"value": "connectByExternalBrowser"
 	}],
-	"externalBrowserPort": 8080
+	"externalBrowserPort": 8080,
+	"helpUrl": "https://hackolade.com/help/ConnecttoSynapse.html"
 }
