@@ -67,6 +67,11 @@ making sure that you maintain a proper JSON format.
 				"template": "textarea"
 			},
 			{
+				"propertyName": "If not exist",
+				"propertyKeyword": "ifNotExist",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Remarks",
 				"propertyKeyword": "comments",
 				"shouldValidate": false,
