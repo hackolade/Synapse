@@ -126,6 +126,11 @@ making sure that you maintain a proper JSON format.
 				"addTimestampButton": false
 			},
 			{
+				"propertyName": "If not exist",
+				"propertyKeyword": "ifNotExist",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Materialized",
 				"propertyKeyword": "materialized",
 				"propertyType": "checkbox"

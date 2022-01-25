@@ -127,6 +127,11 @@ making sure that you maintain a proper JSON format.
 				"template": "textarea"
 			},
 			{
+				"propertyName": "If not exist",
+				"propertyKeyword": "ifNotExist",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Table role",
 				"propertyKeyword": "tableRole",
 				"propertyTooltip": "Select from list of options",
