@@ -2,7 +2,7 @@ module.exports = (app, options) => {
 	const _ = app.require('lodash');
 	const { mapProperties } = app.require('@hackolade/ddl-fe-utils');
 	const { checkCompModEqual } = require('./common')(app);
-	const ddlProvider = require('../../ddlProvider')(options, app);
+	const ddlProvider = require('../../ddlProvider')(null, options, app);
 	const { getTableName } = require('../general')(app);
 
 	const getAddViewScript = view => {

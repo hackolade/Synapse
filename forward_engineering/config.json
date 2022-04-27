@@ -1,6 +1,6 @@
 {
 	"type": "ddl",
-	"ddlType": "synapse",
+	"ddlType": "plugin",
 	"namePrefix": "Synapse",
 	"mode": "sqlserver",
 	"level": {

@@ -7,6 +7,10 @@ module.exports = app => {
 	const { decorateDefault } = require('./columnDefinitionHelper')(app);
 	const { checkAllKeysDeactivated } = app.require('@hackolade/ddl-fe-utils').general;
 
+	const ORDERED_INDEX = 'clustered columnstore index order';
+	const CLUSTERED_INDEX = 'clustered index';
+	const HASH_DISTRIBUTION = 'hash';
+
 	const isString = type => ['VARCHAR', 'CHAR', 'NCHAR', 'NVARCHAR'].includes(_.toUpper(type));
 
 	const getTableName = (tableName, schemaName) => {
@@ -97,32 +101,46 @@ module.exports = app => {
 		if (!options) {
 			return '';
 		}
-
-		if (options.memory_optimized) {
-			let withOptions = ' WITH (\n\tMEMORY_OPTIMIZED=ON';
-
-			if (options.durability) {
-				withOptions += ',\n\tDURABILITY=' + options.durability;
+	
+		let optionsStatements = [];
+		if (options.indexing) {
+			let statement = _.toUpper(options.indexing);
+			if (options.indexing === ORDERED_INDEX) {
+				statement += '(';
+				statement += options.indexingOrderColumn.map(({ name }) => `[${name}]`).join(', ');
+				statement += ')';
 			}
-
-			if (options.systemVersioning) {
-				withOptions += ',\n\t' + getSystemVersioning(options);
+	
+			if (options.indexing === CLUSTERED_INDEX) {
+				statement += '(';
+				statement += options.clusteringColumn.map(({ name }) => `[${name}]`).join(', ');
+				statement += ')';
 			}
-
-			return withOptions + '\n)';
+	
+			optionsStatements.push(statement);
 		}
-
-		if (!options.temporal) {
+	
+		if (options.distribution) {
+			let statement = `DISTRIBUTION = ${_.toUpper(options.distribution)}`;
+	
+			if (options.distribution === HASH_DISTRIBUTION) {
+				statement += '(';
+				statement += options.hashColumn.map(({ name }) => `[${name}]`).join(', ');
+				statement += ')';
+			}
+	
+			optionsStatements.push(statement);
+		}
+	
+		if (options.forAppend) {
+			optionsStatements.push('FOR_APPEND');
+		}
+	
+		if (_.isEmpty(optionsStatements)) {
 			return '';
 		}
-
-		let optionsStrings = `WITH (\n\t${getSystemVersioning(options)}`;
-
-		if (options.ledger) {
-			optionsStrings += ',\n\t' + getLedger(options);
-		}
-
-		return `${optionsStrings}\n)`;
+	
+		return `WITH (\n\t${optionsStatements.join(',\n\t')}\n)`;
 	};
 
 	const hasType = type => {

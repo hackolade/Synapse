@@ -3,7 +3,7 @@ module.exports = (app, options) => {
 	const { getEntityName } = app.require('@hackolade/ddl-fe-utils').general;
 	const { createColumnDefinitionBySchema } = require('./createColumnDefinition')(_);
 	const { getTableName } = require('../general')(app);
-	const ddlProvider = require('../../ddlProvider')(options, app);
+	const ddlProvider = require('../../ddlProvider')(null, options, app);
 	const { generateIdToNameHashTable, generateIdToActivatedHashTable } = app.require('@hackolade/ddl-fe-utils');
 	const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common')(app);
 

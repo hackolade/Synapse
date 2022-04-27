@@ -5,15 +5,14 @@ module.exports = app => {
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	const { checkAllKeysDeactivated, divideIntoActivatedAndDeactivated } =
 		app.require('@hackolade/ddl-fe-utils').general;
-	const { getRelationOptionsIndex } = require('./indexHelper')(app);
 	const { trimBraces } = require('./general')(app);
 
 	const createKeyConstraint = (templates, terminator, isParentActivated) => keyData => {
-		const indexOptions = getRelationOptionsIndex(keyData.indexOption);
 		const partition = keyData.partition ? ` ON [${keyData.partition}]` : '';
 		const columnMapToString = ({ name, order }) => `[${name}] ${order}`.trim();
 
 		const isAllColumnsDeactivated = checkAllKeysDeactivated(keyData.columns);
+
 		const dividedColumns = divideIntoActivatedAndDeactivated(keyData.columns, columnMapToString);
 		const deactivatedColumnsAsString = dividedColumns.deactivatedItems.length
 			? commentIfDeactivated(dividedColumns.deactivatedItems.join(', '), { isActivated: false }, true)
@@ -28,9 +27,9 @@ module.exports = app => {
 			statement: assignTemplates(templates.createKeyConstraint, {
 				constraintName: keyData.name ? `CONSTRAINT [${keyData.name}] ` : '',
 				keyType: keyData.keyType,
-				clustered: keyData.clustered ? ' CLUSTERED' : ' NONCLUSTERED',
+				clustered: ' NONCLUSTERED',
 				columns,
-				options: indexOptions.length ? ' WITH (\n\t\t' + indexOptions.join(',\n\t\t') + '\n\t)' : '',
+				options: ' NOT ENFORCED',
 				partition,
 				terminator,
 			}),
@@ -49,20 +48,20 @@ module.exports = app => {
 	};
 
 	const generateConstraintsString = (dividedConstraints, isParentActivated) => {
-		const deactivatedItemsAsString = commentIfDeactivated(
-			dividedConstraints.deactivatedItems.join(',\n\t'),
-			{ isActivated: !isParentActivated },
-			true,
-		);
 		const activatedConstraints = dividedConstraints.activatedItems.length
-			? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
-			: '';
+		? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
+		: '';
 
-		const deactivatedConstraints = dividedConstraints.deactivatedItems.length
-			? '\n\t' + deactivatedItemsAsString
-			: '';
+	const deactivatedConstraints = dividedConstraints.deactivatedItems.length
+		? '\n\t' +
+		  commentIfDeactivated(
+				dividedConstraints.deactivatedItems.join(',\n\t'),
+				{ isActivated: !isParentActivated },
+				true,
+		  )
+		: '';
 
-		return activatedConstraints + deactivatedConstraints;
+	return activatedConstraints + deactivatedConstraints;
 	};
 
 	return {

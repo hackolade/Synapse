@@ -3,7 +3,7 @@ const types = require('./configs/types');
 const templates = require('./configs/templates');
 const commentIfDeactivated = require('./helpers/commentIfDeactivated');
 
-const provider = (options, app) => {
+const provider = (baseProvider, options, app) => {
 	const _ = app.require('lodash');
 	const { getTerminator } = require('./helpers/optionsHelper');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
@@ -259,6 +259,10 @@ const provider = (options, app) => {
 			});
 
 			return ifNotExist ? wrapIfNotExistView({ templates, viewStatement, viewName, terminator }) : viewStatement;
+		},
+
+		createUdt() {
+			return '';
 		},
 
 		getDefaultType(type) {

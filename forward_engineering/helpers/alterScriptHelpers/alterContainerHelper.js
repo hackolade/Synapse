@@ -1,7 +1,7 @@
 module.exports = (app, options) => {
 	const _ = app.require('lodash');
 	const { getDbData } = app.require('@hackolade/ddl-fe-utils').general;
-	const ddlProvider = require('../../ddlProvider')(options, app);
+	const ddlProvider = require('../../ddlProvider')(null, options, app);
 
 	const getAddContainerScript = containerData => {
 		const constructedDbData = getDbData([containerData]);
