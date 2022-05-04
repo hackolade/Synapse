@@ -1,7 +1,8 @@
 {
 	"type": "ddl",
-	"ddlType": "synapse",
+	"ddlType": "plugin",
 	"namePrefix": "Synapse",
+	"mode": "sqlserver",
 	"level": {
 		"container": true,
 		"entity": true,
@@ -12,6 +13,17 @@
 			"id": "useGoStatement",
 			"value": false,
 			"name": "Use GO statements"
+		},
+		{
+			"id": "applyDropStatements",
+			"value": false,
+			"forUpdate": true,
+			"name": "Apply Drop Statements",
+			"isDropInStatements": true
 		}
-	]
+	],
+	"compMode": {
+		"entity": true,
+		"container": true
+	}
 }
