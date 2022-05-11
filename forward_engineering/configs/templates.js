@@ -11,6 +11,8 @@ module.exports = {
 	columnDefinition:
 		'[${name}] ${type}${primary_key}${temporalTableTime}${sparse}${maskedWithFunction}${identity}${default}${collation}${not_null}${encryptedWith}',
 
+	partition: 'PARTITION ([${name}] RANGE ${range} FOR VALUES (${values}))',
+
 	index:
 		'CREATE${unique}${clustered}${columnstore} INDEX ${name}\n' +
 		'\tON ${table} ( ${keys} )${include}${expression}${relational_index_option}${terminator}\n',
