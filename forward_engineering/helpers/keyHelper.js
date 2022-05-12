@@ -200,9 +200,19 @@ module.exports = app => {
 		];
 	};
 
+	const getTablePartitionKey = jsonSchema => {
+		const partitionKeys = getKeys(jsonSchema.partition || [], jsonSchema);
+		return {
+			..._.get(partitionKeys, '[0]', {}),
+			boundaryValue: jsonSchema.boundaryValue,
+			rangeForValues: jsonSchema.rangeForValues,
+		}
+	}
+
 	return {
 		getTableKeyConstraints,
 		isInlineUnique,
 		isInlinePrimaryKey,
+		getTablePartitionKey
 	};
 };

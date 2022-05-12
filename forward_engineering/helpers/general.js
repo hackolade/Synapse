@@ -1,11 +1,13 @@
 const commentIfDeactivated = require('./commentIfDeactivated');
 const types = require('../configs/types');
+const templates = require('../configs/templates');
 
 module.exports = app => {
 	const _ = app.require('lodash');
 	const generalHasType = app.require('@hackolade/ddl-fe-utils').general.hasType;
 	const { decorateDefault } = require('./columnDefinitionHelper')(app);
 	const { checkAllKeysDeactivated } = app.require('@hackolade/ddl-fe-utils').general;
+	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 
 	const ORDERED_INDEX = 'clustered columnstore index order';
 	const CLUSTERED_INDEX = 'clustered index';
@@ -101,7 +103,8 @@ module.exports = app => {
 		if (!options) {
 			return '';
 		}
-	
+		
+		const partition = _.get(options, 'partition', {});
 		let optionsStatements = [];
 		if (options.indexing) {
 			let statement = _.toUpper(options.indexing);
@@ -118,6 +121,14 @@ module.exports = app => {
 			}
 	
 			optionsStatements.push(statement);
+		}
+
+		if (partition.name) {
+			const range = _.toUpper(partition.rangeForValues || 'LEFT');
+			const values = partition.boundaryValue || '';
+			const statement = assignTemplates(templates.partition, { name: partition.name, range, values });
+
+			optionsStatements.push(commentIfDeactivated(statement, { isActivated: partition.isActivated }));
 		}
 	
 		if (options.distribution) {

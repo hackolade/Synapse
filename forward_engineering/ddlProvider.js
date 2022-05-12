@@ -405,7 +405,7 @@ const provider = (baseProvider, options, app) => {
 					indexing: _.get(entityData, '[0].indexing', ''),
 					distribution: _.get(entityData, '[0].distribution', ''),
 					hashColumn: _.get(entityData, '[0].hashColumn', []),
-					partition: _.get(entityData, '[0].partition', ''),
+					partition: keyHelper.getTablePartitionKey(jsonSchema),
 					indexingOrderColumn: _.get(entityData, '[0].indexingOrderColumn', []),
 					clusteringColumn: _.get(entityData, '[0].compositeClusteringKey', []),
 				},
