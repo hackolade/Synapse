@@ -231,7 +231,10 @@ making sure that you maintain a proper JSON format.
 				"abbr": " ",
 				"attributeList": [],
 				"template": "collectiontree",
-				"isCompositeKey": true
+				"isCompositeKey": true,
+				"templateOptions": {
+					"maxFields": 1
+				}
 			}, 
 			{
 				"propertyName": "CTAS query",
