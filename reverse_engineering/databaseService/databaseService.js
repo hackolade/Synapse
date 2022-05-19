@@ -253,6 +253,30 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 		`);
 };
 
+const getPartitions = async (connectionClient, dbName) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+	return mapResponse(await currentDbConnectionClient.query`
+		SELECT 
+			sch.name AS schemaName,
+			tbl.name AS tableName,
+			prt.partition_number,
+			pf.boundary_value_on_right AS range,
+			c.name AS name,
+			rng.value AS value
+		FROM sys.schemas sch
+		INNER JOIN sys.tables tbl ON sch.schema_id = tbl.schema_id
+		INNER JOIN sys.partitions prt ON prt.object_id = tbl.object_id
+		INNER JOIN sys.indexes idx ON prt.object_id = idx.object_id AND prt.index_id = idx.index_id
+		INNER JOIN sys.data_spaces ds ON idx.data_space_id = ds.[data_space_id]
+		INNER JOIN sys.partition_schemes ps ON ds.data_space_id = ps.data_space_id
+		INNER JOIN sys.partition_functions pf ON ps.function_id = pf.function_id
+		INNER JOIN sys.index_columns ic ON ic.object_id = idx.object_id AND ic.index_id = idx.index_id AND ic.partition_ordinal >= 1
+		INNER JOIN sys.columns c ON tbl.object_id = c.object_id AND ic.column_id = c.column_id
+		LEFT JOIN sys.partition_range_values rng ON pf.function_id = rng.function_id AND rng.boundary_id = prt.partition_number 
+	`);
+};
+
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	return mapResponse(currentDbConnectionClient.query`
@@ -528,4 +552,5 @@ module.exports = {
 	getDistributedColumns,
 	getViewDistributedColumns,
 	queryDistribution,
+	getPartitions
 }

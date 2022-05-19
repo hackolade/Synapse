@@ -16,6 +16,7 @@ const reorderTableRows = require('./reorderTableRows');
 const getUserDefinedTypes = require('./getUserDefinedTypes');
 const handleType = require('./handleType');
 const containsJson = require('./containsJson');
+const reverseTablePartitions = require('./reverseTablePartitions');
 
 module.exports = {
 	transformDatabaseTableInfoToJSON,
@@ -36,4 +37,5 @@ module.exports = {
 	getUserDefinedTypes,
 	handleType,
 	containsJson,
+	reverseTablePartitions,
 }

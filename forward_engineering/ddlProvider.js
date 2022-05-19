@@ -7,7 +7,7 @@ const provider = (baseProvider, options, app) => {
 	const _ = app.require('lodash');
 	const { getTerminator } = require('./helpers/optionsHelper');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
-	const { divideIntoActivatedAndDeactivated } =
+	const { divideIntoActivatedAndDeactivated, clean, tab } =
 	app.require('@hackolade/ddl-fe-utils').general;
 
 	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
@@ -432,7 +432,6 @@ const provider = (baseProvider, options, app) => {
 
 		hydrateView({ viewData, entityData, relatedSchemas, relatedContainers }) {
 			const firstTab = _.get(entityData, '[0]', {});
-			const isPartitioned = _.get(entityData, '[0].partitioned');
 			const ifNotExist = _.get(entityData, '[0].ifNotExist');
 
 			return {
@@ -441,15 +440,7 @@ const provider = (baseProvider, options, app) => {
 				viewAttrbute: firstTab.viewAttrbute || '',
 				materialized: firstTab.materialized,
 				withCheckOption: Boolean(firstTab.withCheckOption),
-				partitioned: isPartitioned,
 				ifNotExist,
-				partitionedTables: isPartitioned
-					? getPartitionedTables(
-							_.get(entityData, '[0].partitionedTables', []),
-							relatedSchemas,
-							relatedContainers,
-					  )
-					: [],
 				options: {
 					distribution: _.get(entityData, '[0].distribution', ''),
 					hashColumn: _.get(entityData, '[0].hashColumn', []),
