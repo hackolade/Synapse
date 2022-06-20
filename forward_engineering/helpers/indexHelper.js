@@ -80,19 +80,16 @@ module.exports = app => {
 			? commentIfDeactivated(dividedKeys.deactivatedItems.join(', '), { isActivated: false }, true)
 			: '';
 
-		const clustered = index.clustered || index.type === 'columnstore' ? ' CLUSTERED' : '';
-		const keys = isParentActivated
-			? dividedKeys.activatedItems.join(', ') + commentedKeys
-			: dividedKeys.activatedItems.join(', ') +
-				(dividedKeys.activatedItems.length ? ', ' : '') +
-				dividedKeys.deactivatedItems.join(', ');
-
 		return assignTemplates(templates.index, {
 			name: index.name,
 			unique: index.unique ? ' UNIQUE' : '',
-			clustered,
+			clustered: index.clustered ? ' CLUSTERED' : '',
 			table: getTableName(tableName, index.schemaName),
-			keys: index.type !== 'columnstore' ? `( ${keys} )` : '',
+			keys: isParentActivated
+				? dividedKeys.activatedItems.join(', ') + commentedKeys
+				: dividedKeys.activatedItems.join(', ') +
+					(dividedKeys.activatedItems.length ? ', ' : '') +
+					dividedKeys.deactivatedItems.join(', '),
 			columnstore: index.type === 'columnstore' ? ' COLUMNSTORE' : '',
 			relational_index_option: relationalIndexOption.length
 				? '\n\tWITH (\n\t\t' + relationalIndexOption.join(',\n\t\t') + '\n\t)'
