@@ -1,6 +1,6 @@
 const { connect } = require('../../reverse_engineering/api');
 const { DROP_STATEMENTS } = require('./constants');
-const { queryIsDeactivated } = require('./commentIfDeactivated');
+const { queryIsDeactivated, filterDeactivatedQuery } = require('./commentIfDeactivated');
 
 const GO_STATEMENT = '\nGO';
 const GO_REG_EXP = /\nGO/;
@@ -32,6 +32,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 
 const getQueries = (script = '') => {
 	const terminator = GO_REG_EXP.test(script) ? GO_STATEMENT : ';';
+	script = filterDeactivatedQuery(script);
 	const getQueriesWithoutTerminator = (script = '') => script
 		.split(terminator)
 		.map(script => script.trim())
