@@ -1,5 +1,5 @@
 const templates = require('../configs/templates');
-const commentIfDeactivated = require('./commentIfDeactivated');
+const { commentIfDeactivated } = require('./commentIfDeactivated');
 
 module.exports = app => {
 	const _ = app.require('lodash');
@@ -80,16 +80,19 @@ module.exports = app => {
 			? commentIfDeactivated(dividedKeys.deactivatedItems.join(', '), { isActivated: false }, true)
 			: '';
 
+		const clustered = index.clustered || index.type === 'columnstore' ? ' CLUSTERED' : '';
+		const keys = isParentActivated
+			? dividedKeys.activatedItems.join(', ') + commentedKeys
+			: dividedKeys.activatedItems.join(', ') +
+				(dividedKeys.activatedItems.length ? ', ' : '') +
+				dividedKeys.deactivatedItems.join(', ');
+
 		return assignTemplates(templates.index, {
 			name: index.name,
 			unique: index.unique ? ' UNIQUE' : '',
-			clustered: index.clustered ? ' CLUSTERED' : '',
+			clustered,
 			table: getTableName(tableName, index.schemaName),
-			keys: isParentActivated
-				? dividedKeys.activatedItems.join(', ') + commentedKeys
-				: dividedKeys.activatedItems.join(', ') +
-				  (dividedKeys.activatedItems.length ? ', ' : '') +
-				  dividedKeys.deactivatedItems.join(', '),
+			keys: index.type !== 'columnstore' ? `( ${keys} )` : '',
 			columnstore: index.type === 'columnstore' ? ' COLUMNSTORE' : '',
 			relational_index_option: relationalIndexOption.length
 				? '\n\tWITH (\n\t\t' + relationalIndexOption.join(',\n\t\t') + '\n\t)'
