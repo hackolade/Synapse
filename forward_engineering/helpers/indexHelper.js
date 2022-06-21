@@ -1,5 +1,5 @@
 const templates = require('../configs/templates');
-const commentIfDeactivated = require('./commentIfDeactivated');
+const { commentIfDeactivated } = require('./commentIfDeactivated');
 
 module.exports = app => {
 	const _ = app.require('lodash');
@@ -59,43 +59,77 @@ module.exports = app => {
 		return result;
 	};
 
+	const getIndexOptions = indexData => {
+		let result = [];
+
+		if (indexData.dropExisting) {
+			result.unshift(`DROP_EXISTING = ON`);
+		}
+		return result;
+	};
+
+	const createIndexOptions = options => {
+		return options.length
+			? '\n\tWITH (\n\t\t' + options.join(',\n\t\t') + '\n\t)'
+			: '';
+	};
+
+	const getIndexKeys = (keys, iterate, isParentActivated) => {
+		const dividedKeys = divideIntoActivatedAndDeactivated(keys, iterate);
+
+		const deactivatedKeys = dividedKeys.deactivatedItems.join(', ');
+		const commentedKeys = deactivatedKeys
+			? commentIfDeactivated(deactivatedKeys, { isActivated: false }, true)
+			: '';
+
+		const activatedKeys = dividedKeys.activatedItems.join(', ');
+
+		return isParentActivated
+			? activatedKeys + commentedKeys
+			: activatedKeys + (deactivatedKeys ? ', ' : '') + deactivatedKeys;
+	};
+
 	const createIndex = (terminator, tableName, index, isParentActivated = true) => {
-		if (_.isEmpty(index.keys)) {
+		if (_.isEmpty(index.keys) || !index.name) {
 			return '';
 		}
 
-		const include =
-			Array.isArray(index.include) && !_.isEmpty(index.include)
-				? `\n\tINCLUDE (${_.concat(index.include, index.includedColumn).map(key =>
-						isParentActivated ? commentIfDeactivated(key.name, key, true) : key.name,
-				  )})`
-				: '';
-		const relationalIndexOption = getRelationOptionsIndex(index);
-
-		const dividedKeys = divideIntoActivatedAndDeactivated(
+		const indexOptions = getIndexOptions(index);
+		const keys = getIndexKeys(
 			index.keys,
 			key => `[${key.name}]` + (_.toLower(key.type) === 'descending' ? ' DESC' : ''),
+			isParentActivated
 		);
-		const commentedKeys = dividedKeys.deactivatedItems.length
-			? commentIfDeactivated(dividedKeys.deactivatedItems.join(', '), { isActivated: false }, true)
-			: '';
+
+		const clustered = index.clustered ? ` ${index.clustered}` : '';
 
 		return assignTemplates(templates.index, {
 			name: index.name,
-			unique: index.unique ? ' UNIQUE' : '',
-			clustered: index.clustered ? ' CLUSTERED' : '',
+			clustered,
 			table: getTableName(tableName, index.schemaName),
-			keys: isParentActivated
-				? dividedKeys.activatedItems.join(', ') + commentedKeys
-				: dividedKeys.activatedItems.join(', ') +
-				  (dividedKeys.activatedItems.length ? ', ' : '') +
-				  dividedKeys.deactivatedItems.join(', '),
-			columnstore: index.type === 'columnstore' ? ' COLUMNSTORE' : '',
-			relational_index_option: relationalIndexOption.length
-				? '\n\tWITH (\n\t\t' + relationalIndexOption.join(',\n\t\t') + '\n\t)'
-				: '',
-			include,
-			expression: index.filterExpression ? `\n\tWHERE ${trimBraces(index.filterExpression)}\n` : '',
+			keys,
+			index_options: createIndexOptions(indexOptions),
+			terminator,
+		});
+	};
+
+	const createColumnStoreIndex = (terminator, tableName, index, isParentActivated = true) => {
+		if (!index.name) {
+			return '';
+		}
+
+		const indexOptions = getIndexOptions(index);
+		const order = getIndexKeys(
+			index.orderKeys || [],
+			key => `[${key.name}]`,
+			isParentActivated
+		)
+
+		return assignTemplates(templates.columnStoreIndex, {
+			name: index.name,
+			table: getTableName(tableName, index.schemaName),
+			order: order ? `\n\tORDER (${order})` : '',
+			index_options: createIndexOptions(indexOptions),
 			terminator,
 		});
 	};
@@ -219,13 +253,10 @@ module.exports = app => {
 	};
 
 	const createTableIndex = (terminator, tableName, index, isParentActivated) => {
-		if (index.type === 'spatial') {
-			return createSpatialIndex(terminator, tableName, index, isParentActivated);
-		} else if (index.type === 'fulltext') {
-			return createFullTextIndex(terminator, tableName, index);
-		} else {
-			return createIndex(terminator, tableName, index, isParentActivated);
-		}
+		if (index.type === 'columnstore') {
+			return createColumnStoreIndex(terminator, tableName, index, isParentActivated);
+		} 
+		return createIndex(terminator, tableName, index, isParentActivated);
 	};
 
 	const createMemoryOptimizedClusteredIndex = indexData => {
@@ -311,22 +342,10 @@ module.exports = app => {
 			name: indexData.indxName,
 			isActivated: indexData.isActivated,
 			type: _.toLower(indexData.indxType),
-			unique: indexData.uniqueIndx,
 			clustered: indexData.clusteredIndx,
 			keys: toArray(indexData.indxKey),
-			include: toArray(indexData.indxInclude),
-			filterExpression: indexData.indxFilterExpression,
-			padIndex: indexData.PAD_INDEX,
-			fillFactor: indexData.FILLFACTOR,
-			ignoreDuplicateKey: indexData.IGNORE_DUP_KEY,
-			includedColumn: toArray(indexData.indxIncludedColumn),
-			statisticsNoRecompute: indexData.STATISTICS_NORECOMPUTE,
-			statisticsIncremental: indexData.STATISTICS_INCREMENTAL,
-			allowRowLocks: indexData.ALLOW_ROW_LOCKS,
-			allowPageLocks: indexData.ALLOW_PAGE_LOCKS,
-			optimizeForSequentialKey: indexData.OPTIMIZE_FOR_SEQUENTIAL_KEY,
-			compressionDelay: indexData.COMPRESSION_DELAY,
-			dataCompression: indexData.DATA_COMPRESSION,
+			orderKeys: toArray(indexData.orderKey),
+			dropExisting: indexData.DROP_EXISTING,
 			schemaName: schemaData.schemaName,
 		});
 	};

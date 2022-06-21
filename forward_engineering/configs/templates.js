@@ -14,8 +14,12 @@ module.exports = {
 	partition: 'PARTITION ([${name}] RANGE ${range} FOR VALUES (${values}))',
 
 	index:
-		'CREATE${unique}${clustered}${columnstore} INDEX ${name}\n' +
-		'\tON ${table} ( ${keys} )${include}${expression}${relational_index_option}${terminator}\n',
+		'CREATE${clustered} INDEX ${name}\n' +
+		'\tON ${table} ( ${keys} )${index_options}${terminator}\n',
+
+	columnStoreIndex:
+		'CREATE CLUSTERED COLUMNSTORE INDEX ${name}\n' +
+		'\tON ${table}${order}${index_options}${terminator}\n',
 
 	fullTextIndex:
 		'CREATE FULLTEXT INDEX ON ${table} (\n\t${keys}\n)\nKEY INDEX ${indexName}\n${catalog}${options}${terminator}\n',
