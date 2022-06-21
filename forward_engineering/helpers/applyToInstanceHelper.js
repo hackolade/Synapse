@@ -32,7 +32,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 
 const getQueries = (script = '') => {
 	const terminator = GO_REG_EXP.test(script) ? GO_STATEMENT : ';';
-	script = filterDeactivatedQuery(script);
+	script = filterDeactivatedQuery(script, terminator);
 	const getQueriesWithoutTerminator = (script = '') => script
 		.split(terminator)
 		.map(script => script.trim())
