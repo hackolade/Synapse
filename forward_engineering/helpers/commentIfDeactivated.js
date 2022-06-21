@@ -1,4 +1,5 @@
 const BEFORE_DEACTIVATED_STATEMENT = '-- ';
+const REG_FOR_MULTYLINE_COMMENT = /(\n\/\*\n[\s\S]*?\n\s\*\/\n)|(\n\/\*\n[\s\S]*?\n\s\*\/)$/gi;
 
 const commentIfDeactivated = (statement, data, isPartOfLine) => {
 	if (data?.hasOwnProperty('isActivated') && !data.isActivated) {
@@ -13,17 +14,11 @@ const commentIfDeactivated = (statement, data, isPartOfLine) => {
 	return statement;
 };
 
-const queryIsDeactivated = (query, statement) => {
-	return query.includes(statement) && query.startsWith(BEFORE_DEACTIVATED_STATEMENT);
+const queryIsDeactivated = (query = '') => {
+	return query.startsWith(BEFORE_DEACTIVATED_STATEMENT);
 };
 
-const createRegForMultyLineComment = terminator => 
-	new RegExp(`\\/\\*[\\s\\S]*?${terminator}\n?\\s\\*\\/`, 'gi');
-
-const filterDeactivatedQuery = (query, terminator) => {
-	const regExp = createRegForMultyLineComment(terminator);
-	return query.replace(regExp, '');
-};
+const filterDeactivatedQuery = query => query.replace(REG_FOR_MULTYLINE_COMMENT, '');
 
 module.exports = { 
 	commentIfDeactivated,

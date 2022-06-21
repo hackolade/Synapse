@@ -1,10 +1,7 @@
 const { connect } = require('../../reverse_engineering/api');
-const { DROP_STATEMENTS } = require('./constants');
 const { queryIsDeactivated, filterDeactivatedQuery } = require('./commentIfDeactivated');
 
-const GO_STATEMENT = '\nGO';
-const GO_REG_EXP = /\nGO/;
-const IF_NOT_EXIST_REG = /IF\ NOT[\s\S]*?END/gi;
+const GO_STATEMENT = 'GO';
 
 const applyToInstance = async (connectionInfo, logger, app) => {
 	const async = app.require('async');
@@ -31,26 +28,21 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 };
 
 const getQueries = (script = '') => {
-	const terminator = GO_REG_EXP.test(script) ? GO_STATEMENT : ';';
-	script = filterDeactivatedQuery(script, terminator);
-	const getQueriesWithoutTerminator = (script = '') => script
-		.split(terminator)
+	script = filterDeactivatedQuery(script)
+	const queries = script
+		.split('\n\n')
 		.map(script => script.trim())
-		.filter(Boolean);
-
-	const ifNotQueries = script.matchAll(IF_NOT_EXIST_REG);
-	let queries = [];
-	let index = 0;
-	for (let ifNotQuery of ifNotQueries) {
-		const ifNotScript = ifNotQuery[0] || '';
-		const withoutIfNotScript = script.slice(index, ifNotQuery.index);
-		queries = [...queries, ...getQueriesWithoutTerminator(withoutIfNotScript), ifNotScript];
-		index = ifNotQuery.index + ifNotScript.length;
-	}
-	script = script.slice(index);
-	queries = [...queries, ...getQueriesWithoutTerminator(script)];
-	return queries
-		.filter(query => !DROP_STATEMENTS.some(statement => queryIsDeactivated(query, statement)));
+		.filter(query => { 
+			if (!Boolean(query)) {
+				return false;
+			} else if (query.endsWith(GO_STATEMENT) && query.length === 2) {
+				return false;
+			} 
+			
+			return !queryIsDeactivated(query);
+		})
+		.map(query => query.endsWith(GO_STATEMENT) ? query.slice(0, -3) + ';' : query);
+	return queries;
 };
 
 const prepareError = error => {
