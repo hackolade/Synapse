@@ -101,7 +101,7 @@ module.exports = app => {
 			isParentActivated
 		);
 
-		const clustered = index.clustered ? ` ${index.clustered}` : '';
+		const clustered = index.clustered ? ` CLUSTERED` : ' NONCLUSTERED';
 
 		return assignTemplates(templates.index, {
 			name: index.name,

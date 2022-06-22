@@ -405,140 +405,6 @@ making sure that you maintain a proper JSON format.
 			"propertyType": "group",
 			"propertyKeyword": "Indxs",
 			"propertyTooltip": "",
-			"dependency": {
-				"key": "memory_optimized",
-				"value": true
-			},
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "indxName",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Activated",
-					"propertyKeyword": "isActivated",
-					"propertyTooltip": "Deactivated item will be not included in FE script",
-					"propertyType": "checkbox",
-					"defaultValue": true
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending"
-					]
-				},
-				{
-					"propertyName": "Clustered",
-					"propertyKeyword": "clusteredIndx",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Unique",
-					"propertyKeyword": "uniqueIndx",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "clusteredIndx",
-							"exist": false
-						}, {
-							"key": "clusteredIndx",
-							"value": false
-						}]
-					}
-				},
-				{
-					"propertyName": "Hash",
-					"propertyKeyword": "indxHash",
-					"propertyTooltip": "",
-					"propertyType": "checkbox",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "clusteredIndx",
-							"exist": false
-						}, {
-							"key": "clusteredIndx",
-							"value": false
-						}]
-					}
-				},
-				{
-					"propertyName": "Bucket count",
-					"propertyKeyword": "indxBucketCount",
-					"propertyTooltip": "",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"dependency": {
-						"type": "and",
-						"values": [
-							{
-								"key": "indxHash",
-								"value": true
-							},
-							{
-								"type": "or",
-								"values": [{
-									"key": "clusteredIndx",
-									"exist": false
-								}, {
-									"key": "clusteredIndx",
-									"value": false
-								}]
-							}
-						]
-					}
-				},
-				{
-					"propertyName": "Compression delay (minutes)",
-					"propertyKeyword": "COMPRESSION_DELAY",
-					"propertyType": "numeric",
-					"valueType": "number",
-					"allowNegative": false,
-					"dependency": {
-						"key": "clusteredIndx",
-						"value": true
-					}
-				},
-				{
-					"propertyName": "Filegroup name",
-					"propertyKeyword": "indxFileGroupName",
-					"propertyTooltip": "",
-					"propertyType": "text",
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxHash",
-							"value": false
-						}, {
-							"key": "indxHash",
-							"exist": false
-						}]
-					}
-				}
-			]
-		}, {
-			"propertyName": "Index",
-			"propertyType": "group",
-			"propertyKeyword": "Indxs",
-			"propertyTooltip": "",
-			"dependency": {
-				"type": "or",
-				"values": [{
-					"key": "memory_optimized",
-					"value": false
-				}, {
-					"key": "memory_optimized",
-					"exist": false
-				}]
-			},
 			"structure": [
 				{
 					"propertyName": "Name",
@@ -565,18 +431,10 @@ making sure that you maintain a proper JSON format.
 				{
 					"propertyName": "Clustered",
 					"propertyKeyword": "clusteredIndx",
-					"propertyType": "select",
-					"options": [
-						"",
-						"CLUSTERED",
-						"NONCLUSTERED"
-					],
+					"propertyType": "checkbox",
 					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}]
+						"key": "indxType",
+						"value": "Index"
 					}
 				},
 				{
@@ -589,11 +447,8 @@ making sure that you maintain a proper JSON format.
 						"descending"
 					],
 					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Index"
-						}]
+						"key": "indxType",
+						"value": "Index"
 					}
 				},
 				{
@@ -602,11 +457,8 @@ making sure that you maintain a proper JSON format.
 					"propertyType": "fieldList",
 					"template": "orderedList",
 					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "indxType",
-							"value": "Columnstore"
-						}]
+						"key": "indxType",
+						"value": "Columnstore"
 					}
 				},
 				{
