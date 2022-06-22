@@ -1,7 +1,7 @@
 const defaultTypes = require('./configs/defaultTypes');
 const types = require('./configs/types');
 const templates = require('./configs/templates');
-const commentIfDeactivated = require('./helpers/commentIfDeactivated');
+const { commentIfDeactivated } = require('./helpers/commentIfDeactivated');
 
 const provider = (baseProvider, options, app) => {
 	const _ = app.require('lodash');

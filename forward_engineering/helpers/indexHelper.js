@@ -1,5 +1,5 @@
 const templates = require('../configs/templates');
-const commentIfDeactivated = require('./commentIfDeactivated');
+const { commentIfDeactivated } = require('./commentIfDeactivated');
 
 module.exports = app => {
 	const _ = app.require('lodash');
@@ -88,8 +88,8 @@ module.exports = app => {
 			keys: isParentActivated
 				? dividedKeys.activatedItems.join(', ') + commentedKeys
 				: dividedKeys.activatedItems.join(', ') +
-				  (dividedKeys.activatedItems.length ? ', ' : '') +
-				  dividedKeys.deactivatedItems.join(', '),
+					(dividedKeys.activatedItems.length ? ', ' : '') +
+					dividedKeys.deactivatedItems.join(', '),
 			columnstore: index.type === 'columnstore' ? ' COLUMNSTORE' : '',
 			relational_index_option: relationalIndexOption.length
 				? '\n\tWITH (\n\t\t' + relationalIndexOption.join(',\n\t\t') + '\n\t)'
