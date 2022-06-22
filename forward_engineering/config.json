@@ -3,6 +3,7 @@
 	"ddlType": "plugin",
 	"namePrefix": "Synapse",
 	"mode": "sqlserver",
+	"applyScriptToInstance": true,
 	"level": {
 		"container": true,
 		"entity": true,

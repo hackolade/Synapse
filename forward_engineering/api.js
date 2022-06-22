@@ -1,5 +1,8 @@
 const { commentDropStatements } = require('./helpers/commentDropStatements');
 const { DROP_STATEMENTS } = require('./helpers/constants');
+const { connect, getExternalBrowserUrl } = require('../reverse_engineering/api');
+const logInfo = require('../reverse_engineering/helpers/logInfo');
+const applyToInstanceHelper = require('./helpers/applyToInstanceHelper');
 
 module.exports = {
 	generateScript(data, logger, callback, app) {
@@ -72,6 +75,33 @@ module.exports = {
 			}
 		} catch (e) {
 			callback({ message: e.message, stack: e.stack });
+		}
+	},
+
+	async testConnection(connectionInfo, logger, callback, app) {
+		try {
+			logInfo('Test connection', connectionInfo, logger);
+			if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
+				await getExternalBrowserUrl(connectionInfo, logger, callback);
+			} else {
+				await connect(connectionInfo, logger);
+			}
+			callback(null);
+		} catch(error) {
+			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
+			callback({ message: error.message, stack: error.stack });
+		}
+	},
+
+	async applyToInstance(connectionInfo, logger, callback, app) {
+		logger.clear();
+		logInfo('Apply To Instance', connectionInfo, logger);
+		
+		try {
+			await applyToInstanceHelper.applyToInstance(connectionInfo, logger, app);
+			callback(null);
+		} catch (error) {
+			callback(error);
 		}
 	},
 };

@@ -34,7 +34,7 @@ module.exports = {
 	createView:
 		'CREATE${materialized} VIEW ${name}\n${view_attribute}AS ${select_statement}${check_option}${options}${terminator}\n',
 
-	viewSelectStatement: 'SELECT ${keys}\n\tFROM ${tableName}\n',
+	viewSelectStatement: 'SELECT ${keys}\n\tFROM ${tableName}',
 
 	createUdtFromBaseType: 'CREATE TYPE ${name} FROM ${base_type}${not_null}${terminator}\n',
 
@@ -44,22 +44,22 @@ module.exports = {
 		'ALTER TABLE ${tableName} ADD CONSTRAINT [${constraintName}] DEFAULT (${default}) FOR [${columnName}]${terminator}\n',
 
 	ifNotExistSchema:
-		"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'[${schemaName}]')\nbegin\n\tEXEC('${statement}')\nend${terminator}",
+		"IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'${schemaName}')\nbegin\n\tEXEC('${statement}')\nend${terminator}",
 
 	ifNotExistDatabase:
 		"IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'[${databaseName}]')\nbegin\n${statement}\nend${terminator}",
 
 	ifNotExistTable:
-		"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'${tableName}') AND type in (N'U'))\nbegin\n${statement}\nend${terminator}",
+		"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'${tableName}') AND type in (N'U'))\nbegin\n${statement}\nend${terminator}\n",
 
 	ifNotExistView:
-		"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'${viewName}') AND type in (N'V'))\nbegin\n${statement}\nend${terminator}",
+		"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'${viewName}') AND type in (N'V'))\nbegin\nEXEC('\n${statement}')\nend${terminator}\n",
 
-	dropSchema: 'DROP SCHEMA IF EXISTS [${name}]${terminator}',
+	dropSchema: 'DROP SCHEMA [${name}]${terminator}',
 
-	dropTable: 'DROP TABLE IF EXISTS ${name}${terminator}',
+	dropTable: 'DROP TABLE ${name}${terminator}',
 
-	dropIndex: 'DROP INDEX IF EXISTS [${name}] ON ${object}${terminator}',
+	dropIndex: 'DROP INDEX [${name}] ON ${object}${terminator}',
 
 	alterTableOptions: 'ALTER TABLE ${tableName} ${options}${terminator}',
 
@@ -69,7 +69,7 @@ module.exports = {
 
 	dropColumn: 'DROP COLUMN [${name}]',
 
-	addColumn: 'ADD COLUMN ${script}',
+	addColumn: 'ADD ${script}',
 
 	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}${not_null}',
 
