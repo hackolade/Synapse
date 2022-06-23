@@ -43,6 +43,22 @@
 	"modify": {
 		"field": [
 			{
+				"from": { "childType": "boolean", "default": "false" },
+				"to": { "default": 0 }
+			},
+			{
+				"from": { "childType": "boolean", "default": "true" },
+				"to": { "default": 1 }
+			},
+			{
+				"from": { "childType": "boolean", "sample": "false" },
+				"to": { "sample": 0 }
+			},
+			{
+				"from": { "childType": "boolean", "sample": "true" },
+				"to": { "sample": 1 }
+			},
+			{
 				"from": {
 					"childType": "boolean"
 				},
@@ -51,6 +67,18 @@
 					"childType": "numeric",
 					"mode": "bit"
 				}
+			},
+			{
+				"from": { "childType": "timestamp_tz" },
+				"to": { "mode": "datetime2", "childType": "datetime" }
+			},
+			{
+				"from": { "childType": "timestamp_ltz" },
+				"to": { "mode": "datetime2", "childType": "datetime" }
+			},
+			{
+				"from": { "childType": "timestamp_ntz" },
+				"to": { "mode": "datetime2", "childType": "datetime" }
 			}
 		]
 	}
