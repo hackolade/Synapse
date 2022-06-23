@@ -43,25 +43,39 @@
 	"modify": {
 		"field": [
 			{
+				"from": { "childType": "boolean", "default": false },
+				"to": { "default": 0 }
+			},
+			{
 				"from": { "childType": "boolean", "default": "false" },
 				"to": { "default": 0 }
+			},
+			{
+				"from": { "childType": "boolean", "default": true },
+				"to": { "default": 1 }
 			},
 			{
 				"from": { "childType": "boolean", "default": "true" },
 				"to": { "default": 1 }
 			},
 			{
+				"from": { "childType": "boolean", "sample": false },
+				"to": { "sample": 0 }
+			},
+			{
 				"from": { "childType": "boolean", "sample": "false" },
 				"to": { "sample": 0 }
+			},
+			{
+				"from": { "childType": "boolean", "sample": true },
+				"to": { "sample": 1 }
 			},
 			{
 				"from": { "childType": "boolean", "sample": "true" },
 				"to": { "sample": 1 }
 			},
 			{
-				"from": {
-					"childType": "boolean"
-				},
+				"from": { "childType": "boolean" },
 				"to": {
 					"type": "number",
 					"childType": "numeric",
