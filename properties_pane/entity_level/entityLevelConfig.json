@@ -231,7 +231,10 @@ making sure that you maintain a proper JSON format.
 				"abbr": " ",
 				"attributeList": [],
 				"template": "collectiontree",
-				"isCompositeKey": true
+				"isCompositeKey": true,
+				"templateOptions": {
+					"maxFields": 1
+				}
 			}, 
 			{
 				"propertyName": "CTAS query",
@@ -281,7 +284,78 @@ making sure that you maintain a proper JSON format.
 			"propertyType": "group",
 			"groupItemLimit": 1,
 			"propertyKeyword": "primaryKey",
-			"propertyTooltip": "",
+			"propertyTooltip": {
+				"disabled": [
+					{
+						"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to create a composite primary key definition for this table",
+						"dependency": {
+							"type": "and",
+							"values": [
+								{
+									"level": "children",
+									"key": "primaryKey",
+									"value": true
+								},
+								{
+									"type": "not",
+									"values": {
+										"level": "children",
+										"key": "compositePrimaryKey",
+										"value": true
+									}
+								}
+							]
+						}
+					}, 
+					{
+						"tooltip": "Remove or update the existing composite primary key definition prior to unlock the possibility to create a new composite primary key definition for this table",
+						"dependency": {
+							"key": "primaryKey",
+							"minLength": 1
+						}
+					}
+				]
+			},
+			"disabledOnCondition": [
+				{
+					"level": "children",
+					"value": {
+						"type": "and",
+						"values": [
+							{
+								"key": "primaryKey",
+								"value": true
+							},
+							{
+								"type": "or",
+								"values": [
+									{
+										"key": "compositePrimaryKey",
+										"value": false
+									},
+									{
+										"key": "compositePrimaryKey",
+										"exist": false
+									}
+								]
+							},
+							{
+								"type": "or",
+								"values": [
+									{
+										"key": "compositeUniqueKey",
+										"value": false
+									},
+									{
+										"key": "compositeUniqueKey",
+										"exist": false
+									}
+								]
+							}
+						]
+					}
+				}
+			],
 			"structure": [{
 				"propertyName": "Constraint name",
 				"propertyKeyword": "constraintName",
@@ -314,6 +388,13 @@ making sure that you maintain a proper JSON format.
 				"attributeList": [],
 				"template": "collectiontree",
 				"isCompositeKey": true
+			}, 
+			{
+				"propertyName": "Alternate key",
+				"propertyKeyword": "alternateKey",
+				"propertyTooltip": "",
+				"propertyType": "checkbox",
+				"setFieldPropertyBy": "compositeUniqueKey"
 			}]
 		}]
 	},

@@ -14,6 +14,7 @@ const {
 	getDistributedColumns,
 	getViewDistributedColumns,
 	queryDistribution,
+	getPartitions,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -30,6 +31,7 @@ const {
 	reorderTableRows,
 	handleType,
 	containsJson,
+	reverseTablePartitions,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
@@ -320,13 +322,15 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
 	const [
-		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT
+		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions
 	] = await Promise.all([
 		getDatabaseIndexes(dbConnectionClient, dbName).catch(logError(logger, 'Getting indexes')),
 		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting memory optimized tables')),
 		getDatabaseUserDefinedTypes(dbConnectionClient, dbName).catch(logError(logger, 'Getting user defined types')),
+		getPartitions(dbConnectionClient, dbName)
 	]);
 
+	
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
 		progress(logger, 'Fetching database information', dbName);
 		const isSystemIndex = index => /^ClusteredIndex_[a-f0-9]{32}$/m.test(index.name || '');
@@ -337,6 +341,10 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					index => index.TableName === tableName && index.schemaName === schemaName &&
 					!isSystemIndex(index)
 				);
+				const tablePartitions = dataBasePartitions
+					.filter(partition => partition.tableName === tableName && partition.schemaName === schemaName);
+
+				
 				progress(logger, 'Fetching table information', dbName, tableName);
 				const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info'));
 
@@ -396,6 +404,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 						indexing,
 						hashColumn,
 						persistence,
+						...reverseTablePartitions(tablePartitions),
 					},
 					standardDoc: standardDoc,
 					documentTemplate: standardDoc,

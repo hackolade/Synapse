@@ -1,7 +1,8 @@
 const axios = require('axios');
 const sql = require('mssql');
+const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
-
+const msal = require('@azure/msal-node');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -41,21 +42,9 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000
 		});
 	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
-		const params = new URLSearchParams()
-		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
-		params.append('client_id','0dc36597-bc44-49f8-a4a7-ae5401959b85');
-		params.append('redirect_uri',"http://localhost:8080");
-		params.append('grant_type',"authorization_code");
-		params.append('code_verifier', connectionInfo?.proofKey);
-		params.append('resource',"https://database.windows.net/");
-
-		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		}).catch(error => {
-			logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA auth error');
-		});
+		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+		const redirectUri = 'http://localhost:8080';
+		const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
 
 		return await sql.connect({
 			server: connectionInfo.host,
@@ -68,7 +57,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			authentication: {
 				type: 'azure-active-directory-access-token',
 				options: {
-					token: responseData?.data?.access_token
+					token
 				}
 			},
 			connectTimeout: QUERY_REQUEST_TIMEOUT,
@@ -264,6 +253,30 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 		`);
 };
 
+const getPartitions = async (connectionClient, dbName) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+	return mapResponse(await currentDbConnectionClient.query`
+		SELECT 
+			sch.name AS schemaName,
+			tbl.name AS tableName,
+			prt.partition_number,
+			pf.boundary_value_on_right AS range,
+			c.name AS name,
+			rng.value AS value
+		FROM sys.schemas sch
+		INNER JOIN sys.tables tbl ON sch.schema_id = tbl.schema_id
+		INNER JOIN sys.partitions prt ON prt.object_id = tbl.object_id
+		INNER JOIN sys.indexes idx ON prt.object_id = idx.object_id AND prt.index_id = idx.index_id
+		INNER JOIN sys.data_spaces ds ON idx.data_space_id = ds.[data_space_id]
+		INNER JOIN sys.partition_schemes ps ON ds.data_space_id = ps.data_space_id
+		INNER JOIN sys.partition_functions pf ON ps.function_id = pf.function_id
+		INNER JOIN sys.index_columns ic ON ic.object_id = idx.object_id AND ic.index_id = idx.index_id AND ic.partition_ordinal >= 1
+		INNER JOIN sys.columns c ON tbl.object_id = c.object_id AND ic.column_id = c.column_id
+		LEFT JOIN sys.partition_range_values rng ON pf.function_id = rng.function_id AND rng.boundary_id = prt.partition_number 
+	`);
+};
+
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	return mapResponse(currentDbConnectionClient.query`
@@ -431,6 +444,94 @@ const mapResponse = async (response = {}) => {
 	return (await response).recordset;
 }
 
+const getTokenByMSAL = async ({ connectionInfo, redirectUri, clientId, tenantId, logger }) => {
+	try {
+
+		const pca = new msal.PublicClientApplication(getAuthConfig(clientId, tenantId, logger.log));
+		const tokenRequest = {
+			code: connectionInfo?.externalBrowserQuery?.code || '',
+			scopes: ["https://database.windows.net//.default"],
+			redirectUri,
+			codeVerifier: connectionInfo?.proofKey, 
+			clientInfo: connectionInfo?.externalBrowserQuery?.client_info || ''
+		};
+	
+		const responseData = await pca.acquireTokenByCode(tokenRequest);
+
+		return responseData.accessToken;
+	} catch(error){
+		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA MSAL auth error');
+		return '';
+	}
+};
+
+const getAgent = (reject, cert, key) => {
+	return new https.Agent({ cert,key, rejectUnauthorized: !!reject });
+};
+
+const getTokenByAxios = async ({ connectionInfo, tenantId, redirectUri, clientId, logger, agent }) => {
+	try {
+		const params = new URLSearchParams()
+		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
+		params.append('client_id',clientId);
+		params.append('redirect_uri',redirectUri);
+		params.append('grant_type',"authorization_code");
+		params.append('code_verifier', connectionInfo?.proofKey);
+		params.append('resource',"https://database.windows.net/");
+
+		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			...(agent && { httpsAgent: agent })
+		})
+
+		return responseData?.data?.access_token || '';
+	} catch(error) {
+		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
+		return '';
+	}
+};
+
+const getTokenByAxiosExtended = (params) => {
+	return getTokenByAxios({ ...params, agent: getAgent()})
+};
+
+const getToken = async ({ connectionInfo, tenantId, clientId, redirectUri, logger }) => {
+	const axiosExtendedToken = await getTokenByAxiosExtended({ connectionInfo, clientId, redirectUri, tenantId, logger});
+	if (axiosExtendedToken) {
+		return axiosExtendedToken;
+	}
+
+	const msalToken = await getTokenByMSAL({ connectionInfo, clientId, redirectUri, tenantId, logger });
+	if (msalToken) {
+		return msalToken;
+	}
+
+	const axiosToken = await getTokenByAxios({ connectionInfo, clientId, redirectUri, tenantId, logger });
+	if (axiosToken) {
+		return axiosToken;
+	}
+
+	return;
+}
+
+const getAuthConfig = (clientId, tenantId, logger) => ({
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message) {
+                logger(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    },
+	auth: {
+		clientId,
+		authority: `https://login.microsoftonline.com/${tenantId}`
+	}
+});
+
 module.exports = {
 	getConnectionClient,
 	getObjectsFromDatabase,
@@ -451,4 +552,5 @@ module.exports = {
 	getDistributedColumns,
 	getViewDistributedColumns,
 	queryDistribution,
+	getPartitions
 }

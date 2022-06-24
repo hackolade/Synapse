@@ -1,7 +1,7 @@
 {
 	"errors": {
-		"NO_DATABASES": "There is no databases in SQL Server instance",
-		"WRONG_CONNECTION": "Can not connect to SQL Server instance"
+		"NO_DATABASES": "There is no databases in Synapse instance",
+		"WRONG_CONNECTION": "Can not connect to Synapse instance"
 	},
 	"defaultDdlType": "msSqlServer",
 	"excludeDocKind": ["id"],
@@ -13,5 +13,6 @@
 		},
 		"value": "connectByExternalBrowser"
 	}],
-	"externalBrowserPort": 8080
+	"externalBrowserPort": 8080,
+	"helpUrl": "https://hackolade.com/help/ConnecttoSynapse.html"
 }
