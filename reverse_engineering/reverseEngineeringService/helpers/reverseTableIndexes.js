@@ -89,6 +89,16 @@ const reverseIndexKey = index => {
 	};
 };
 
+const reverseOrderKey = index => {
+	if (!index.columnName || !index.column_store_order_ordinal) {
+		return null;
+	}
+
+	return {
+		name: index.columnName,
+	}
+}
+
 const reverseIncludedKey = index => {
 	const indexType = getIndexType(index);
 	if (!index.is_included_column || indexType === COLUMNSTORE) {
@@ -132,6 +142,11 @@ const addKeys = (indexData, index) => {
 		return {
 			...indexData,
 			indxKey: [...(indexData.indxKey || []), { name: index.columnName }],
+		};
+	} else if (getIndexType(index) === COLUMNSTORE) {
+		return {
+			...indexData,
+			orderKey: [...(indexData.orderKey || []), reverseOrderKey(index)].filter(Boolean),
 		};
 	} else {
 		return {
