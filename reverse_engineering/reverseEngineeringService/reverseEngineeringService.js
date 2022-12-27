@@ -35,16 +35,24 @@ const {
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
-const mergeCollectionsWithViews = jsonSchemas =>
-	jsonSchemas.reduce((structuredJSONSchemas, jsonSchema) => {
+const mergeCollectionsWithViews = jsonSchemas => {
+	return jsonSchemas.reduce((structuredJSONSchemas, jsonSchema) => {
 		if (jsonSchema.relatedTables) {
 			const currentIndex = structuredJSONSchemas.findIndex(structuredSchema =>
-				jsonSchema.collectionName === structuredSchema.collectionName && jsonSchema.dbName);
+				jsonSchema.collectionName === structuredSchema.collectionName && jsonSchema.dbName === structuredSchema.dbName);
 			const relatedTableSchemaIndex = structuredJSONSchemas.findIndex(({ collectionName, dbName }) =>
 				jsonSchema.relatedTables.find(({ tableName, schemaName }) => tableName === collectionName && schemaName === dbName));
 
 			if (relatedTableSchemaIndex !== -1 && doesViewHaveRelatedTables(jsonSchema, structuredJSONSchemas)) {
 				structuredJSONSchemas[relatedTableSchemaIndex].views.push(jsonSchema);
+			} else {
+				structuredJSONSchemas.push({
+					dbName: jsonSchema.dbName,
+					entityLevel: {},
+					views: [jsonSchema],
+					emptyBucket: false,
+					bucketInfo: jsonSchema.bucketInfo,
+				});
 			}
 
 			delete jsonSchema.relatedTables;
@@ -53,6 +61,7 @@ const mergeCollectionsWithViews = jsonSchemas =>
 
 		return structuredJSONSchemas;
 	}, jsonSchemas);
+};
 
 const getCollectionsRelationships = logger => async (dbConnectionClient) => {
 	const dbName = dbConnectionClient.config.database;
