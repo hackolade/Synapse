@@ -1,4 +1,4 @@
-const commentIfDeactivated = require('./commentIfDeactivated');
+const { commentIfDeactivated } = require('./commentIfDeactivated');
 const types = require('../configs/types');
 const templates = require('../configs/templates');
 

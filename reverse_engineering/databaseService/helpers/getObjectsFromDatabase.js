@@ -20,7 +20,22 @@ const getObjectsFromDatabase = async client => {
 			}
 		};
 	}, {});
-	return Object.values(schemaObjects);
+
+	return Object.values(schemaObjects).map(item => {
+		if (item.dbCollections.length !== 0) {
+			return item;
+		}
+
+		if (item.views.length === 0) {
+			return item;
+		}
+
+		return {
+			...item,
+			dbCollections: item.views.map(viewName => `${viewName} (v)`),
+			views: [],
+		};
+	});
 };
 
 module.exports = getObjectsFromDatabase;
