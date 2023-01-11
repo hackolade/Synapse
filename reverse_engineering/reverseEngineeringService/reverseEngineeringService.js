@@ -237,12 +237,35 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 				forAppend: materialized && isForAppend(String(viewStatement[0].definition)),
 				materialized
 			},
-			relatedTables: viewInfo.map((columnInfo => ({
+			relatedTables: prioritizeRelatedTables(schemaName, viewInfo.map((columnInfo => ({
 				tableName: columnInfo['ReferencedTableName'],
 				schemaName: columnInfo['ReferencedSchemaName'],
-			}))),
+			})))),
 		};
 	}
+};
+
+const prioritizeRelatedTables = (schemaName, relatedTables) => {
+	const tablesWithCount = relatedTables.reduce((tablesData, { tableName, schemaName }) => {
+		const sameTableIndex = tablesData.findIndex(
+			({ tableName: currentTableName, schemaName: currentSchemaName }) => currentTableName === tableName && currentSchemaName === schemaName
+		);
+		if (sameTableIndex === -1) {
+			return [...tablesData, { tableName, schemaName, count: 1 }];
+		}
+		tablesData[sameTableIndex] = {
+			...tablesData[sameTableIndex],
+			count: tablesData[sameTableIndex].count + 1,
+		};
+		return tablesData;
+	}, []);
+
+	const sortedTablesByCount = tablesWithCount.sort((a, b) => b.count - a.count).map(({ tableName, schemaName }) => ({ tableName, schemaName }));
+
+	const tablesInViewSchema = sortedTablesByCount.filter(({ schemaName: currentSchemaName }) => currentSchemaName === schemaName);
+	const tablesNotInViewSchema = sortedTablesByCount.filter(({ schemaName: currentSchemaName }) => currentSchemaName !== schemaName);
+
+	return [...tablesInViewSchema, ...tablesNotInViewSchema];
 };
 
 const cleanNull = doc => Object.entries(doc).filter(([ key, value ]) => value !== null).reduce((result, [key, value]) => ({
