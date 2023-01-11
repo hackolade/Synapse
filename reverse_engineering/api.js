@@ -26,9 +26,9 @@ module.exports = {
 		return client;
 	},
 
-	disconnect(connectionInfo, logger, callback, app) {
+	disconnect(connectionInfo, logger, cb, app) {
 		clearClient();
-		callback();
+		cb();
 	},
 
 	async testConnection(connectionInfo, logger, callback, app) {
