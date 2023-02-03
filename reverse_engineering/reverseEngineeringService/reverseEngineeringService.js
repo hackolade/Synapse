@@ -387,7 +387,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
 					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
 				]);
-				const isView = tableInfo[0]['TABLE_TYPE'].trim() === 'V';
+				const isView = tableInfo.length && tableInfo[0]['TABLE_TYPE']?.trim() === 'V';
 
 				let distributedColumns = [];
 

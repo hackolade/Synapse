@@ -1,11 +1,11 @@
 {
     "name": "Synapse",
-    "version": "0.1.39",
-    "versionDate": "2023-01-05",
+    "version": "0.1.40",
+    "versionDate": "2023-01-11",
     "author": "hackolade",
     "engines": {
         "hackolade": "6.1.2",
-        "hackoladePlugin": "1.2.0"
+        "hackoladePlugin": "1.2.1"
     },
     "contributes": {
         "target": {
