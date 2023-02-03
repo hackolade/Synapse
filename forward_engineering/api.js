@@ -104,4 +104,8 @@ module.exports = {
 			callback(error);
 		}
 	},
+
+	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
+		return getExternalBrowserUrl(connectionInfo, logger, cb, app);
+	},
 };
