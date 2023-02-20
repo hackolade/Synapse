@@ -17,6 +17,7 @@ const getUserDefinedTypes = require('./getUserDefinedTypes');
 const handleType = require('./handleType');
 const containsJson = require('./containsJson');
 const reverseTablePartitions = require('./reverseTablePartitions');
+const defineMaskedColumns = require('./defineMaskedColumns');
 
 module.exports = {
 	transformDatabaseTableInfoToJSON,
@@ -38,4 +39,5 @@ module.exports = {
 	handleType,
 	containsJson,
 	reverseTablePartitions,
+	defineMaskedColumns,
 }

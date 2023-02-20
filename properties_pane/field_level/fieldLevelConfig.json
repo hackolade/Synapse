@@ -418,6 +418,14 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
+				"propertyName": "Masked with function",
+				"propertyKeyword": "maskedWithFunction",
+				"propertyTooltip": "Limit exposure of sensitive data with this function",
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false
+			},
+			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyNameFull":"Composite Primary Key",
@@ -860,6 +868,14 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "required",
 				"enableForReference": true,
 				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Masked with function",
+				"propertyKeyword": "maskedWithFunction",
+				"propertyTooltip": "Limit exposure of sensitive data with this function",
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false
 			},
 			{
 				"propertyName": "Identity",
@@ -1325,6 +1341,14 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
+				"propertyName": "Masked with function",
+				"propertyKeyword": "maskedWithFunction",
+				"propertyTooltip": "Limit exposure of sensitive data with this function",
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false
+			},
+			{
 				"propertyName": "Primary key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyNameFull":"Composite Primary Key",
@@ -1736,6 +1760,14 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "required",
 				"enableForReference": true,
 				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Masked with function",
+				"propertyKeyword": "maskedWithFunction",
+				"propertyTooltip": "Limit exposure of sensitive data with this function",
+				"propertyType": "details",
+				"template": "textarea",
+				"markdown": false
 			},
 			{
 				"propertyName": "Primary key",
