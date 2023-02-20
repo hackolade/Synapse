@@ -409,6 +409,15 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 	`);
 };
 
+const getTableMaskedColumns = async (connectionClient, dbName, tableName, schemaName, logger) => {
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const objectId = `${schemaName}.${tableName}`;
+	return mapResponse(await currentDbConnectionClient.query`
+		SELECT name, masking_function FROM sys.masked_columns
+		WHERE object_id=OBJECT_ID(${objectId})
+	`);
+};
+
 const getTableDefaultConstraintNames = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	return mapResponse(currentDbConnectionClient.query`
@@ -543,6 +552,7 @@ module.exports = {
 	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getTableKeyConstraints,
+	getTableMaskedColumns,
 	getViewColumnRelations,
 	getTableDefaultConstraintNames,
 	getDatabaseUserDefinedTypes,

@@ -15,6 +15,7 @@ const {
 	getViewDistributedColumns,
 	queryDistribution,
 	getPartitions,
+	getTableMaskedColumns,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -32,6 +33,7 @@ const {
 	handleType,
 	containsJson,
 	reverseTablePartitions,
+	defineMaskedColumns,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
@@ -409,6 +411,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 					defineRequiredFields,
 					defineFieldsDescription(await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table column descriptions'))),
 					defineFieldsKeyConstraints(fieldsKeyConstraints),
+					defineMaskedColumns(await getTableMaskedColumns(dbConnectionClient, dbName, tableName, schemaName, logger)),
 					defineJSONTypes(tableRows),
 					defineFieldsDefaultConstraintNames(await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting default constraint names'))),
 				)({ required: [], properties: {} });
