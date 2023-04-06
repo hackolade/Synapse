@@ -47,6 +47,7 @@ module.exports = {
 	},
 
 	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
+		logInfo('Get external browser URL', connectionInfo, logger);
 		const verifier = randomstring.generate(32);
 		const base64Digest = crypto
 			.createHash("sha256")
