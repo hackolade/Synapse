@@ -199,7 +199,7 @@ const filterCbViewColumn = jsonSchema => {
 	};
 };
 
-const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => async jsonSchema => {
+const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName, logger) => async jsonSchema => {
 	const [viewInfo, viewColumns, viewStatement] = await Promise.all([
 		await getViewTableInfo(dbConnectionClient, dbName, viewName, schemaName),
 		await getViewColumns(dbConnectionClient, dbName, viewName, schemaName),
@@ -212,7 +212,13 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 
 	if (isViewPartitioned(viewStatement[0].definition)) {
 		const partitionedTables = getPartitionedTables(viewInfo);
-
+		const relatedTables = viewInfo[0] ? [{
+			tableName: viewInfo[0]['ReferencedTableName'],
+			schemaName: viewInfo[0]['ReferencedSchemaName'],
+		}] : [];
+		if (relatedTables.length === 0) {
+			logger.log('error', { type: 'warning', step: 'Getting view related tables', message: `View ${viewName} from ${dbName}.${schemaName} doesn't have related tables` });
+		}
 		return {
 			jsonSchema: JSON.stringify(jsonSchema),
 			data: {
@@ -224,10 +230,7 @@ const prepareViewJSON = (dbConnectionClient, dbName, viewName, schemaName) => as
 				materialized
 			},
 			name: viewName,
-			relatedTables: [{
-				tableName: viewInfo[0]['ReferencedTableName'],
-				schemaName: viewInfo[0]['ReferencedSchemaName'],
-			}],
+			relatedTables,
 		};
 	} else {
 		return {
@@ -458,7 +461,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 
 				if (isView) {
 					progress(logger, 'Getting view data', dbName, tableName);
-					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName)(jsonSchema);
+					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName, logger)(jsonSchema);
 
 					result = {
 						...result,
