@@ -93,7 +93,16 @@
 			{
 				"from": { "childType": "timestamp_ntz" },
 				"to": { "mode": "datetime2", "childType": "datetime" }
+			},
+			["renameBlockItemProperties", {
+				"autoincrement": {
+					"self": "identity", "subProps": {
+						"start_num": "identitySeed",
+						"step_num": "identityIncrement"
+					}
+				}
 			}
+		]
 		]
 	}
 }
