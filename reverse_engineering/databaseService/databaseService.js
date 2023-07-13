@@ -3,6 +3,7 @@ const sql = require('mssql');
 const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 const msal = require('@azure/msal-node');
+const getSampleDocSize = require('../helpers/getSampleDocSize');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -130,19 +131,32 @@ const queryDistribution = async (connectionClient, dbName, tableName, tableSchem
 	}
 };
 
-const getTableRow = async (connectionClient, dbName, tableName, tableSchema, reverseEngineeringOptions, logger) => {
+const getTableRow = async (connectionClient, dbName, tableName, tableSchema, recordSamplingSettings, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const percentageWord = reverseEngineeringOptions.isAbsoluteValue ? '' : 'PERCENT';
 	try {
-		return mapResponse(await currentDbConnectionClient
-			.request()
-			.input('tableName', sql.VarChar, tableName)
-			.input('tableSchema', sql.VarChar, tableSchema)
-			.input('amount', sql.Int, reverseEngineeringOptions.value)
-			.input('percent', sql.VarChar, percentageWord)
-			.query`EXEC('SELECT TOP '+ @Amount +' '+ @Percent +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`);
+		let amount;
+
+		if (recordSamplingSettings.active === 'absolute') {
+			amount = Number(recordSamplingSettings.absolute.value);
+		} else {
+			const rowCount = await getTableRowCount(tableSchema, tableName, currentDbConnectionClient);
+			amount = getSampleDocSize(rowCount, recordSamplingSettings);
+		}
+
+		return mapResponse(
+			await currentDbConnectionClient
+				.request()
+				.input('tableName', sql.VarChar, tableName)
+				.input('tableSchema', sql.VarChar, tableSchema)
+				.input('amount', sql.Int, amount)
+				.query`EXEC('SELECT TOP '+ @Amount +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`,
+		);
 	} catch (e) {
-		logger.log('error', { type: 'Error getting rows for sampling', message: e.message, stack: e.stack }, `${dbName}.${tableName}`);
+		logger.log(
+			'error',
+			{ type: 'Error getting rows for sampling', message: e.message, stack: e.stack },
+			`${dbName}.${tableName}`,
+		);
 		return [];
 	}
 };
@@ -563,4 +577,12 @@ module.exports = {
 	getViewDistributedColumns,
 	queryDistribution,
 	getPartitions
+}
+
+async function getTableRowCount(tableSchema, tableName, currentDbConnectionClient) {
+	const rowCountQuery = `SELECT COUNT(*) as rowsCount FROM [${tableSchema}].[${tableName}]`;
+	const rowCountResponse = await currentDbConnectionClient.query(rowCountQuery);
+	const rowCount = rowCountResponse?.recordset[0]?.rowsCount;
+
+	return rowCount;
 }

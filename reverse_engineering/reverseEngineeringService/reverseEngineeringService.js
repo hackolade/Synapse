@@ -387,7 +387,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 
 				const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
 					containsJson(tableInfo)
-						? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.rowCollectionSettings, logger).catch(logError(logger, 'Getting table rows'))
+						? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.recordSamplingSettings, logger).catch(logError(logger, 'Getting table rows'))
 						: Promise.resolve([]),
 					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
 					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
