@@ -67,7 +67,7 @@ making sure that you maintain a proper JSON format.
 				"disabledOption": true
 			},
 			{
-				"propertyName": "Modeling methodology",
+				"propertyName": "Modeling technique",
 				"propertyKeyword": "modelingMethodology",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
