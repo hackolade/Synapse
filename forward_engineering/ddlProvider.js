@@ -13,7 +13,7 @@ const provider = (baseProvider, options, app) => {
 	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
 		require('./helpers/ifNotExistStatementHelper')(app);
 	
-	const { decorateType, getIdentity, getEncryptedWith, decorateDefault } = require('./helpers/columnDefinitionHelper')(app);
+	const { decorateType, getIdentity, getEncryptedWith, decorateDefault, canHaveIdentity } = require('./helpers/columnDefinitionHelper')(app);
 
 	const {
 		getMemoryOptimizedIndexes,
@@ -145,7 +145,7 @@ const provider = (baseProvider, options, app) => {
 			const maskedWithFunction = columnDefinition.maskedWithFunction
 				? ` MASKED WITH (FUNCTION='${columnDefinition.maskedWithFunction}')`
 				: '';
-			const identity = getIdentity(columnDefinition.identity);
+			const identityContainer = columnDefinition.identity && {identity: getIdentity(columnDefinition.identity)}
 			const encryptedWith = !_.isEmpty(columnDefinition.encryption)
 				? getEncryptedWith(columnDefinition.encryption[0])
 				: '';
@@ -161,9 +161,9 @@ const provider = (baseProvider, options, app) => {
 					collation: getCollation(columnDefinition.type, columnDefinition.collation),
 					sparse,
 					maskedWithFunction,
-					identity,
 					encryptedWith,
 					terminator,
+					...(identityContainer)
 				}),
 				columnDefinition,
 			);
@@ -318,10 +318,6 @@ const provider = (baseProvider, options, app) => {
 				xmlSchemaCollection: String(jsonSchema.xml_schema_collection || ''),
 				sparse: Boolean(jsonSchema.sparse),
 				maskedWithFunction: String(jsonSchema.maskedWithFunction || ''),
-				identity: {
-					seed: Number(_.get(jsonSchema, 'identity.identitySeed', 0)),
-					increment: Number(_.get(jsonSchema, 'identity.identityIncrement', 0)),
-				},
 				schemaName: schemaData.schemaName,
 				unique: keyHelper.isInlineUnique(jsonSchema),
 				isTempTableStartTimeColumn,
@@ -343,6 +339,12 @@ const provider = (baseProvider, options, app) => {
 						utf8: jsonSchema.utf8,
 					})
 				: {},
+				...(canHaveIdentity(jsonSchema.mode) && {
+					identity: {
+					seed: Number(_.get(jsonSchema, 'identity.identitySeed', 0)),
+					increment: Number(_.get(jsonSchema, 'identity.identityIncrement', 0)),
+				}
+			}),
 			});
 		},
 

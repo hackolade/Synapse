@@ -882,6 +882,27 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "block",
 				"propertyKeyword": "identity",
 				"propertyTooltip": "Creates an identity column in a table",
+				"dependency": {
+					"type": "or",
+					"values": [
+						{
+							"key": "mode",
+							"value": "tinyint"
+						},
+						{
+							"key": "mode",
+							"value": "smallint"
+						},
+						{
+							"key": "mode",
+							"value": "int"
+						},
+						{
+							"key": "mode",
+							"value": "bigint"
+						}
+					]
+				},
 				"structure": [
 					{
 						"propertyName": "Seed",
