@@ -138,9 +138,19 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rec
 
 		if (recordSamplingSettings.active === 'absolute') {
 			amount = Number(recordSamplingSettings.absolute.value);
+			logger.log(
+				'info',
+				{ message: `Get ${amount} rows from '${tableName}' table for sampling JSON data.` },
+				'Reverse Engineering',
+			);
 		} else {
 			const rowCount = await getTableRowCount(tableSchema, tableName, currentDbConnectionClient);
 			amount = getSampleDocSize(rowCount, recordSamplingSettings);
+			logger.log(
+				'info',
+				{ message: `Get ${amount} rows of total ${rowCount} from '${tableName}' table for sampling JSON data.` },
+				'Reverse Engineering',
+			);
 		}
 
 		return mapResponse(
@@ -212,8 +222,11 @@ const getViewDistributedColumns = async (connectionClient, dbName, tableName, ta
 	`);
 };
 
-const getDatabaseIndexes = async (connectionClient, dbName) => {
+const getDatabaseIndexes = async (connectionClient, dbName, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+	logger.log('info', { message: `Get '${dbName}' database indexes.`}, 'Reverse Engineering');
+
 	return mapResponse(await currentDbConnectionClient.query`
 		SELECT
 			TableName = t.name,
@@ -270,6 +283,8 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
+	logger.log('info', { message: `Get '${dbName}' database partitions.`}, 'Reverse Engineering');
+
 	return mapResponse(await currentDbConnectionClient.query`
 		SELECT 
 			sch.name AS schemaName,
@@ -308,9 +323,11 @@ const getTableColumnsDescription = async (connectionClient, dbName, tableName, s
 	`);
 };
 
-const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
+const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName, logger) => {
 	try {
 		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+		logger.log('info', { message: `Get '${dbName}' database memory optimized indexes.` }, 'Reverse Engineering');
 
 		return mapResponse(currentDbConnectionClient.query`
 			SELECT
@@ -324,7 +341,7 @@ const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName) => {
 			WHERE T.is_memory_optimized=1
 		`);
 	} catch (error) {
-		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimzed tables');
+		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimized tables');
 
 		return [];
 	}
@@ -455,13 +472,16 @@ const getTableDefaultConstraintNames = async (connectionClient, dbName, tableNam
 	`);
 };
 
-const getDatabaseUserDefinedTypes = async (connectionClient, dbName) => {
+const getDatabaseUserDefinedTypes = async (connectionClient, dbName, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+	logger.log('info', { message: `Get '${dbName}' database UDTs.` }, 'Reverse Engineering');
+
 	return mapResponse(currentDbConnectionClient.query`
 		select * from sys.types
 		where is_user_defined = 1
 	`);
-}
+};
 
 const mapResponse = async (response = {}) => {
 	return (await response).recordset;

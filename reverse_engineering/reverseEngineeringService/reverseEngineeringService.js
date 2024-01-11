@@ -361,10 +361,10 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	const [
 		databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions
 	] = await Promise.all([
-		getDatabaseIndexes(dbConnectionClient, dbName).catch(logError(logger, 'Getting indexes')),
+		getDatabaseIndexes(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting indexes')),
 		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting memory optimized tables')),
-		getDatabaseUserDefinedTypes(dbConnectionClient, dbName).catch(logError(logger, 'Getting user defined types')),
-		getPartitions(dbConnectionClient, dbName)
+		getDatabaseUserDefinedTypes(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting user defined types')),
+		getPartitions(dbConnectionClient, dbName, logger)
 	]);
 
 	
