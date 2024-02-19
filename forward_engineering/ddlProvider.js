@@ -462,13 +462,6 @@ const provider = (baseProvider, options, app) => {
 			});
 		},
 
-		dropSchema(name) {
-			return assignTemplates(templates.dropSchema, {
-				terminator,
-				name,
-			});
-		},
-
 		dropTable(fullTableName) {
 			return assignTemplates(templates.dropTable, {
 				name: fullTableName,
