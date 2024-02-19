@@ -45,60 +45,6 @@ module.exports = app => {
 		}
 	};
 
-	const getSystemVersioning = options => {
-		let systemVersioning = 'SYSTEM_VERSIONING=ON';
-
-		if (!options.historyTable) {
-			return systemVersioning;
-		}
-
-		let historyTable = `HISTORY_TABLE=${options.historyTable}`;
-
-		if (options.dataConsistencyCheck) {
-			historyTable += ', DATA_CONSISTENCY_CHECK=ON';
-		}
-
-		return `${systemVersioning} (${historyTable})`;
-	};
-
-	const getLedger = options => {
-		let ledger = 'LEDGER=ON';
-
-		if (!options.ledger_view && !options.append_only) {
-			return ledger;
-		}
-
-		let optionsStrings = [];
-
-		if (options.ledger_view) {
-			optionsStrings.push(`${getLedgerView(options)}`);
-		}
-
-		if (options.append_only) {
-			optionsStrings.push('APPEND_ONLY=ON');
-		}
-
-		return `${ledger} (\n\t\t${optionsStrings.join(',\n\t\t')}\n\t)`;
-	};
-
-	const getLedgerView = options => {
-		let viewoptions = [];
-		if (options.transaction_id_column_name) {
-			viewoptions.push(`\n\t\t\tTRANSACTION_ID_COLUMN_NAME=${options.transaction_id_column_name}`);
-		}
-		if (options.sequence_number_column_name) {
-			viewoptions.push(`\n\t\t\tSEQUENCE_NUMBER_COLUMN_NAME=${options.sequence_number_column_name}`);
-		}
-		if (options.operation_type_id_column_name) {
-			viewoptions.push(`\n\t\t\tOPERATION_TYPE_COLUMN_NAME=${options.operation_type_id_column_name}`);
-		}
-		if (options.operation_type_desc_column_name) {
-			viewoptions.push(`\n\t\t\tOPERATION_TYPE_DESC_COLUMN_NAME=${options.operation_type_desc_column_name}`);
-		}
-		const optionsString = !_.isEmpty(viewoptions) ? ` (${viewoptions.join(',')}\n\t\t)` : '';
-		return `LEDGER_VIEW=${options.ledger_view}${optionsString}`;
-	};
-
 	const getTableOptions = options => {
 		if (!options) {
 			return '';
