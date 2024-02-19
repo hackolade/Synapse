@@ -8,11 +8,6 @@ module.exports = app => {
 	const { divideIntoActivatedAndDeactivated, checkAllKeysDeactivated } =
 		app.require('@hackolade/ddl-fe-utils').general;
 
-	const trimBraces = expression =>
-		/^\(([\s\S]+?)\)$/i.test(_.trim(expression))
-			? _.trim(expression).replace(/^\(([\s\S]+?)\)$/i, '$1')
-			: expression;
-
 	const getRelationOptionsIndex = index => {
 		let result = [];
 
@@ -130,124 +125,6 @@ module.exports = app => {
 			table: getTableName(tableName, index.schemaName),
 			order: order ? `\n\tORDER (${order})` : '',
 			index_options: createIndexOptions(indexOptions),
-			terminator,
-		});
-	};
-
-	const getFulltextCatalog = ({ catalogName, fileGroup }) => {
-		if (catalogName && fileGroup) {
-			return `(${catalogName}, FILEGROUP ${fileGroup})`;
-		} else if (catalogName) {
-			return catalogName;
-		} else if (fileGroup) {
-			return `(FILEGROUP ${fileGroup})`;
-		} else {
-			return '';
-		}
-	};
-
-	const getFullTextOptions = ({ changeTracking, stopList, searchPropertyList }) => {
-		let options = [];
-
-		if (changeTracking) {
-			options.push(`CHANGE_TRACKING=${changeTracking}`);
-		}
-
-		if (stopList) {
-			options.push(`STOPLIST=${stopList}`);
-		}
-
-		if (searchPropertyList) {
-			options.push(`SEARCH PROPERTY LIST=${searchPropertyList}`);
-		}
-
-		return options.join(',\n\t');
-	};
-
-	const createFullTextIndex = (terminator, tableName, index, isParentActivated) => {
-		if (_.isEmpty(index.keys)) {
-			return '';
-		}
-		const catalog = getFulltextCatalog(index);
-		const options = getFullTextOptions(index);
-
-		return assignTemplates(templates.fullTextIndex, {
-			table: getTableName(tableName, index.schemaName),
-			keys: index.keys
-				.map(key => {
-					let column = `[${key.name}]`;
-
-					if (key.columnType) {
-						column += ` TYPE COLUMN ${key.columnType}`;
-					}
-
-					if (key.languageTerm) {
-						column += ` LANGUAGE ${key.languageTerm}`;
-					}
-
-					if (key.statisticalSemantics) {
-						column += ` STATISTICAL_SEMANTICS`;
-					}
-
-					return isParentActivated ? commentIfDeactivated(column, key) : column;
-				})
-				.join(',\n\t'),
-			indexName: index.keyIndex,
-			catalog: catalog ? `ON ${catalog}\n` : '',
-			options: options ? `WITH (\n\t${options}\n)` : '',
-			terminator,
-		});
-	};
-
-	const getSpatialOptions = indexData => {
-		const general = getRelationOptionsIndex(indexData);
-
-		if (indexData.cellsPerObject) {
-			general.unshift(`CELLS_PER_OBJECT = ${indexData.cellsPerObject}`);
-		}
-
-		if (indexData.sortInTempdb) {
-			general.unshift(`SORT_IN_TEMPDB = ON`);
-		}
-
-		if (indexData.dropExisting) {
-			general.unshift(`DROP_EXISTING = ON`);
-		}
-
-		if (indexData.maxdop) {
-			general.unshift(`MAXDOP = ${indexData.maxdop}`);
-		}
-
-		if (!_.isEmpty(indexData.boundingBox)) {
-			general.unshift(
-				`BOUNDING_BOX = (\n\t\tXMIN=${indexData.boundingBox.XMIN},YMIN=${indexData.boundingBox.YMIN},XMAX=${indexData.boundingBox.XMAX},YMAX=${indexData.boundingBox.YMAX}\n\t)`,
-			);
-		}
-
-		if (!_.isEmpty(indexData.grids)) {
-			general.unshift(
-				`GRIDS = (\n\t\t${['LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4']
-					.filter(key => indexData.grids[key])
-					.map((key, i) => `${key} = ${indexData.grids[key]}`)
-					.join(', ')}\n\t)`,
-			);
-		}
-
-		return general;
-	};
-
-	const createSpatialIndex = (terminator, tableName, index) => {
-		if (!index.column) {
-			return '';
-		}
-		const options = getSpatialOptions(index);
-
-		return assignTemplates(templates.spatialIndex, {
-			name: index.name,
-			table: getTableName(tableName, index.schemaName),
-			column: `[${index.column.name}]`,
-			using: index.using ? `\nUSING ${index.using}` : '',
-			options: options.length ? 'WITH (\n\t' + options.join(',\n\t') + '\n)' : '',
 			terminator,
 		});
 	};
