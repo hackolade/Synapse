@@ -280,7 +280,7 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 		`);
 };
 
-const getPartitions = async (connectionClient, dbName) => {
+const getPartitions = async (connectionClient, dbName, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
 	logger.log('info', { message: `Get '${dbName}' database partitions.`}, 'Reverse Engineering');
@@ -440,7 +440,7 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 	`);
 };
 
-const getTableMaskedColumns = async (connectionClient, dbName, tableName, schemaName, logger) => {
+const getTableMaskedColumns = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${tableName}`;
 	return mapResponse(await currentDbConnectionClient.query`
