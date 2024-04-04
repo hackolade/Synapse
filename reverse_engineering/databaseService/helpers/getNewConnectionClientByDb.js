@@ -21,6 +21,14 @@ const getNewConnectionClientByDb = async (connectionClient, currentDbName) => {
 			encrypt: true,
 		},
 		database: currentDbName,
+		pool: {
+			acquireTimeoutMillis: requestTimeout,
+			createRetryIntervalMillis: 400, // default 200
+			createTimeoutMillis: requestTimeout,
+			destroyTimeoutMillis: 10000, // default 5000
+			idleTimeoutMillis: requestTimeout,
+			reapIntervalMillis: 2000, // default 1000
+		}
 	});
 };
 

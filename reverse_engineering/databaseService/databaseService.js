@@ -11,83 +11,78 @@ const getConnectionClient = async (connectionInfo, logger) => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
 	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
+	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
+	
 	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
-
-	if (connectionInfo.authMethod === 'Username / Password') {
-		return await sql.connect({
-			user: userName,
-			password: connectionInfo.userPassword,
-			server: connectionInfo.host,
-			port: +connectionInfo.port,
-			database: connectionInfo.databaseName,
-			options: {
-				encrypt: true,
-				enableArithAbort: true
-			},
-			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
-			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000,
-		});
-	} else if (connectionInfo.authMethod === 'Username / Password (Windows)') {
-		return await sql.connect({
-			user: userName,
-			password: connectionInfo.userPassword,
-			server: connectionInfo.host,
-			port: +connectionInfo.port,
-			database: connectionInfo.databaseName,
-			domain: connectionInfo.userDomain,
-			options: {
-				encrypt: false,
-				enableArithAbort: true
-			},
-			connectTimeout: Number(connectionInfo.queryRequestTimeout) || 60000,
-			requestTimeout:  Number(connectionInfo.queryRequestTimeout) || 60000
-		});
-	} else if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
-		const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
-		const redirectUri = 'http://localhost:8080';
-		const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
-
-		return await sql.connect({
-			server: connectionInfo.host,
-			port: +connectionInfo.port,
-			database: connectionInfo.databaseName,
-			options: {
-				encrypt: true,
-				enableArithAbort: true,
-			},
-			authentication: {
-				type: 'azure-active-directory-access-token',
-				options: {
-					token
-				}
-			},
-			connectTimeout: QUERY_REQUEST_TIMEOUT,
-			requestTimeout: QUERY_REQUEST_TIMEOUT
-		});
-	} else if (connectionInfo.authMethod === 'Azure Active Directory (Username / Password)') {
-		return await sql.connect({
-			user: userName,
-			password: connectionInfo.userPassword,
-			server: connectionInfo.host,
-			port: +connectionInfo.port,
-			database: connectionInfo.databaseName,
-			options: {
-				encrypt: true,
-				enableArithAbort: true
-			},
-			authentication: {
-				type: 'azure-active-directory-password',
-				options: {
-					userName: connectionInfo.userName,
-					password: connectionInfo.userPassword,
-					domain: tenantId
-				},
-			},
-			connectTimeout: QUERY_REQUEST_TIMEOUT,
-			requestTimeout: QUERY_REQUEST_TIMEOUT
-		});
+	
+	const commonConfig = {
+		server: connectionInfo.host,
+		port: +connectionInfo.port,
+		database: connectionInfo.databaseName,
+		connectTimeout: queryRequestTimeout,
+		requestTimeout: queryRequestTimeout
 	}
-
+	const credentialsConfig = {
+		user: userName,
+		password: connectionInfo.userPassword,
+	}
+	
+	switch (connectionInfo.authMethod) {
+		case 'Username / Password':
+			return sql.connect({
+				...commonConfig,
+				...credentialsConfig,
+				options: {
+					encrypt: true,
+					enableArithAbort: true
+				},
+			});
+		case 'Username / Password (Windows)':
+			return sql.connect({
+				...commonConfig,
+				...credentialsConfig,
+				domain: connectionInfo.userDomain,
+				options: {
+					encrypt: false,
+					enableArithAbort: true
+				},
+			});
+		case 'Azure Active Directory (MFA)':
+			const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+			const redirectUri = 'http://localhost:8080';
+			const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
+			return sql.connect({
+				...commonConfig,
+				options: {
+					encrypt: true,
+					enableArithAbort: true,
+				},
+				authentication: {
+					type: 'azure-active-directory-access-token',
+					options: {
+						token
+					}
+				},
+			});
+		case 'Azure Active Directory (Username / Password)':
+			return sql.connect({
+				...commonConfig,
+				...credentialsConfig,
+				options: {
+					encrypt: true,
+					enableArithAbort: true
+				},
+				authentication: {
+					type: 'azure-active-directory-password',
+					options: {
+						userName: connectionInfo.userName,
+						password: connectionInfo.userPassword,
+						domain: tenantId
+					},
+				},
+			});
+	}
+	
 	return await sql.connect(connectionInfo.connectionString);
 };
 
