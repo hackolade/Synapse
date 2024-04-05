@@ -1,5 +1,6 @@
 'use strict';
 
+const connectionStringParser = require('mssql/lib/connectionstring');
 const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
 const {
@@ -118,5 +119,44 @@ module.exports = {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering process failed');
 			callback({ message: error.message, stack: error.stack })
 		}
-	}
+	},
+
+	parseConnectionString({ connectionString = '' }, logger, callback) {
+		try {
+			const parsedConnectionStringData = connectionStringParser.resolve(connectionString);
+			
+			// for better UX. In Synapse UI the connection string may start from the "jdbc:sqlserver://...",
+			// which is not handled by the mssql lib parser 
+			if (!parsedConnectionStringData.server) {
+				const hostRegExp = /\/\/(.*?):\d+/;
+				const match = connectionString.match(hostRegExp);
+				if (match) {
+					parsedConnectionStringData.server = match[1];
+				}
+			}
+			
+			// for better UX. Mssql lib is trying to pick the user from other parsed props:
+			// parsed.uid || parsed.uid || parsed['user id']
+			if (!parsedConnectionStringData.user) {
+				const userRegExp = /user=(.*?);/;
+				const match = connectionString.match(userRegExp);
+				if (match) {
+					parsedConnectionStringData.user = match[1];
+				}
+			}
+			
+			const parsedData = {
+				databaseName: parsedConnectionStringData.database,
+				host: parsedConnectionStringData.server,
+				port: parsedConnectionStringData.port,
+				authMethod: 'Username / Password',
+				userName: parsedConnectionStringData.user,
+				userPassword: parsedConnectionStringData.password
+			};
+			callback(null, { parsedData });
+		} catch(err) {
+			logger.log('error', { message: err.message, stack: err.stack, err }, 'Parsing connection string failed');
+			callback({ message: err.message, stack: err.stack });
+		}
+	},
 };
