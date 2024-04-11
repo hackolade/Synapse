@@ -487,7 +487,6 @@ const progress = (logger, message, dbName = '', entityName = '') => {
 
 const logError = (logger, step) => (error) => {
 	logger.log('error', { type: 'error', step: step, message: error.message }, '');
-	throw error;
 };
 
 module.exports = {
