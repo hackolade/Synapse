@@ -133,12 +133,18 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rec
 
 		if (recordSamplingSettings.active === 'absolute') {
 			amount = Number(recordSamplingSettings.absolute.value);
+			if (!amount) {
+				return [];
+			}
 			logger.log(
 				'info',
 				{ message: `Get ${amount} rows from '${tableName}' table for sampling JSON data.` },
 				'Reverse Engineering',
 			);
 		} else {
+			if (!recordSamplingSettings.relative.value) {
+				return [];
+			}
 			const rowCount = await getTableRowCount(tableSchema, tableName, currentDbConnectionClient);
 			amount = getSampleDocSize(rowCount, recordSamplingSettings);
 			logger.log(
@@ -451,7 +457,7 @@ const getTableDefaultConstraintNames = async (connectionClient, dbName, tableNam
 		ac.name as columnName,
 		dc.name
 	FROM 
-		sys.all_columns as ac
+		sys.columns as ac
 			INNER JOIN
 		sys.tables
 			ON ac.object_id = tables.object_id
