@@ -493,7 +493,10 @@ const progress = (logger, message, dbName = '', entityName = '') => {
 };
 
 const logError = (logger, step) => (error) => {
-	logger.log('error', { type: 'error', step: step, message: error.message }, '');
+	logger.log('error', { type: 'error', step, message: error.message }, '');
+	if (error.message === 'operation timed out') {
+		logger.log('error', error);
+	}
 };
 
 module.exports = {
