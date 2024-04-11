@@ -371,111 +371,118 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
 		progress(logger, 'Fetching database information', dbName);
 		const isSystemIndex = index => /^ClusteredIndex_[a-f0-9]{32}$/m.test(index.name || '');
-		const tablesInfo = await Promise.all(
-			tableNames.map(async untrimmedTableName => {
-				const tableName = untrimmedTableName.replace(/ \(v\)$/, '');
-				const tableIndexes = databaseIndexes.filter(
-					index => index.TableName === tableName && index.schemaName === schemaName &&
+		
+		async function processTable(untrimmedTableName) {
+			const tableName = untrimmedTableName.replace(/ \(v\)$/, '');
+			const tableIndexes = databaseIndexes.filter(
+				index => index.TableName === tableName && index.schemaName === schemaName &&
 					!isSystemIndex(index)
-				);
-				const tablePartitions = dataBasePartitions
-					.filter(partition => partition.tableName === tableName && partition.schemaName === schemaName);
+			);
+			const tablePartitions = dataBasePartitions
+				.filter(partition => partition.tableName === tableName && partition.schemaName === schemaName);
 
-				
-				progress(logger, 'Fetching table information', dbName, tableName);
-				const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info'));
 
-				const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
-					containsJson(tableInfo)
-						? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.recordSamplingSettings, logger).catch(logError(logger, 'Getting table rows'))
-						: Promise.resolve([]),
-					await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
-					await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
-				]);
-				const isView = tableInfo.length && tableInfo[0]['TABLE_TYPE']?.trim() === 'V';
+			progress(logger, 'Fetching table information', dbName, tableName);
+			const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table info'));
 
-				let distributedColumns = [];
+			const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
+				containsJson(tableInfo)
+					? await getTableRow(dbConnectionClient, dbName, tableName, schemaName, reverseEngineeringOptions.recordSamplingSettings, logger).catch(logError(logger, 'Getting table rows'))
+					: Promise.resolve([]),
+				await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table key constraints')),
+				await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting distribution info')),
+			]);
+			const isView = tableInfo.length && tableInfo[0]['TABLE_TYPE']?.trim() === 'V';
 
-				try {
-					progress(logger, 'Fetching columns distribution info', dbName, tableName);
+			let distributedColumns = [];
 
-					distributedColumns = isView ?
-						await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
-						await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
-				} catch (e) {
-					logger.log('error', { type: 'warning', message: e.message });
-				}
+			try {
+				progress(logger, 'Fetching columns distribution info', dbName, tableName);
 
-				const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
+				distributedColumns = isView ?
+					await getViewDistributedColumns(dbConnectionClient, dbName, tableName, schemaName) :
+					await getDistributedColumns(dbConnectionClient, dbName, tableName, schemaName);
+			} catch (e) {
+				logger.log('error', { type: 'warning', message: e.message });
+			}
 
-				progress(logger, 'Create JSON schema', dbName, tableName);
-				const jsonSchema = pipe(
-					transformDatabaseTableInfoToJSON(tableInfo),
-					defineRequiredFields,
-					defineFieldsDescription(await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table column descriptions'))),
-					defineFieldsKeyConstraints(fieldsKeyConstraints),
-					defineMaskedColumns(await getTableMaskedColumns(dbConnectionClient, dbName, tableName, schemaName, logger)),
-					defineJSONTypes(tableRows),
-					defineFieldsDefaultConstraintNames(await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting default constraint names'))),
-				)({ required: [], properties: {} });
+			const hashColumn = distributedColumns.map(({ columnName }) => ({ name: columnName }));
 
-				const reorderedTableRows = reorderTableRows(tableRows, reverseEngineeringOptions.isFieldOrderAlphabetic);
-				const standardDoc = Array.isArray(reorderedTableRows) && reorderedTableRows.length
-					? reorderedTableRows
-					: reorderTableRows([getStandardDocumentByJsonSchema(jsonSchema)], reverseEngineeringOptions.isFieldOrderAlphabetic);
+			progress(logger, 'Create JSON schema', dbName, tableName);
+			const jsonSchema = pipe(
+				transformDatabaseTableInfoToJSON(tableInfo),
+				defineRequiredFields,
+				defineFieldsDescription(await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting table column descriptions'))),
+				defineFieldsKeyConstraints(fieldsKeyConstraints),
+				defineMaskedColumns(await getTableMaskedColumns(dbConnectionClient, dbName, tableName, schemaName, logger)),
+				defineJSONTypes(tableRows),
+				defineFieldsDefaultConstraintNames(await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName).catch(logError(logger, 'Getting default constraint names'))),
+			)({ required: [], properties: {} });
 
-				const distribution = getDistribution(distributionData);
-				const persistence = getPersistence(tableName);
-				const order = getOrder(tableIndexes);
-				const indexing = getIndexing(tableIndexes[0], order);
+			const reorderedTableRows = reorderTableRows(tableRows, reverseEngineeringOptions.isFieldOrderAlphabetic);
+			const standardDoc = Array.isArray(reorderedTableRows) && reorderedTableRows.length
+				? reorderedTableRows
+				: reorderTableRows([getStandardDocumentByJsonSchema(jsonSchema)], reverseEngineeringOptions.isFieldOrderAlphabetic);
 
-				let result = {
-					collectionName: tableName,
-					dbName: schemaName,
-					entityLevel: {
-						Indxs: reverseTableIndexes(tableIndexes),
-						...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
-						...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
-						indexingOrderColumn: order.map(column => ({ name: column })),
-						tableRole: getTableRole(distribution, indexing),
-						distribution,
-						indexing,
-						hashColumn,
-						persistence,
-						...reverseTablePartitions(tablePartitions),
-					},
-					standardDoc: standardDoc,
-					documentTemplate: standardDoc,
-					collectionDocs: reorderedTableRows,
-					documents: cleanDocuments(reorderedTableRows),
-					bucketInfo: {
-						databaseName: dbName,
-					},
-					modelDefinitions: {
-						definitions: getUserDefinedTypes(tableInfo, databaseUDT),
-					},
-					emptyBucket: false,
-					validation: { jsonSchema },
-					views: [],
+			const distribution = getDistribution(distributionData);
+			const persistence = getPersistence(tableName);
+			const order = getOrder(tableIndexes);
+			const indexing = getIndexing(tableIndexes[0], order);
+
+			let result = {
+				collectionName: tableName,
+				dbName: schemaName,
+				entityLevel: {
+					Indxs: reverseTableIndexes(tableIndexes),
+					...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
+					...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
+					indexingOrderColumn: order.map(column => ({ name: column })),
+					tableRole: getTableRole(distribution, indexing),
+					distribution,
+					indexing,
+					hashColumn,
+					persistence,
+					...reverseTablePartitions(tablePartitions),
+				},
+				standardDoc: standardDoc,
+				documentTemplate: standardDoc,
+				collectionDocs: reorderedTableRows,
+				documents: cleanDocuments(reorderedTableRows),
+				bucketInfo: {
+					databaseName: dbName,
+				},
+				modelDefinitions: {
+					definitions: getUserDefinedTypes(tableInfo, databaseUDT),
+				},
+				emptyBucket: false,
+				validation: { jsonSchema },
+				views: [],
+			};
+
+			if (isView) {
+				progress(logger, 'Getting view data', dbName, tableName);
+				const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName, logger)(jsonSchema);
+
+				result = {
+					...result,
+					...viewData,
+					data: {
+						...result.entityLevel,
+						...(viewData.data || {}),
+					}
 				};
+			}
 
-				if (isView) {
-					progress(logger, 'Getting view data', dbName, tableName);
-					const viewData = await prepareViewJSON(dbConnectionClient, dbName, tableName, schemaName, logger)(jsonSchema);
+			return result;
+		}
 
-					result = {
-						...result,
-						...viewData,
-						data: {
-							...result.entityLevel,
-							...(viewData.data || {}),
-						}
-					};
-				}
+		const tablesInfo = [];
 
-				return result;
-			})
-		);
+		for (const tableName of tableNames) {
+			const tableInfo = await processTable(tableName);
+			tablesInfo.push(tableInfo);
+		}
+		
 		return [...await jsonSchemas, ...tablesInfo.filter(Boolean)];
 	}, Promise.resolve([]));
 };
