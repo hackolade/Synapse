@@ -451,7 +451,7 @@ const getTableDefaultConstraintNames = async (connectionClient, dbName, tableNam
 		ac.name as columnName,
 		dc.name
 	FROM 
-		sys.all_columns as ac
+		sys.columns as ac
 			INNER JOIN
 		sys.tables
 			ON ac.object_id = tables.object_id
