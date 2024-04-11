@@ -1,4 +1,4 @@
-const defineFieldsDefaultConstraintNames = defaultConstraintsInfo => jsonSchema =>
+const defineFieldsDefaultConstraintNames = (defaultConstraintsInfo = []) => jsonSchema =>
 defaultConstraintsInfo.reduce((jsonSchemaAcc, column) => ({
 		...jsonSchemaAcc,
 		...(jsonSchemaAcc.properties[column.columnName] && {
