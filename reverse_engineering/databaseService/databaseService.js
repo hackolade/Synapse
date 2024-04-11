@@ -133,12 +133,18 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rec
 
 		if (recordSamplingSettings.active === 'absolute') {
 			amount = Number(recordSamplingSettings.absolute.value);
+			if (!amount) {
+				return [];
+			}
 			logger.log(
 				'info',
 				{ message: `Get ${amount} rows from '${tableName}' table for sampling JSON data.` },
 				'Reverse Engineering',
 			);
 		} else {
+			if (!recordSamplingSettings.relative.value) {
+				return [];
+			}
 			const rowCount = await getTableRowCount(tableSchema, tableName, currentDbConnectionClient);
 			amount = getSampleDocSize(rowCount, recordSamplingSettings);
 			logger.log(
