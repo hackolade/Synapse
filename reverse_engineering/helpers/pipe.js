@@ -1,1 +1,4 @@
-module.exports = (...functions) => x => functions.reduce((v, f) => f(v), x);
+module.exports =
+	(...functions) =>
+	x =>
+		functions.reduce((v, f) => f(v), x);

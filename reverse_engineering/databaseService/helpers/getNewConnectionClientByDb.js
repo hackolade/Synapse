@@ -28,7 +28,7 @@ const getNewConnectionClientByDb = async (connectionClient, currentDbName) => {
 			destroyTimeoutMillis: 10000, // default 5000
 			idleTimeoutMillis: requestTimeout,
 			reapIntervalMillis: 2000, // default 1000
-		}
+		},
 	});
 };
 

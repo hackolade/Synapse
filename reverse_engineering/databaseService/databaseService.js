@@ -9,24 +9,27 @@ const QUERY_REQUEST_TIMEOUT = 60000;
 
 const getConnectionClient = async (connectionInfo, logger) => {
 	const hostName = getHostName(connectionInfo.host);
-	const userName = isEmail(connectionInfo.userName) && hostName ? `${connectionInfo.userName}@${hostName}` : connectionInfo.userName;
+	const userName =
+		isEmail(connectionInfo.userName) && hostName
+			? `${connectionInfo.userName}@${hostName}`
+			: connectionInfo.userName;
 	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
 	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
-	
+
 	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
-	
+
 	const commonConfig = {
 		server: connectionInfo.host,
 		port: +connectionInfo.port,
 		database: connectionInfo.databaseName,
 		connectTimeout: queryRequestTimeout,
-		requestTimeout: queryRequestTimeout
-	}
+		requestTimeout: queryRequestTimeout,
+	};
 	const credentialsConfig = {
 		user: userName,
 		password: connectionInfo.userPassword,
-	}
-	
+	};
+
 	switch (connectionInfo.authMethod) {
 		case 'Username / Password':
 			return sql.connect({
@@ -34,7 +37,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				...credentialsConfig,
 				options: {
 					encrypt: true,
-					enableArithAbort: true
+					enableArithAbort: true,
 				},
 			});
 		case 'Username / Password (Windows)':
@@ -44,7 +47,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				domain: connectionInfo.userDomain,
 				options: {
 					encrypt: false,
-					enableArithAbort: true
+					enableArithAbort: true,
 				},
 			});
 		case 'Azure Active Directory (MFA)':
@@ -60,8 +63,8 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				authentication: {
 					type: 'azure-active-directory-access-token',
 					options: {
-						token
-					}
+						token,
+					},
 				},
 			});
 		case 'Azure Active Directory (Username / Password)':
@@ -70,19 +73,19 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				...credentialsConfig,
 				options: {
 					encrypt: true,
-					enableArithAbort: true
+					enableArithAbort: true,
 				},
 				authentication: {
 					type: 'azure-active-directory-password',
 					options: {
 						userName: connectionInfo.userName,
 						password: connectionInfo.userPassword,
-						domain: tenantId
+						domain: tenantId,
 					},
 				},
 			});
 	}
-	
+
 	return await sql.connect(connectionInfo.connectionString);
 };
 
@@ -93,7 +96,8 @@ const getHostName = url => (url || '').split('.')[0];
 const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${tableSchema}.${tableName}`;
-	return mapResponse(await currentDbConnectionClient.query`
+	return mapResponse(
+		await currentDbConnectionClient.query`
 		SELECT c.*,
 				ic.SEED_VALUE,
 				ic.INCREMENT_VALUE,
@@ -106,7 +110,8 @@ const getTableInfo = async (connectionClient, dbName, tableName, tableSchema) =>
 		LEFT JOIN sys.columns as sc ON object_id(${objectId}) = sc.object_id AND c.column_name = sc.name
 		WHERE c.table_name = ${tableName}
 		AND c.table_schema = ${tableSchema}
-	;`);
+	;`,
+	);
 };
 
 const queryDistribution = async (connectionClient, dbName, tableName, tableSchema) => {
@@ -149,7 +154,9 @@ const getTableRow = async (connectionClient, dbName, tableName, tableSchema, rec
 			amount = getSampleDocSize(rowCount, recordSamplingSettings);
 			logger.log(
 				'info',
-				{ message: `Get ${amount} rows of total ${rowCount} from '${tableName}' table for sampling JSON data.` },
+				{
+					message: `Get ${amount} rows of total ${rowCount} from '${tableName}' table for sampling JSON data.`,
+				},
 				'Reverse Engineering',
 			);
 		}
@@ -201,34 +208,39 @@ const getDistributedColumns = async (connectionClient, dbName, tableName, tableS
 	const objectId = `${tableSchema}.${tableName}`;
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	return mapResponse(await currentDbConnectionClient.query`SELECT
+	return mapResponse(
+		await currentDbConnectionClient.query`SELECT
 		COL_NAME(object_id(${objectId}), column_id) as columnName
 	FROM sys.pdw_column_distribution_properties
 	WHERE
 		object_id = object_id(${objectId}) AND
 		distribution_ordinal <> 0
-	`);
+	`,
+	);
 };
 
 const getViewDistributedColumns = async (connectionClient, dbName, tableName, tableSchema) => {
 	const objectId = `${tableSchema}.${tableName}`;
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	return mapResponse(await currentDbConnectionClient.query`SELECT
+	return mapResponse(
+		await currentDbConnectionClient.query`SELECT
 		COL_NAME(object_id(${objectId}), column_id) as columnName
 	FROM sys.pdw_materialized_view_column_distribution_properties
 	WHERE
 		object_id = object_id(${objectId}) AND
 		distribution_ordinal <> 0
-	`);
+	`,
+	);
 };
 
 const getDatabaseIndexes = async (connectionClient, dbName, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	logger.log('info', { message: `Get '${dbName}' database indexes.`}, 'Reverse Engineering');
+	logger.log('info', { message: `Get '${dbName}' database indexes.` }, 'Reverse Engineering');
 
-	return mapResponse(await currentDbConnectionClient.query`
+	return mapResponse(
+		await currentDbConnectionClient.query`
 		SELECT
 			TableName = t.name,
 			IndexName = ind.name,
@@ -252,12 +264,14 @@ const getDatabaseIndexes = async (connectionClient, dbName, logger) => {
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
 			AND t.is_ms_shipped = 0
-		`);
+		`,
+	);
 };
 
 const getViewsIndexes = async (connectionClient, dbName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	return mapResponse(await currentDbConnectionClient.query`
+	return mapResponse(
+		await currentDbConnectionClient.query`
 		SELECT
 			TableName = t.name,
 			IndexName = ind.name,
@@ -278,15 +292,17 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 			ind.is_primary_key = 0
 			AND ind.is_unique_constraint = 0
 			AND t.is_ms_shipped = 0
-		`);
+		`,
+	);
 };
 
 const getPartitions = async (connectionClient, dbName, logger) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
-	logger.log('info', { message: `Get '${dbName}' database partitions.`}, 'Reverse Engineering');
+	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 
-	return mapResponse(await currentDbConnectionClient.query`
+	return mapResponse(
+		await currentDbConnectionClient.query`
 		SELECT 
 			sch.name AS schemaName,
 			tbl.name AS tableName,
@@ -304,7 +320,8 @@ const getPartitions = async (connectionClient, dbName, logger) => {
 		INNER JOIN sys.index_columns ic ON ic.object_id = idx.object_id AND ic.index_id = idx.index_id AND ic.partition_ordinal >= 1
 		INNER JOIN sys.columns c ON tbl.object_id = c.object_id AND ic.column_id = c.column_id
 		LEFT JOIN sys.partition_range_values rng ON pf.function_id = rng.function_id AND rng.boundary_id = prt.partition_number 
-	`);
+	`,
+	);
 };
 
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {
@@ -391,8 +408,7 @@ const getViewColumnRelations = async (connectionClient, dbName, viewName, schema
 	return mapResponse(currentDbConnectionClient
 		.request()
 		.input('tableName', sql.VarChar, viewName)
-		.input('tableSchema', sql.VarChar, schemaName)
-		.query`
+		.input('tableSchema', sql.VarChar, schemaName).query`
 			SELECT name, source_database, source_schema,
 				source_table, source_column
 			FROM sys.dm_exec_describe_first_result_set(N'SELECT TOP 1 * FROM [' + @TableSchema + '].[' + @TableName + ']', null, 1)
@@ -403,8 +419,7 @@ const getViewColumnRelations = async (connectionClient, dbName, viewName, schema
 const getViewStatement = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
-	return mapResponse(currentDbConnectionClient
-		.query`SELECT M.*, V.with_check_option
+	return mapResponse(currentDbConnectionClient.query`SELECT M.*, V.with_check_option
 			FROM sys.sql_modules M INNER JOIN sys.views V ON M.object_id=V.object_id
 			WHERE M.object_id=object_id(${objectId})
 		`);
@@ -444,10 +459,12 @@ const getTableKeyConstraints = async (connectionClient, dbName, tableName, schem
 const getTableMaskedColumns = async (connectionClient, dbName, tableName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${tableName}`;
-	return mapResponse(await currentDbConnectionClient.query`
+	return mapResponse(
+		await currentDbConnectionClient.query`
 		SELECT name, masking_function FROM sys.masked_columns
 		WHERE object_id=OBJECT_ID(${objectId})
-	`);
+	`,
+	);
 };
 
 const getTableDefaultConstraintNames = async (connectionClient, dbName, tableName, schemaName) => {
@@ -486,63 +503,68 @@ const getDatabaseUserDefinedTypes = async (connectionClient, dbName, logger) => 
 
 const mapResponse = async (response = {}) => {
 	return (await response).recordset;
-}
+};
 
 const getTokenByMSAL = async ({ connectionInfo, redirectUri, clientId, tenantId, logger }) => {
 	try {
-
 		const pca = new msal.PublicClientApplication(getAuthConfig(clientId, tenantId, logger.log));
 		const tokenRequest = {
 			code: connectionInfo?.externalBrowserQuery?.code || '',
-			scopes: ["https://database.windows.net//.default"],
+			scopes: ['https://database.windows.net//.default'],
 			redirectUri,
-			codeVerifier: connectionInfo?.proofKey, 
-			clientInfo: connectionInfo?.externalBrowserQuery?.client_info || ''
+			codeVerifier: connectionInfo?.proofKey,
+			clientInfo: connectionInfo?.externalBrowserQuery?.client_info || '',
 		};
-	
+
 		const responseData = await pca.acquireTokenByCode(tokenRequest);
 
 		return responseData.accessToken;
-	} catch(error){
+	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA MSAL auth error');
 		return '';
 	}
 };
 
 const getAgent = (reject, cert, key) => {
-	return new https.Agent({ cert,key, rejectUnauthorized: !!reject });
+	return new https.Agent({ cert, key, rejectUnauthorized: !!reject });
 };
 
 const getTokenByAxios = async ({ connectionInfo, tenantId, redirectUri, clientId, logger, agent }) => {
 	try {
-		const params = new URLSearchParams()
+		const params = new URLSearchParams();
 		params.append('code', connectionInfo?.externalBrowserQuery?.code || '');
-		params.append('client_id',clientId);
-		params.append('redirect_uri',redirectUri);
-		params.append('grant_type',"authorization_code");
+		params.append('client_id', clientId);
+		params.append('redirect_uri', redirectUri);
+		params.append('grant_type', 'authorization_code');
 		params.append('code_verifier', connectionInfo?.proofKey);
-		params.append('resource',"https://database.windows.net/");
+		params.append('resource', 'https://database.windows.net/');
 
 		const responseData = await axios.post(`https://login.microsoftonline.com/${tenantId}/oauth2/token`, params, {
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-			...(agent && { httpsAgent: agent })
-		})
+			...(agent && { httpsAgent: agent }),
+		});
 
 		return responseData?.data?.access_token || '';
-	} catch(error) {
+	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
 		return '';
 	}
 };
 
-const getTokenByAxiosExtended = (params) => {
-	return getTokenByAxios({ ...params, agent: getAgent()})
+const getTokenByAxiosExtended = params => {
+	return getTokenByAxios({ ...params, agent: getAgent() });
 };
 
 const getToken = async ({ connectionInfo, tenantId, clientId, redirectUri, logger }) => {
-	const axiosExtendedToken = await getTokenByAxiosExtended({ connectionInfo, clientId, redirectUri, tenantId, logger});
+	const axiosExtendedToken = await getTokenByAxiosExtended({
+		connectionInfo,
+		clientId,
+		redirectUri,
+		tenantId,
+		logger,
+	});
 	if (axiosExtendedToken) {
 		return axiosExtendedToken;
 	}
@@ -558,22 +580,22 @@ const getToken = async ({ connectionInfo, tenantId, clientId, redirectUri, logge
 	}
 
 	return;
-}
+};
 
 const getAuthConfig = (clientId, tenantId, logger) => ({
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message) {
-                logger(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    },
+	system: {
+		loggerOptions: {
+			loggerCallback(loglevel, message) {
+				logger(message);
+			},
+			piiLoggingEnabled: false,
+			logLevel: msal.LogLevel.Verbose,
+		},
+	},
 	auth: {
 		clientId,
-		authority: `https://login.microsoftonline.com/${tenantId}`
-	}
+		authority: `https://login.microsoftonline.com/${tenantId}`,
+	},
 });
 
 module.exports = {
@@ -597,8 +619,8 @@ module.exports = {
 	getDistributedColumns,
 	getViewDistributedColumns,
 	queryDistribution,
-	getPartitions
-}
+	getPartitions,
+};
 
 async function getTableRowCount(tableSchema, tableName, currentDbConnectionClient) {
 	const rowCountQuery = `SELECT COUNT(*) as rowsCount FROM [${tableSchema}].[${tableName}]`;

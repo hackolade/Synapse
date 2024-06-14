@@ -83,10 +83,7 @@ module.exports = (app, options) => {
 			drop: (tableName, index) => ddlProvider.dropIndex(tableName, index),
 		});
 
-		return []
-			.concat(indexesScripts)
-			.filter(Boolean)
-			.join('\n\n');
+		return [].concat(indexesScripts).filter(Boolean).join('\n\n');
 	};
 
 	const getAddColumnScript = collection => {

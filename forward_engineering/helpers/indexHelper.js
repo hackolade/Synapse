@@ -64,9 +64,7 @@ module.exports = app => {
 	};
 
 	const createIndexOptions = options => {
-		return options.length
-			? '\n\tWITH (\n\t\t' + options.join(',\n\t\t') + '\n\t)'
-			: '';
+		return options.length ? '\n\tWITH (\n\t\t' + options.join(',\n\t\t') + '\n\t)' : '';
 	};
 
 	const getIndexKeys = (keys, iterate, isParentActivated) => {
@@ -93,7 +91,7 @@ module.exports = app => {
 		const keys = getIndexKeys(
 			index.keys,
 			key => `[${key.name}]` + (_.toLower(key.type) === 'descending' ? ' DESC' : ''),
-			isParentActivated
+			isParentActivated,
 		);
 
 		const clustered = index.clustered ? ` CLUSTERED` : ' NONCLUSTERED';
@@ -114,11 +112,7 @@ module.exports = app => {
 		}
 
 		const indexOptions = getIndexOptions(index);
-		const order = getIndexKeys(
-			index.orderKeys || [],
-			key => `[${key.name}]`,
-			isParentActivated
-		)
+		const order = getIndexKeys(index.orderKeys || [], key => `[${key.name}]`, isParentActivated);
 
 		return assignTemplates(templates.columnStoreIndex, {
 			name: index.name,
@@ -132,7 +126,7 @@ module.exports = app => {
 	const createTableIndex = (terminator, tableName, index, isParentActivated) => {
 		if (index.type === 'columnstore') {
 			return createColumnStoreIndex(terminator, tableName, index, isParentActivated);
-		} 
+		}
 		return createIndex(terminator, tableName, index, isParentActivated);
 	};
 
@@ -175,7 +169,7 @@ module.exports = app => {
 							isActivated: !isParentActivated,
 						},
 						true,
-				  )
+					)
 				: '';
 			index += ` HASH (${activatedKeys}${
 				activatedKeys.length && deactivatedKeys.length && !deactivatedKeys.startsWith('/*') ? ', ' : ''
@@ -197,7 +191,7 @@ module.exports = app => {
 							isActivated: !isParentActivated,
 						},
 						true,
-				  )
+					)
 				: '';
 
 			index += ` (${activatedKeys}${
@@ -263,7 +257,7 @@ module.exports = app => {
 								statisticalSemantics: properties.statisticalSemantics,
 							};
 						}
-				  })
+					})
 				: generalIndex.keys,
 			keyIndex: indexData.indxFullTextKeyIndex,
 			catalogName: indexData.indxFullTextCatalogName,

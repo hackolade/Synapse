@@ -49,19 +49,19 @@ module.exports = app => {
 
 	const generateConstraintsString = (dividedConstraints, isParentActivated) => {
 		const activatedConstraints = dividedConstraints.activatedItems.length
-		? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
-		: '';
+			? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
+			: '';
 
-	const deactivatedConstraints = dividedConstraints.deactivatedItems.length
-		? '\n\t' +
-		  commentIfDeactivated(
-				dividedConstraints.deactivatedItems.join(',\n\t'),
-				{ isActivated: !isParentActivated },
-				true,
-		  )
-		: '';
+		const deactivatedConstraints = dividedConstraints.deactivatedItems.length
+			? '\n\t' +
+				commentIfDeactivated(
+					dividedConstraints.deactivatedItems.join(',\n\t'),
+					{ isActivated: !isParentActivated },
+					true,
+				)
+			: '';
 
-	return activatedConstraints + deactivatedConstraints;
+		return activatedConstraints + deactivatedConstraints;
 	};
 
 	return {

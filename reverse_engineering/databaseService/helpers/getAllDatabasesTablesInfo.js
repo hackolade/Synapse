@@ -2,8 +2,7 @@ const getAllDatabasesTablesInfo = async (client, includeViews = true) => {
 	const viewJoin = includeViews ? `LEFT JOIN '+ quotename(name) + '.sys.views v on v.schema_id = t.schema_id` : '';
 	const orderByView = includeViews ? `, view_name` : '';
 	const viewName = includeViews ? `, v.name as view_name` : '';
-	return await client.request()
-		.query(`
+	return await client.request().query(`
 			declare @sql nvarchar(max);
 			select @sql = 
 				(select ' UNION ALL

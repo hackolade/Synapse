@@ -1,4 +1,4 @@
-const containsJson = (tableInfo) => {
+const containsJson = tableInfo => {
 	return tableInfo.some(item => {
 		if (item['DATA_TYPE'] !== 'nvarchar') {
 			return false;

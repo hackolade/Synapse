@@ -49,7 +49,7 @@ module.exports = app => {
 		if (!options) {
 			return '';
 		}
-		
+
 		const partition = _.get(options, 'partition', {});
 		let optionsStatements = [];
 		if (options.indexing) {
@@ -59,13 +59,13 @@ module.exports = app => {
 				statement += options.indexingOrderColumn.map(({ name }) => `[${name}]`).join(', ');
 				statement += ')';
 			}
-	
+
 			if (options.indexing === CLUSTERED_INDEX) {
 				statement += '(';
 				statement += options.clusteringColumn.map(({ name }) => `[${name}]`).join(', ');
 				statement += ')';
 			}
-	
+
 			optionsStatements.push(statement);
 		}
 
@@ -76,27 +76,27 @@ module.exports = app => {
 
 			optionsStatements.push(commentIfDeactivated(statement, { isActivated: partition.isActivated }));
 		}
-	
+
 		if (options.distribution) {
 			let statement = `DISTRIBUTION = ${_.toUpper(options.distribution)}`;
-	
+
 			if (options.distribution === HASH_DISTRIBUTION) {
 				statement += '(';
 				statement += options.hashColumn.map(({ name }) => `[${name}]`).join(', ');
 				statement += ')';
 			}
-	
+
 			optionsStatements.push(statement);
 		}
-	
+
 		if (options.forAppend) {
 			optionsStatements.push('FOR_APPEND');
 		}
-	
+
 		if (_.isEmpty(optionsStatements)) {
 			return '';
 		}
-	
+
 		return `WITH (\n\t${optionsStatements.join(',\n\t')}\n)`;
 	};
 
@@ -232,11 +232,11 @@ module.exports = app => {
 		if (!isString(type)) {
 			return '';
 		}
-	
+
 		if (_.isEmpty(collation)) {
 			return '';
 		}
-	
+
 		return (
 			' COLLATE ' +
 			Object.entries(collation)
@@ -251,11 +251,11 @@ module.exports = app => {
 		if (persistence !== 'temporary') {
 			return name;
 		}
-	
+
 		if (_.first(name) === '#') {
 			return name;
 		}
-	
+
 		return `#${name}`;
 	};
 

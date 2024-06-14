@@ -7,20 +7,16 @@ const provider = (baseProvider, options, app) => {
 	const _ = app.require('lodash');
 	const { getTerminator } = require('./helpers/optionsHelper');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
-	const { divideIntoActivatedAndDeactivated, clean, tab } =
-	app.require('@hackolade/ddl-fe-utils').general;
+	const { divideIntoActivatedAndDeactivated, clean, tab } = app.require('@hackolade/ddl-fe-utils').general;
 
 	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
 		require('./helpers/ifNotExistStatementHelper')(app);
-	
-	const { decorateType, getIdentity, getEncryptedWith, decorateDefault, canHaveIdentity } = require('./helpers/columnDefinitionHelper')(app);
 
-	const {
-		getMemoryOptimizedIndexes,
-		createMemoryOptimizedIndex,
-		hydrateTableIndex,
-		createTableIndex,
-	} = require('./helpers/indexHelper')(app);
+	const { decorateType, getIdentity, getEncryptedWith, decorateDefault, canHaveIdentity } =
+		require('./helpers/columnDefinitionHelper')(app);
+
+	const { getMemoryOptimizedIndexes, createMemoryOptimizedIndex, hydrateTableIndex, createTableIndex } =
+		require('./helpers/indexHelper')(app);
 
 	const {
 		getTableName,
@@ -34,7 +30,7 @@ const provider = (baseProvider, options, app) => {
 	} = require('./helpers/general')(app);
 
 	const { createKeyConstraint, createDefaultConstraint, generateConstraintsString } =
-	require('./helpers/constraintsHelper')(app);
+		require('./helpers/constraintsHelper')(app);
 
 	const keyHelper = require('./helpers/keyHelper')(app);
 
@@ -109,7 +105,7 @@ const provider = (baseProvider, options, app) => {
 				keyConstraints: keyConstraintsString,
 				memoryOptimizedIndexes: memoryOptimizedIndexes.length
 					? ',\n\t' +
-					  memoryOptimizedIndexes
+						memoryOptimizedIndexes
 							.map(createMemoryOptimizedIndex(isActivated))
 							.map(index => commentIfDeactivated(index.statement, index))
 							.join(',\n\t')
@@ -128,7 +124,7 @@ const provider = (baseProvider, options, app) => {
 						templates,
 						tableName,
 						terminator,
-				  })
+					})
 				: fullTableStatement;
 		},
 
@@ -145,7 +141,7 @@ const provider = (baseProvider, options, app) => {
 			const maskedWithFunction = columnDefinition.maskedWithFunction
 				? ` MASKED WITH (FUNCTION='${columnDefinition.maskedWithFunction}')`
 				: '';
-			const identityContainer = columnDefinition.identity && {identity: getIdentity(columnDefinition.identity)}
+			const identityContainer = columnDefinition.identity && { identity: getIdentity(columnDefinition.identity) };
 			const encryptedWith = !_.isEmpty(columnDefinition.encryption)
 				? getEncryptedWith(columnDefinition.encryption[0])
 				: '';
@@ -163,7 +159,7 @@ const provider = (baseProvider, options, app) => {
 					maskedWithFunction,
 					encryptedWith,
 					terminator,
-					...(identityContainer)
+					...identityContainer,
 				}),
 				columnDefinition,
 			);
@@ -220,7 +216,7 @@ const provider = (baseProvider, options, app) => {
 							dividedColumns.deactivatedItems.join(',\n\t\t'),
 							{ isActivated: false },
 							true,
-					  )
+						)
 					: '';
 				columnsAsString = dividedColumns.activatedItems.join(',\n\t\t') + deactivatedColumnsString;
 			}
@@ -235,7 +231,7 @@ const provider = (baseProvider, options, app) => {
 								tableName: viewData.tables.join(', '),
 								keys: columnsAsString,
 								terminator: viewTerminator,
-						  }),
+							}),
 					terminator: viewTerminator,
 				});
 
@@ -254,7 +250,7 @@ const provider = (baseProvider, options, app) => {
 							tableName: viewData.tables.join(', '),
 							keys: columnsAsString,
 							terminator: viewTerminator,
-					  }),
+						}),
 				terminator: viewTerminator,
 			});
 
@@ -328,23 +324,23 @@ const provider = (baseProvider, options, app) => {
 				encryption,
 				hasMaxLength: columnDefinition.hasMaxLength || jsonSchema.type === 'jsonObject',
 				collation: jsonSchema.collate
-				? clean({
-						locale: jsonSchema.locale,
-						caseSensitivity: jsonSchema.caseSensitivity,
-						accentSensitivity: jsonSchema.accentSensitivity,
-						kanaSensitivity: jsonSchema.kanaSensitivity,
-						widthSensitivity: jsonSchema.widthSensitivity,
-						variationSelectorSensitivity: jsonSchema.variationSelectorSensitivity,
-						binarySort: jsonSchema.binarySort,
-						utf8: jsonSchema.utf8,
-					})
-				: {},
+					? clean({
+							locale: jsonSchema.locale,
+							caseSensitivity: jsonSchema.caseSensitivity,
+							accentSensitivity: jsonSchema.accentSensitivity,
+							kanaSensitivity: jsonSchema.kanaSensitivity,
+							widthSensitivity: jsonSchema.widthSensitivity,
+							variationSelectorSensitivity: jsonSchema.variationSelectorSensitivity,
+							binarySort: jsonSchema.binarySort,
+							utf8: jsonSchema.utf8,
+						})
+					: {},
 				...(canHaveIdentity(jsonSchema.mode) && {
 					identity: {
-					seed: Number(_.get(jsonSchema, 'identity.identitySeed', 0)),
-					increment: Number(_.get(jsonSchema, 'identity.identityIncrement', 0)),
-				}
-			}),
+						seed: Number(_.get(jsonSchema, 'identity.identitySeed', 0)),
+						increment: Number(_.get(jsonSchema, 'identity.identityIncrement', 0)),
+					},
+				}),
 			});
 		},
 
@@ -538,10 +534,7 @@ const provider = (baseProvider, options, app) => {
 			});
 		},
 
-		alterView(
-			{ name, keys, selectStatement, materialized, schemaData, ifNotExist },
-			isActivated,
-		) {
+		alterView({ name, keys, selectStatement, materialized, schemaData, ifNotExist }, isActivated) {
 			const viewTerminator = ifNotExist ? ';' : terminator;
 			const viewData = getViewData(keys, schemaData);
 
@@ -558,7 +551,7 @@ const provider = (baseProvider, options, app) => {
 							dividedColumns.deactivatedItems.join(',\n\t\t'),
 							{ isActivated: false },
 							true,
-					  )
+						)
 					: '';
 				columnsAsString = dividedColumns.activatedItems.join(',\n\t\t') + deactivatedColumnsString;
 			}
@@ -567,10 +560,10 @@ const provider = (baseProvider, options, app) => {
 			const asSelectStatement = _.trim(selectStatement)
 				? _.trim(tab(selectStatement)) + '\n'
 				: assignTemplates(templates.viewSelectStatement, {
-					tableName: viewData.tables.join(', '),
-					keys: columnsAsString,
-					terminator: viewTerminator,
-				});
+						tableName: viewData.tables.join(', '),
+						keys: columnsAsString,
+						terminator: viewTerminator,
+					});
 
 			return assignTemplates(templates.alterView, {
 				name: viewName,

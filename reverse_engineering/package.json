@@ -1,16 +1,7 @@
 {
-  "name": "Synapse",
-  "version": "1.0.0",
-  "description": "",
-  "author": "Hackolade",
-  "dependencies": {
-    "@azure/msal-node": "^1.3.1",
-    "axios": "^0.21.1",
-    "base64url": "^3.0.1",
-    "crypto": "^1.0.1",
-    "mssql": "^7.2.1",
-    "qs": "^6.9.1",
-    "randomstring": "^1.2.1"
-  },
-  "installed": true
+    "name": "Synapse",
+    "version": "1.0.0",
+    "description": "",
+    "author": "Hackolade",
+    "installed": true
 }

@@ -144,10 +144,7 @@ making sure that you maintain a proper JSON format.
 					"key": "materialized",
 					"value": true
 				},
-				"options": [
-					"hash",
-					"round_robin"
-				]
+				"options": ["hash", "round_robin"]
 			},
 			{
 				"propertyName": "Distribution column name",
@@ -172,7 +169,7 @@ making sure that you maintain a proper JSON format.
 				"attributeList": [],
 				"template": "collectiontree",
 				"isCompositeKey": true
-			}, 
+			},
 			{
 				"propertyName": "For append",
 				"propertyKeyword": "forAppend",

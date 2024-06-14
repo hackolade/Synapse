@@ -5,14 +5,16 @@
 	},
 	"defaultDdlType": "msSqlServer",
 	"excludeDocKind": ["id"],
-	"connectionList": [ "name", "host", "port", "userName" ],
-	"scenario": [{
-		"dependency": {
-			"key": "authMethod",
-			"value": "Azure Active Directory (MFA)"
-		},
-		"value": "connectByExternalBrowser"
-	}],
+	"connectionList": ["name", "host", "port", "userName"],
+	"scenario": [
+		{
+			"dependency": {
+				"key": "authMethod",
+				"value": "Azure Active Directory (MFA)"
+			},
+			"value": "connectByExternalBrowser"
+		}
+	],
 	"externalBrowserPort": 8080,
 	"helpUrl": "https://hackolade.com/help/ConnecttoSynapse.html"
 }

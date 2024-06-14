@@ -13,13 +13,10 @@ module.exports = {
 
 	partition: 'PARTITION ([${name}] RANGE ${range} FOR VALUES (${values}))',
 
-	index:
-		'CREATE${clustered} INDEX ${name}\n' +
-		'\tON ${table} ( ${keys} )${index_options}${terminator}\n',
+	index: 'CREATE${clustered} INDEX ${name}\n' + '\tON ${table} ( ${keys} )${index_options}${terminator}\n',
 
 	columnStoreIndex:
-		'CREATE CLUSTERED COLUMNSTORE INDEX ${name}\n' +
-		'\tON ${table}${order}${index_options}${terminator}\n',
+		'CREATE CLUSTERED COLUMNSTORE INDEX ${name}\n' + '\tON ${table}${order}${index_options}${terminator}\n',
 
 	fullTextIndex:
 		'CREATE FULLTEXT INDEX ON ${table} (\n\t${keys}\n)\nKEY INDEX ${indexName}\n${catalog}${options}${terminator}\n',
@@ -78,5 +75,4 @@ module.exports = {
 	dropView: 'DROP VIEW IF EXISTS ${name}${terminator}',
 
 	alterView: 'ALTER VIEW ${name}\nAS ${select_statement}${terminator}',
-
 };

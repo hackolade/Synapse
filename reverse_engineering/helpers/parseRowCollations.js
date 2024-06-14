@@ -17,7 +17,7 @@ const COLLATION_CATEGORIES = {
 	upper: 'caseConversion',
 	trim: 'spaceTrimming',
 	ltrim: 'spaceTrimming',
-	rtrim: 'spaceTrimming'
+	rtrim: 'spaceTrimming',
 };
 
 const LOCALE_COLLATION = 'locale';
@@ -27,23 +27,26 @@ const parseRowCollations = collationStatement => {
 		return {};
 	}
 
-	return collationStatement.split('_').reduce((collations, item) => {
-		const category = COLLATION_CATEGORIES[item.toLowerCase()] || LOCALE_COLLATION;
-		if (collations[category]) {
-			if (category === LOCALE_COLLATION) {
-				return {
-					...collations,
-					[category]: `${collations[category]}_${item}`
+	return collationStatement.split('_').reduce(
+		(collations, item) => {
+			const category = COLLATION_CATEGORIES[item.toLowerCase()] || LOCALE_COLLATION;
+			if (collations[category]) {
+				if (category === LOCALE_COLLATION) {
+					return {
+						...collations,
+						[category]: `${collations[category]}_${item}`,
+					};
 				}
+				return collations;
 			}
-			return collations;
-		}
 
-		return {
-			...collations,
-			[category]: item
-		}
-	}, { collate: true });
+			return {
+				...collations,
+				[category]: item,
+			};
+		},
+		{ collate: true },
+	);
 };
 
 module.exports = parseRowCollations;

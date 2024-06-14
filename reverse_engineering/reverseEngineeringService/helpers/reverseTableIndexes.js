@@ -33,7 +33,7 @@ const getIndexData = index => ({
 	PAD_INDEX: Boolean(index.is_padded),
 	FILLFACTOR: index.fill_factor,
 	DATA_COMPRESSION: handleDataCompression(index.dataCompression || ''),
-	indxHash: index.type_desc === "NONCLUSTERED HASH",
+	indxHash: index.type_desc === 'NONCLUSTERED HASH',
 	indxFilterExpression: index.has_filter ? index.filter_definition : '',
 });
 
@@ -54,8 +54,14 @@ const getSpatialIndex = index => {
 		indxName: index.IndexName,
 		indxType: getIndexType(index),
 		indxUsing: index.tessellation_scheme,
-		indxBoundingBox: ['XMIN', 'YMIN', 'XMAX', 'YMAX'].reduce((result, key) => isNaN(index[key]) ? result : { ...result, [key]: Number(index[key]) }, {}),
-		indxGrids: ['LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4'].reduce((result, key) => !index[key] ? result : { ...result, [key]: index[key]}, []),
+		indxBoundingBox: ['XMIN', 'YMIN', 'XMAX', 'YMAX'].reduce(
+			(result, key) => (isNaN(index[key]) ? result : { ...result, [key]: Number(index[key]) }),
+			{},
+		),
+		indxGrids: ['LEVEL_1', 'LEVEL_2', 'LEVEL_3', 'LEVEL_4'].reduce(
+			(result, key) => (!index[key] ? result : { ...result, [key]: index[key] }),
+			[],
+		),
 		CELLS_PER_OBJECT: index.CELLS_PER_OBJECT,
 		ALLOW_ROW_LOCKS: index.allow_row_locks,
 		ALLOW_PAGE_LOCKS: index.allow_page_locks,
@@ -96,8 +102,8 @@ const reverseOrderKey = index => {
 
 	return {
 		name: index.columnName,
-	}
-}
+	};
+};
 
 const reverseIncludedKey = index => {
 	const indexType = getIndexType(index);
@@ -111,7 +117,7 @@ const reverseIncludedKey = index => {
 	};
 };
 
-const getFullTextKeys = (index) => {
+const getFullTextKeys = index => {
 	const key = { name: index.columnName };
 
 	if (!index.columnTypeName && !index.language) {
@@ -126,7 +132,7 @@ const getFullTextKeys = (index) => {
 
 	return {
 		key,
-		properties
+		properties,
 	};
 };
 
@@ -136,7 +142,9 @@ const addKeys = (indexData, index) => {
 		return {
 			...indexData,
 			indxKey: [...(indexData.indxKey || []), data.key],
-			indxFullTextKeysProperties: data.properties ? [...(indexData.indxFullTextKeysProperties || []), data.properties] : [],
+			indxFullTextKeysProperties: data.properties
+				? [...(indexData.indxFullTextKeysProperties || []), data.properties]
+				: [],
 		};
 	} else if (getIndexType(index) === SPATIAL) {
 		return {
@@ -158,17 +166,19 @@ const addKeys = (indexData, index) => {
 };
 
 const reverseTableIndexes = tableIndexes =>
-	Object.values(tableIndexes.reduce((indexList, index) => {
-		let existedIndex = indexList[index.IndexName];
+	Object.values(
+		tableIndexes.reduce((indexList, index) => {
+			let existedIndex = indexList[index.IndexName];
 
-		if (!existedIndex) {
-			existedIndex = reverseIndex(index);
-		}
+			if (!existedIndex) {
+				existedIndex = reverseIndex(index);
+			}
 
-		return {
-			...indexList,
-			[index.IndexName]: addKeys(existedIndex, index)
-		};
-	}, {}));
+			return {
+				...indexList,
+				[index.IndexName]: addKeys(existedIndex, index),
+			};
+		}, {}),
+	);
 
 module.exports = reverseTableIndexes;

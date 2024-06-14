@@ -8,7 +8,7 @@ const getObjectsFromDatabase = async client => {
 				[TABLE_SCHEMA]: {
 					...schema,
 					views: [...schema.views, TABLE_NAME],
-				}
+				},
 			};
 		}
 
@@ -17,7 +17,7 @@ const getObjectsFromDatabase = async client => {
 			[TABLE_SCHEMA]: {
 				...schema,
 				dbCollections: [...schema.dbCollections, TABLE_NAME],
-			}
+			},
 		};
 	}, {});
 
