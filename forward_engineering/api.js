@@ -23,11 +23,7 @@ module.exports = {
 			const containersScripts = getAlterContainersScripts(collection, app, data.options);
 			const collectionsScripts = getAlterCollectionsScripts(collection, app, data.options);
 			const viewScripts = getAlterViewScripts(collection, app, data.options);
-			const script = [
-				...containersScripts,
-				...collectionsScripts,
-				...viewScripts,
-			].join('\n\n');
+			const script = [...containersScripts, ...collectionsScripts, ...viewScripts].join('\n\n');
 
 			const applyDropStatements = data.options?.additionalOptions?.some(
 				option => option.id === 'applyDropStatements' && option.value,
@@ -87,7 +83,7 @@ module.exports = {
 				await connect(connectionInfo, logger);
 			}
 			callback(null);
-		} catch(error) {
+		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
 			callback({ message: error.message, stack: error.stack });
 		}
@@ -96,7 +92,7 @@ module.exports = {
 	async applyToInstance(connectionInfo, logger, callback, app) {
 		logger.clear();
 		logInfo('Apply To Instance', connectionInfo, logger);
-		
+
 		try {
 			await applyToInstanceHelper.applyToInstance(connectionInfo, logger, app);
 			callback(null);

@@ -1,7 +1,9 @@
 const mapPartitions = (partitions, property) => partitions.map(partition => partition[property]);
 
 const getValue = partitions => {
-	return mapPartitions(partitions, 'value').filter(value => value !== null).join(', ');
+	return mapPartitions(partitions, 'value')
+		.filter(value => value !== null)
+		.join(', ');
 };
 
 const getRange = partitions => {
@@ -10,7 +12,7 @@ const getRange = partitions => {
 	return ranges.length && ranges[0] === true ? 'right' : 'left';
 };
 
-const getColumnName = partitions => { 
+const getColumnName = partitions => {
 	const columnNames = mapPartitions(partitions, 'name');
 
 	return columnNames.length ? columnNames[0] : '';
@@ -24,8 +26,7 @@ const reverseTablePartitions = partitions => {
 		boundaryValue: getValue(partitions),
 		rangeForValues: getRange(partitions),
 		partition: [{ name: getColumnName(partitions) }],
-	}
-
+	};
 };
 
 module.exports = reverseTablePartitions;

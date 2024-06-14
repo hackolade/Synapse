@@ -40,4 +40,4 @@ module.exports = {
 	containsJson,
 	reverseTablePartitions,
 	defineMaskedColumns,
-}
+};

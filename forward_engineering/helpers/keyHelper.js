@@ -206,13 +206,13 @@ module.exports = app => {
 			..._.get(partitionKeys, '[0]', {}),
 			boundaryValue: jsonSchema.boundaryValue,
 			rangeForValues: jsonSchema.rangeForValues,
-		}
-	}
+		};
+	};
 
 	return {
 		getTableKeyConstraints,
 		isInlineUnique,
 		isInlinePrimaryKey,
-		getTablePartitionKey
+		getTablePartitionKey,
 	};
 };

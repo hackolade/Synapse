@@ -14,7 +14,7 @@ const defineMaskedColumns = columnsInfo => jsonSchema =>
 					maskedWithFunction: maskedColumn.masking_function,
 				},
 			},
-		}
+		};
 	}, jsonSchema);
 
 module.exports = defineMaskedColumns;

@@ -7,7 +7,7 @@ const reverseTableForeignKeys = tableForeignKeys => {
 				return {
 					...existedForeignKey,
 					parentField: [...existedForeignKey.parentField, foreignKey.referenced_column],
-					childField: [...existedForeignKey.childField, foreignKey.column]
+					childField: [...existedForeignKey.childField, foreignKey.column],
 				};
 			} else {
 				return {
@@ -18,14 +18,14 @@ const reverseTableForeignKeys = tableForeignKeys => {
 					childDbName: foreignKey.schema_name,
 					childCollection: foreignKey.table,
 					childField: [foreignKey.column],
-					relationshipType: 'Foreign Key'
-				}
+					relationshipType: 'Foreign Key',
+				};
 			}
 		};
 
 		return {
 			...data,
-			[foreignKeyName]: getForeignKey(existedForeignKey)
+			[foreignKeyName]: getForeignKey(existedForeignKey),
 		};
 	}, {});
 

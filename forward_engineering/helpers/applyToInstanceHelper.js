@@ -12,7 +12,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 			throw new Error('No database specified');
 		}
 		const queries = getQueries(connectionInfo.script);
-		
+
 		await async.mapSeries(queries, async query => {
 			const message = `Query: ${query.split('\n').shift().substring(0, 150)}`;
 			logger.progress({ message });
@@ -20,28 +20,27 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 
 			await client.query(query);
 		});
-		
 	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error: error }, 'Error applying to instance');
 		throw prepareError(error);
-	};
+	}
 };
 
 const getQueries = (script = '') => {
-	script = filterDeactivatedQuery(script)
+	script = filterDeactivatedQuery(script);
 	const queries = script
 		.split('\n\n')
 		.map(script => script.trim())
-		.filter(query => { 
+		.filter(query => {
 			if (!Boolean(query)) {
 				return false;
 			} else if (query.endsWith(GO_STATEMENT) && query.length === 2) {
 				return false;
-			} 
-			
+			}
+
 			return !queryIsDeactivated(query);
 		})
-		.map(query => query.endsWith(GO_STATEMENT) ? query.slice(0, -3) + ';' : query);
+		.map(query => (query.endsWith(GO_STATEMENT) ? query.slice(0, -3) + ';' : query));
 	return queries;
 };
 

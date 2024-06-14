@@ -83,7 +83,6 @@ module.exports = app => {
 		};
 	};
 
-
 	return {
 		checkFieldPropertiesChanged,
 		getCompMod,

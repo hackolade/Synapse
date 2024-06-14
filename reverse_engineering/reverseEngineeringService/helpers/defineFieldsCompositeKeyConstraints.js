@@ -21,10 +21,12 @@ const reverseCompositeKeys = keyConstraintsInfo => {
 				[constraintName]: {
 					...reverseKeyConstraint(keyConstraintInfo),
 					_type: constraintType,
-					[keyType]: [{
-						name: columnName,
-						type: isDescending ? 'descending' : 'ascending',
-					}],
+					[keyType]: [
+						{
+							name: columnName,
+							type: isDescending ? 'descending' : 'ascending',
+						},
+					],
 				},
 			};
 		}
@@ -38,10 +40,13 @@ const reverseCompositeKeys = keyConstraintsInfo => {
 			...reversedKeys,
 			[constraintName]: {
 				...existingReversedKey,
-				[keyType]: [...existingReversedKey[keyType], {
-					name: columnName,
-					type: isDescending ? 'descending' : 'ascending',
-				}],
+				[keyType]: [
+					...existingReversedKey[keyType],
+					{
+						name: columnName,
+						type: isDescending ? 'descending' : 'ascending',
+					},
+				],
 			},
 		};
 	}, {});
@@ -49,21 +54,24 @@ const reverseCompositeKeys = keyConstraintsInfo => {
 
 const defineFieldsCompositeKeyConstraints = keyConstraintsInfo => {
 	const reversedKeyConstraints = reverseCompositeKeys(keyConstraintsInfo);
-	return Object.values(reversedKeyConstraints).reduce((keysAcc, keyConstraintInfo) => {
-		const { _type, order, ...necessaryInfo } = keyConstraintInfo;
+	return Object.values(reversedKeyConstraints).reduce(
+		(keysAcc, keyConstraintInfo) => {
+			const { _type, order, ...necessaryInfo } = keyConstraintInfo;
 
-		if (_type === UNIQUE) {
+			if (_type === UNIQUE) {
+				return {
+					...keysAcc,
+					uniqueKey: [...keysAcc.uniqueKey, necessaryInfo],
+				};
+			}
+
 			return {
 				...keysAcc,
-				uniqueKey: [...keysAcc.uniqueKey, necessaryInfo],
+				primaryKey: [...keysAcc.primaryKey, necessaryInfo],
 			};
-		}
-
-		return {
-			...keysAcc,
-			primaryKey: [...keysAcc.primaryKey, necessaryInfo],
-		};
-	}, { primaryKey: [], uniqueKey: [] });
+		},
+		{ primaryKey: [], uniqueKey: [] },
+	);
 };
 
 module.exports = defineFieldsCompositeKeyConstraints;

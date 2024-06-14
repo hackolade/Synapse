@@ -6,11 +6,12 @@ const PRIMARY_KEY = 'PRIMARY KEY';
 
 const handleKey = (field, keyConstraintInfo) => {
 	const { constraintType, constraintName } = keyConstraintInfo;
-	switch(constraintType) {
+	switch (constraintType) {
 		case UNIQUE: {
 			const { uniqueKeyOptions = [] } = field;
-			const isAlreadyExists = uniqueKeyOptions.find(currentOptions =>
-				currentOptions && currentOptions.constraintName === constraintName);
+			const isAlreadyExists = uniqueKeyOptions.find(
+				currentOptions => currentOptions && currentOptions.constraintName === constraintName,
+			);
 			if (isAlreadyExists) {
 				return {};
 			}
@@ -20,13 +21,13 @@ const handleKey = (field, keyConstraintInfo) => {
 				unique: true,
 				uniqueKeyOptions: uniqueKeyOptions.concat([reversedKeyOptions]),
 			};
-		};
+		}
 		case PRIMARY_KEY: {
 			return {
 				primaryKey: true,
 				primaryKeyOptions: reverseKeyConstraint(keyConstraintInfo),
 			};
-		};
+		}
 		default:
 			return {};
 	}

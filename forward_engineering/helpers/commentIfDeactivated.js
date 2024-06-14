@@ -20,7 +20,7 @@ const queryIsDeactivated = (query = '') => {
 
 const filterDeactivatedQuery = query => query.replace(REG_FOR_MULTYLINE_COMMENT, '');
 
-module.exports = { 
+module.exports = {
 	commentIfDeactivated,
 	queryIsDeactivated,
 	filterDeactivatedQuery,

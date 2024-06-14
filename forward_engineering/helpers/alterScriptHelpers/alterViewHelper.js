@@ -39,8 +39,7 @@ module.exports = (app, options) => {
 
 		let alterView = '';
 
-		if (isSelectStatementModified || isFieldsModifiedWithNoSelectStatement
-		) {
+		if (isSelectStatementModified || isFieldsModifiedWithNoSelectStatement) {
 			const hydratedView = ddlProvider.hydrateView({ viewData, entityData: [viewSchema] });
 			alterView = ddlProvider.alterView(hydratedView, viewSchema.isActivated);
 		}

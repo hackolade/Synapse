@@ -9,8 +9,8 @@ const defineType = value => {
 			return 'object';
 		}
 
-		return 'string'
-	} catch(e) {
+		return 'string';
+	} catch (e) {
 		return 'string';
 	}
 };
@@ -47,7 +47,7 @@ const handleField = (name, properties, cellValue) => {
 			subtype: type,
 		},
 	};
-}
+};
 
 const defineJSONTypes = row => jsonSchema => {
 	const [firstRow] = row;
@@ -57,20 +57,22 @@ const defineJSONTypes = row => jsonSchema => {
 
 	return {
 		...jsonSchema,
-		properties: Object.entries(jsonSchema.properties).reduce((acc, [fieldName, fieldProperties]) => ({
-			...acc,
-			...handleField(fieldName, fieldProperties, getColumnValue(firstRow, fieldName, fieldProperties, row)),
-		}), {}),
+		properties: Object.entries(jsonSchema.properties).reduce(
+			(acc, [fieldName, fieldProperties]) => ({
+				...acc,
+				...handleField(fieldName, fieldProperties, getColumnValue(firstRow, fieldName, fieldProperties, row)),
+			}),
+			{},
+		),
 	};
-}
+};
 
 const getColumnValue = (firstRow, fieldName, fieldProperties, rows) => {
 	if (!['varchar', 'nvarchar'].includes(fieldProperties.mode)) {
 		return firstRow[fieldName];
 	}
 	const complexValueRow = rows.find(row => {
-		return (typeof row[fieldName] === 'string' &&
-			(row[fieldName].startsWith('{') || (row[fieldName].startsWith('['))));
+		return typeof row[fieldName] === 'string' && (row[fieldName].startsWith('{') || row[fieldName].startsWith('['));
 	});
 
 	return complexValueRow ? complexValueRow[fieldName] : firstRow[fieldName];

@@ -53,8 +53,8 @@
 		"maxLength": "",
 		"pattern": "",
 		"enum": [],
-		"sample":"",
-		"comments":"",
+		"sample": "",
+		"comments": "",
 		"mode": "varchar",
 		"length": 10,
 		"subtype": "string"
@@ -62,25 +62,11 @@
 	"subtypes": {
 		"object": {
 			"parentType": "jsonObject",
-			"childValueType": [
-				"jsonString",
-				"jsonNumber",
-				"jsonObject",
-				"jsonArray",
-				"jsonBoolean",
-				"jsonNull"
-			]
+			"childValueType": ["jsonString", "jsonNumber", "jsonObject", "jsonArray", "jsonBoolean", "jsonNull"]
 		},
 		"array": {
 			"parentType": "jsonArray",
-			"childValueType": [
-				"jsonString",
-				"jsonNumber",
-				"jsonObject",
-				"jsonArray",
-				"jsonBoolean",
-				"jsonNull"
-			]
+			"childValueType": ["jsonString", "jsonNumber", "jsonObject", "jsonArray", "jsonBoolean", "jsonNull"]
 		},
 		"string": {
 			"parentType": "string"

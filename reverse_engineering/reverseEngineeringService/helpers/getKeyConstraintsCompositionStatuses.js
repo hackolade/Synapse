@@ -15,10 +15,13 @@ const getKeyConstraintsCompositionStatuses = keyConstraintsInfo => {
 		};
 	}, {});
 
-	return Object.entries(keyConstraintsColumns).reduce((statuses, [name, columns]) => ({
-		...statuses,
-		[name]: Array.from(new Set(columns)).length > 1 ? true : false,
-	}), {});
+	return Object.entries(keyConstraintsColumns).reduce(
+		(statuses, [name, columns]) => ({
+			...statuses,
+			[name]: Array.from(new Set(columns)).length > 1 ? true : false,
+		}),
+		{},
+	);
 };
 
 module.exports = getKeyConstraintsCompositionStatuses;
