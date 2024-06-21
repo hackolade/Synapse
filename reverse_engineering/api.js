@@ -1,6 +1,6 @@
 'use strict';
 
-const connectionStringParser = require('mssql/lib/connectionstring');
+const { BasePool } = require('mssql');
 const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
 const {
@@ -139,7 +139,7 @@ module.exports = {
 
 	parseConnectionString({ connectionString = '' }, logger, callback) {
 		try {
-			const parsedConnectionStringData = connectionStringParser.resolve(connectionString);
+			const parsedConnectionStringData = BasePool.parseConnectionString(connectionString);
 
 			// for better UX. In Synapse UI the connection string may start from the "jdbc:sqlserver://...",
 			// which is not handled by the mssql lib parser
