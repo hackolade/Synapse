@@ -6,7 +6,10 @@
 	},
 	"field": {
 		"erd": [
-			"keys", "type", "indexes", {
+			"keys",
+			"type",
+			"indexes",
+			{
 				"value": "AK",
 				"orderingNumbersBy": ["uniqueKey", "compositeUniqueKey"],
 				"dependency": {

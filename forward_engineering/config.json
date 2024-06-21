@@ -5,13 +5,15 @@
 	"mode": "sqlserver",
 	"applyScriptToInstance": true,
 	"applyToInstanceSettings": {
-		"scenario": [{
-			"dependency": {
-				"key": "authMethod",
-				"value": "Azure Active Directory (MFA)"
-			},
-			"value": "connectByExternalBrowser"
-		}]
+		"scenario": [
+			{
+				"dependency": {
+					"key": "authMethod",
+					"value": "Azure Active Directory (MFA)"
+				},
+				"value": "connectByExternalBrowser"
+			}
+		]
 	},
 	"externalBrowserPort": 8080,
 	"level": {

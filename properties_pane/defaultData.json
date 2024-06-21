@@ -23,13 +23,16 @@
 					"value": true,
 					"dependency": {
 						"type": "or",
-						"values": [{
-							"key": "subtype",
-							"value": "object"
-						}, {
-							"key": "subtype",
-							"value": "array"
-						}]
+						"values": [
+							{
+								"key": "subtype",
+								"value": "object"
+							},
+							{
+								"key": "subtype",
+								"value": "array"
+							}
+						]
 					}
 				}
 			]

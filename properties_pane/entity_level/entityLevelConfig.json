@@ -136,12 +136,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "tableRole",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"Dimension",
-					"Fact",
-					"Outrigger",
-					"Staging"
-				],
+				"options": ["Dimension", "Fact", "Outrigger", "Staging"],
 				"dependency": {
 					"level": "model",
 					"key": "modelingMethodology",
@@ -153,14 +148,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "vaultComponent",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"Hub",
-					"Link",
-					"Satellite",
-					"Bridge",
-					"Point in Time",
-					"Reference"
-				],
+				"options": ["Hub", "Link", "Satellite", "Bridge", "Point in Time", "Reference"],
 				"dependency": {
 					"level": "model",
 					"key": "modelingMethodology",
@@ -172,12 +160,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "distribution",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"",
-					"hash",
-					"replicate",
-					"round_robin"
-				]
+				"options": ["", "hash", "replicate", "round_robin"]
 			},
 			{
 				"propertyName": "Distribution column name",
@@ -193,17 +176,13 @@ making sure that you maintain a proper JSON format.
 				"attributeList": [],
 				"template": "collectiontree",
 				"isCompositeKey": true
-			}, 
+			},
 			{
 				"propertyName": "Persistence",
 				"propertyKeyword": "persistence",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"regular",
-					"temporary",
-					"external"
-				]
+				"options": ["regular", "temporary", "external"]
 			},
 			{
 				"propertyName": "SQL pool indexing",
@@ -231,7 +210,7 @@ making sure that you maintain a proper JSON format.
 				"attributeList": [],
 				"template": "collectiontree",
 				"isCompositeKey": true
-			}, 
+			},
 			{
 				"propertyName": "Index column",
 				"propertyKeyword": "compositeClusteringKey",
@@ -259,7 +238,7 @@ making sure that you maintain a proper JSON format.
 				"templateOptions": {
 					"maxFields": 1
 				}
-			}, 
+			},
 			{
 				"propertyName": "CTAS query",
 				"propertyKeyword": "textareaProp",
@@ -274,10 +253,7 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "rangeForValues",
 				"propertyTooltip": "Select from list of options",
 				"propertyType": "select",
-				"options": [
-					"left",
-					"right"
-				]
+				"options": ["left", "right"]
 			},
 			{
 				"propertyName": "Boundary value",
@@ -303,202 +279,207 @@ making sure that you maintain a proper JSON format.
 	},
 	{
 		"lowerTab": "Composite keys",
-		"structure": [{
-			"propertyName": "Primary key",
-			"propertyType": "group",
-			"groupItemLimit": 1,
-			"propertyKeyword": "primaryKey",
-			"propertyTooltip": {
-				"disabled": [
+		"structure": [
+			{
+				"propertyName": "Primary key",
+				"propertyType": "group",
+				"groupItemLimit": 1,
+				"propertyKeyword": "primaryKey",
+				"propertyTooltip": {
+					"disabled": [
+						{
+							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to create a composite primary key definition for this table",
+							"dependency": {
+								"type": "and",
+								"values": [
+									{
+										"level": "children",
+										"key": "primaryKey",
+										"value": true
+									},
+									{
+										"type": "not",
+										"values": {
+											"level": "children",
+											"key": "compositePrimaryKey",
+											"value": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"tooltip": "Remove or update the existing composite primary key definition prior to unlock the possibility to create a new composite primary key definition for this table",
+							"dependency": {
+								"key": "primaryKey",
+								"minLength": 1
+							}
+						}
+					]
+				},
+				"disabledOnCondition": [
 					{
-						"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to create a composite primary key definition for this table",
-						"dependency": {
+						"level": "children",
+						"value": {
 							"type": "and",
 							"values": [
 								{
-									"level": "children",
 									"key": "primaryKey",
 									"value": true
 								},
 								{
-									"type": "not",
-									"values": {
-										"level": "children",
-										"key": "compositePrimaryKey",
-										"value": true
-									}
+									"type": "or",
+									"values": [
+										{
+											"key": "compositePrimaryKey",
+											"value": false
+										},
+										{
+											"key": "compositePrimaryKey",
+											"exist": false
+										}
+									]
+								},
+								{
+									"type": "or",
+									"values": [
+										{
+											"key": "compositeUniqueKey",
+											"value": false
+										},
+										{
+											"key": "compositeUniqueKey",
+											"exist": false
+										}
+									]
 								}
 							]
 						}
-					}, 
+					}
+				],
+				"structure": [
 					{
-						"tooltip": "Remove or update the existing composite primary key definition prior to unlock the possibility to create a new composite primary key definition for this table",
-						"dependency": {
-							"key": "primaryKey",
-							"minLength": 1
-						}
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyTooltip": "",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Key",
+						"propertyKeyword": "compositePrimaryKey",
+						"propertyType": "primaryKeySetter",
+						"disabledItemStrategy": "compositeKeyWithClusteringKey",
+						"abbr": "pk"
 					}
 				]
 			},
-			"disabledOnCondition": [
-				{
-					"level": "children",
-					"value": {
-						"type": "and",
-						"values": [
-							{
-								"key": "primaryKey",
-								"value": true
-							},
-							{
-								"type": "or",
-								"values": [
-									{
-										"key": "compositePrimaryKey",
-										"value": false
-									},
-									{
-										"key": "compositePrimaryKey",
-										"exist": false
-									}
-								]
-							},
-							{
-								"type": "or",
-								"values": [
-									{
-										"key": "compositeUniqueKey",
-										"value": false
-									},
-									{
-										"key": "compositeUniqueKey",
-										"exist": false
-									}
-								]
-							}
-						]
-					}
-				}
-			],
-			"structure": [{
-				"propertyName": "Constraint name",
-				"propertyKeyword": "constraintName",
-				"propertyTooltip": "",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Key",
-				"propertyKeyword": "compositePrimaryKey",
-				"propertyType": "primaryKeySetter",
-				"disabledItemStrategy": "compositeKeyWithClusteringKey",
-				"abbr": "pk"
-			}]
-		}, {
-			"propertyName": "Unique key",
-			"propertyType": "group",
-			"propertyKeyword": "uniqueKey",
-			"propertyTooltip": "",
-			"structure": [{
-				"propertyName": "Constraint name",
-				"propertyKeyword": "constraintName",
-				"propertyTooltip": "",
-				"propertyType": "text"
-			}, {
-				"propertyName": "Key",
-				"propertyKeyword": "compositeUniqueKey",
-				"propertyType": "compositeKeySetter",
-				"disabledItemStrategy": "compositeKeyWithClusteringKey",
-				"setPrimaryKey": false,
-				"abbr": " ",
-				"attributeList": [],
-				"template": "collectiontree",
-				"isCompositeKey": true
-			}, 
 			{
-				"propertyName": "Alternate key",
-				"propertyKeyword": "alternateKey",
+				"propertyName": "Unique key",
+				"propertyType": "group",
+				"propertyKeyword": "uniqueKey",
 				"propertyTooltip": "",
-				"propertyType": "checkbox",
-				"setFieldPropertyBy": "compositeUniqueKey"
-			}]
-		}]
+				"structure": [
+					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyTooltip": "",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Key",
+						"propertyKeyword": "compositeUniqueKey",
+						"propertyType": "compositeKeySetter",
+						"disabledItemStrategy": "compositeKeyWithClusteringKey",
+						"setPrimaryKey": false,
+						"abbr": " ",
+						"attributeList": [],
+						"template": "collectiontree",
+						"isCompositeKey": true
+					},
+					{
+						"propertyName": "Alternate key",
+						"propertyKeyword": "alternateKey",
+						"propertyTooltip": "",
+						"propertyType": "checkbox",
+						"setFieldPropertyBy": "compositeUniqueKey"
+					}
+				]
+			}
+		]
 	},
 	{
 		"lowerTab": "Indexes",
-		"structure": [{
-			"propertyName": "Index",
-			"propertyType": "group",
-			"propertyKeyword": "Indxs",
-			"propertyTooltip": "",
-			"structure": [
-				{
-					"propertyName": "Name",
-					"propertyKeyword": "indxName",
-					"propertyTooltip": "",
-					"propertyType": "text"
-				},
-				{
-					"propertyName": "Activated",
-					"propertyKeyword": "isActivated",
-					"propertyTooltip": "Deactivated item will be not included in FE script",
-					"propertyType": "checkbox",
-					"defaultValue": true
-				},
-				{
-					"propertyName": "Type",
-					"propertyKeyword": "indxType",
-					"propertyType": "select",
-					"options": [
-						"Index",
-						"Columnstore"
-					]
-				},
-				{
-					"propertyName": "Clustered",
-					"propertyKeyword": "clusteredIndx",
-					"propertyType": "checkbox",
-					"dependency": {
-						"key": "indxType",
-						"value": "Index"
+		"structure": [
+			{
+				"propertyName": "Index",
+				"propertyType": "group",
+				"propertyKeyword": "Indxs",
+				"propertyTooltip": "",
+				"structure": [
+					{
+						"propertyName": "Name",
+						"propertyKeyword": "indxName",
+						"propertyTooltip": "",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Activated",
+						"propertyKeyword": "isActivated",
+						"propertyTooltip": "Deactivated item will be not included in FE script",
+						"propertyType": "checkbox",
+						"defaultValue": true
+					},
+					{
+						"propertyName": "Type",
+						"propertyKeyword": "indxType",
+						"propertyType": "select",
+						"options": ["Index", "Columnstore"]
+					},
+					{
+						"propertyName": "Clustered",
+						"propertyKeyword": "clusteredIndx",
+						"propertyType": "checkbox",
+						"dependency": {
+							"key": "indxType",
+							"value": "Index"
+						}
+					},
+					{
+						"propertyName": "Keys",
+						"propertyKeyword": "indxKey",
+						"propertyType": "fieldList",
+						"template": "orderedList",
+						"attributeList": ["ascending", "descending"],
+						"dependency": {
+							"key": "indxType",
+							"value": "Index"
+						}
+					},
+					{
+						"propertyName": "Order",
+						"propertyKeyword": "orderKey",
+						"propertyType": "fieldList",
+						"template": "orderedList",
+						"dependency": {
+							"key": "indxType",
+							"value": "Columnstore"
+						}
+					},
+					{
+						"propertyName": "Drop existing",
+						"propertyKeyword": "DROP_EXISTING",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Comments",
+						"propertyKeyword": "indxComments",
+						"propertyTooltip": "comments",
+						"addTimestampButton": false,
+						"propertyType": "details",
+						"template": "textarea"
 					}
-				},
-				{
-					"propertyName": "Keys",
-					"propertyKeyword": "indxKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"attributeList": [
-						"ascending",
-						"descending"
-					],
-					"dependency": {
-						"key": "indxType",
-						"value": "Index"
-					}
-				},
-				{
-					"propertyName": "Order",
-					"propertyKeyword": "orderKey",
-					"propertyType": "fieldList",
-					"template": "orderedList",
-					"dependency": {
-						"key": "indxType",
-						"value": "Columnstore"
-					}
-				},
-				{
-					"propertyName": "Drop existing",
-					"propertyKeyword": "DROP_EXISTING",
-					"propertyType": "checkbox"
-				},
-				{
-					"propertyName": "Comments",
-					"propertyKeyword": "indxComments",
-					"propertyTooltip": "comments",
-					"addTimestampButton": false,
-					"propertyType": "details",
-					"template": "textarea"
-				}
-			]
-		}]
+				]
+			}
+		]
 	}
 ]

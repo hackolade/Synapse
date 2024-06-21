@@ -14,13 +14,16 @@
 				"inputKeyword": "source",
 				"inputType": "select",
 				"defaultValue": "On-premise",
-				"options": [{
-					"value": "On-premise",
-					"label": "On-premise database"
-				},{
-					"value": "azure",
-					"label": "Azure Synapse database"
-				}],
+				"options": [
+					{
+						"value": "On-premise",
+						"label": "On-premise database"
+					},
+					{
+						"value": "azure",
+						"label": "Azure Synapse database"
+					}
+				],
 				"customStyle": { "width": "43%" },
 				"description": "Choose source"
 			},
@@ -54,7 +57,12 @@
 				"inputType": "text",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+					"value": [
+						"Username / Password",
+						"Username / Password (Windows)",
+						"Azure Active Directory (Username / Password)",
+						"Azure Active Directory (MFA)"
+					]
 				},
 				"regex": "([^\\s])"
 			},
@@ -66,7 +74,12 @@
 				"defaultValue": 1433,
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+					"value": [
+						"Username / Password",
+						"Username / Password (Windows)",
+						"Azure Active Directory (Username / Password)",
+						"Azure Active Directory (MFA)"
+					]
 				}
 			}
 		]
@@ -78,22 +91,22 @@
 				"value": "https://hackolade.com/help/SQLServerauthentication.html",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password",
-				},
+					"value": "Username / Password"
+				}
 			},
 			{
 				"value": "https://hackolade.com/help/Windowsauthentication.html",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password (Windows)",
-				},
+					"value": "Username / Password (Windows)"
+				}
 			},
 			{
 				"value": "https://hackolade.com/help/AzureActiveDirectoryauthenticati.html",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"],
-				},
+					"value": ["Azure Active Directory (Username / Password)", "Azure Active Directory (MFA)"]
+				}
 			}
 		],
 		"structure": [
@@ -102,19 +115,24 @@
 				"inputKeyword": "authMethod",
 				"inputType": "select",
 				"defaultValue": "Username / Password",
-				"options": [{
-					"value": "Username / Password",
-					"label": "SQL Server"
-				},{
-					"value": "Username / Password (Windows)",
-					"label": "Windows"
-				},{
-					"value": "Azure Active Directory (Username / Password)",
-					"label": "Azure Active Directory (Username / Password)"
-				},{
-					"value": "Azure Active Directory (MFA)",
-					"label": "Azure Active Directory (MFA)"
-				}]
+				"options": [
+					{
+						"value": "Username / Password",
+						"label": "SQL Server"
+					},
+					{
+						"value": "Username / Password (Windows)",
+						"label": "Windows"
+					},
+					{
+						"value": "Azure Active Directory (Username / Password)",
+						"label": "Azure Active Directory (Username / Password)"
+					},
+					{
+						"value": "Azure Active Directory (MFA)",
+						"label": "Azure Active Directory (MFA)"
+					}
+				]
 			},
 			{
 				"inputLabel": "User Domain",
@@ -136,7 +154,11 @@
 				"inputPlaceholder": "User Name",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)"]
+					"value": [
+						"Username / Password",
+						"Username / Password (Windows)",
+						"Azure Active Directory (Username / Password)"
+					]
 				},
 				"validation": {
 					"regex": "([^\\s])"
@@ -149,7 +171,11 @@
 				"inputPlaceholder": "Password",
 				"dependency": {
 					"key": "authMethod",
-					"value": ["Username / Password", "Username / Password (Windows)", "Azure Active Directory (Username / Password)"]
+					"value": [
+						"Username / Password",
+						"Username / Password (Windows)",
+						"Azure Active Directory (Username / Password)"
+					]
 				},
 				"isHiddenKey": true,
 				"validation": {
