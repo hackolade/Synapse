@@ -7,7 +7,7 @@ const reorderTableRows = (tableRows, isFieldOrderAlphabetic) => {
 		return tableRows;
 	}
 
-	const reorderedFieldNames = Object.keys(tableRows[0]).sort();
+	const reorderedFieldNames = Object.keys(tableRows[0]).sort((a, b) => a?.localeCompare?.(b));
 	return tableRows.map(row =>
 		Object.values(row).reduce(
 			(columns, columnValue, i) => ({
