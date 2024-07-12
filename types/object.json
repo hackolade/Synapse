@@ -22,7 +22,8 @@
 				"rowversion",
 				"table",
 				"reference",
-				"multiple"
+				"multiple",
+				"object"
 			]
 		}
 	}
