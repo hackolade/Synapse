@@ -1,20 +1,20 @@
 {
 	"model": {
-		"modelName": "New model",
+		"modelName": "new_model",
 		"dbVendor": "Synapse"
 	},
 	"container": {
-		"name": "New schema",
+		"name": "new_schema",
 		"indexes": []
 	},
 	"collection": {
-		"collectionName": "New table",
+		"collectionName": "new_table",
 		"distribution": "round_robin",
 		"persistence": "regular",
 		"indexing": "clustered columnstore index"
 	},
 	"field": {
-		"name": "New column",
+		"name": "new_column",
 		"primaryKey": false,
 		"unique": false,
 		"hasMaxLength": {
@@ -58,21 +58,21 @@
 		"forAppend": true
 	},
 	"UDFs": {
-		"name": "New UDF",
+		"name": "new_udf",
 		"udfID": "",
 		"udfDescription": "",
 		"udfFunction": "",
 		"udfComments": ""
 	},
 	"UDAs": {
-		"name": "New UDA",
+		"name": "new_uda",
 		"udfID": "",
 		"udfDescription": "",
 		"udfFunction": "",
 		"udfComments": ""
 	},
 	"SecIdxs": {
-		"name": "New Secondary Index",
+		"name": "new_secondary_index",
 		"SecIndxKey": "",
 		"SecIndxID": "",
 		"SecIndxDescription": "",
