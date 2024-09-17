@@ -8,7 +8,6 @@ const provider = (baseProvider, options, app) => {
 	const { getTerminator } = require('./helpers/optionsHelper');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	const { divideIntoActivatedAndDeactivated, clean, tab } = app.require('@hackolade/ddl-fe-utils').general;
-	const { joinActivatedAndDeactivatedStatements } = app.require('@hackolade/ddl-fe-utils');
 
 	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
 		require('./helpers/ifNotExistStatementHelper')(app);
@@ -95,22 +94,11 @@ const provider = (baseProvider, options, app) => {
 				key => key.statement,
 			);
 			const keyConstraintsString = generateConstraintsString(dividedKeysConstraints, isActivated);
-			const columnStatementDtos = columns.map(column => {
-				return {
-					statement: column,
-					isActivated: !column.startsWith('--'),
-				};
-			});
-			const columnDefinitions = joinActivatedAndDeactivatedStatements({
-				statementDtos: columnStatementDtos,
-				delimiter: ',',
-				indent: '\n\t',
-			});
 
 			const tableStatement = assignTemplates(templates.createTable, {
 				name: tableName,
 				external: persistence === 'external' ? ' EXTERNAL' : '',
-				column_definitions: columnDefinitions,
+				column_definitions: columns.join(',\n\t'),
 				checkConstraints: checkConstraints.length ? ',\n\t' + checkConstraints.join(',\n\t') : '',
 				foreignKeyConstraints: '',
 				options: getTableOptions(options),
