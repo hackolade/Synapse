@@ -2,6 +2,7 @@ const defaultTypes = require('./configs/defaultTypes');
 const types = require('./configs/types');
 const templates = require('./configs/templates');
 const { commentIfDeactivated } = require('./helpers/commentIfDeactivated');
+const { joinActivatedAndDeactivatedStatements } = require('./utils/joinActivatedAndDeactivatedStatements');
 
 const provider = (baseProvider, options, app) => {
 	const _ = app.require('lodash');
@@ -94,11 +95,11 @@ const provider = (baseProvider, options, app) => {
 				key => key.statement,
 			);
 			const keyConstraintsString = generateConstraintsString(dividedKeysConstraints, isActivated);
-
+			const columnStatements = joinActivatedAndDeactivatedStatements({ statements: columns, indent: '\n\t' });
 			const tableStatement = assignTemplates(templates.createTable, {
 				name: tableName,
 				external: persistence === 'external' ? ' EXTERNAL' : '',
-				column_definitions: columns.join(',\n\t'),
+				column_definitions: columnStatements,
 				checkConstraints: checkConstraints.length ? ',\n\t' + checkConstraints.join(',\n\t') : '',
 				foreignKeyConstraints: '',
 				options: getTableOptions(options),
