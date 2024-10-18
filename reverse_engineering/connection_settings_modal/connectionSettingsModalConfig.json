@@ -201,6 +201,16 @@
 					"key": "authMethod",
 					"value": ["Azure Active Directory (MFA)"]
 				}
+			},
+			{
+				"inputLabel": "Application (client) ID",
+				"inputKeyword": "clientId",
+				"inputType": "text",
+				"inputTooltip": "Azure Active Directory application id from the Overview screen of the App registration",
+				"dependency": {
+					"key": "authMethod",
+					"value": ["Azure Active Directory (Username / Password)"]
+				}
 			}
 		]
 	},
@@ -220,7 +230,7 @@
 				"inputTooltip": "Specify the Resource group name from the Overview screen of the Synapse DB instance",
 				"dependency": {
 					"key": "includeAccountInformation",
-					"value": [true, "true"]
+					"value": true
 				}
 			},
 			{
@@ -239,8 +249,21 @@
 				"inputType": "text",
 				"inputTooltip": "Azure Active Directory application id from the Overview screen of the App registration",
 				"dependency": {
-					"key": "includeAccountInformation",
-					"value": [true, "true"]
+					"type": "and",
+					"values": [
+						{
+							"key": "authMethod",
+							"value": [
+								"Username / Password",
+								"Username / Password (Windows)",
+								"Azure Active Directory (MFA)"
+							]
+						},
+						{
+							"key": "includeAccountInformation",
+							"value": true
+						}
+					]
 				}
 			},
 			{
