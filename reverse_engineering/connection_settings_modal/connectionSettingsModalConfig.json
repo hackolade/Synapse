@@ -220,7 +220,7 @@
 				"inputTooltip": "Specify the Resource group name from the Overview screen of the Synapse DB instance",
 				"dependency": {
 					"key": "includeAccountInformation",
-					"value": true
+					"value": [true, "true"]
 				}
 			},
 			{
