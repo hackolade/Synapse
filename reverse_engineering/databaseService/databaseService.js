@@ -30,6 +30,9 @@ const getConnectionClient = async (connectionInfo, logger) => {
 		password: connectionInfo.userPassword,
 	};
 
+	const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+	const redirectUri = 'http://localhost:8080';
+
 	switch (connectionInfo.authMethod) {
 		case 'Username / Password':
 			return sql.connect({
@@ -51,8 +54,6 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				},
 			});
 		case 'Azure Active Directory (MFA)':
-			const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
-			const redirectUri = 'http://localhost:8080';
 			const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
 			return sql.connect({
 				...commonConfig,
@@ -80,7 +81,8 @@ const getConnectionClient = async (connectionInfo, logger) => {
 					options: {
 						userName: connectionInfo.userName,
 						password: connectionInfo.userPassword,
-						domain: tenantId,
+						tenantId,
+						clientId,
 					},
 				},
 			});
