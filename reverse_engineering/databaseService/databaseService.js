@@ -14,7 +14,6 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			? `${connectionInfo.userName}@${hostName}`
 			: connectionInfo.userName;
 	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
-	const clientId = connectionInfo.clientId;
 	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
 
 	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
@@ -31,15 +30,8 @@ const getConnectionClient = async (connectionInfo, logger) => {
 		password: connectionInfo.userPassword,
 	};
 
-	const MFAClientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
-	const MFARedirectUri = 'http://localhost:8080';
-	const MFAtoken = await getToken({
-		connectionInfo,
-		tenantId,
-		clientId: MFAClientId,
-		redirectUri: MFARedirectUri,
-		logger,
-	});
+	const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+	const redirectUri = 'http://localhost:8080';
 
 	switch (connectionInfo.authMethod) {
 		case 'Username / Password':
@@ -62,6 +54,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				},
 			});
 		case 'Azure Active Directory (MFA)':
+			const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
 			return sql.connect({
 				...commonConfig,
 				options: {
@@ -71,7 +64,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 				authentication: {
 					type: 'azure-active-directory-access-token',
 					options: {
-						token: MFAtoken,
+						token,
 					},
 				},
 			});
@@ -88,7 +81,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 					options: {
 						userName: connectionInfo.userName,
 						password: connectionInfo.userPassword,
-						domain: tenantId,
+						tenantId,
 						clientId,
 					},
 				},

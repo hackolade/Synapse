@@ -201,16 +201,6 @@
 					"key": "authMethod",
 					"value": ["Azure Active Directory (MFA)"]
 				}
-			},
-			{
-				"inputLabel": "Application (client) ID",
-				"inputKeyword": "clientId",
-				"inputType": "text",
-				"inputTooltip": "Azure Active Directory application id from the Overview screen of the App registration",
-				"dependency": {
-					"key": "authMethod",
-					"value": "Azure Active Directory (Username / Password)"
-				}
 			}
 		]
 	},
@@ -249,21 +239,8 @@
 				"inputType": "text",
 				"inputTooltip": "Azure Active Directory application id from the Overview screen of the App registration",
 				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "authMethod",
-							"value": [
-								"Username / Password",
-								"Username / Password (Windows)",
-								"Azure Active Directory (MFA)"
-							]
-						},
-						{
-							"key": "includeAccountInformation",
-							"value": true
-						}
-					]
+					"key": "includeAccountInformation",
+					"value": [true, "true"]
 				}
 			},
 			{
