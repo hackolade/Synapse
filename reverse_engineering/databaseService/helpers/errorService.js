@@ -49,9 +49,7 @@ const getConsentRequiredErrorMessage = ({ clientId }) => {
  * @returns {string}
  */
 const getClientIdFromErrorMessage = ({ message }) => {
-	const clientIdRegularExpression = new RegExp(
-		/'[0-9a-z]{8}\-[0-9a-z]{4}\-[0-9a-z]{4}\-[0-9a-z]{4}\-[0-9a-z]{12}'/gim,
-	);
+	const clientIdRegularExpression = new RegExp(/'[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}'/gim);
 	const clientIdMatches = message.match(clientIdRegularExpression);
 
 	if (clientIdMatches.length === 0) {
@@ -70,8 +68,7 @@ const getClientIdFromErrorMessage = ({ message }) => {
  * @returns {object}
  */
 const prepareError = ({ error }) => {
-	const { code, name, originalError, message, stack } = error;
-	const originalErrors = originalError?.errors;
+	const originalErrors = error?.originalError?.errors;
 	if (!originalErrors || originalErrors?.length === 0) {
 		return error;
 	}
