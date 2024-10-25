@@ -15,7 +15,7 @@ const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
 const crypto = require('crypto');
 const randomstring = require('randomstring');
 const base64url = require('base64url');
-const { prepareError } = require('./helpers/errorService');
+const { prepareError } = require('./databaseService/helpers/errorService');
 
 module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
