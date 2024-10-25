@@ -15,6 +15,7 @@ const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
 const crypto = require('crypto');
 const randomstring = require('randomstring');
 const base64url = require('base64url');
+const { prepareError } = require('./helpers/errorService');
 
 module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
@@ -42,8 +43,17 @@ module.exports = {
 			}
 			callback(null);
 		} catch (error) {
-			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
-			callback({ message: error.message, stack: error.stack });
+			const errorWithUpdatedInfo = prepareError({ error });
+			logger.log(
+				'error',
+				{
+					message: errorWithUpdatedInfo.message,
+					stack: errorWithUpdatedInfo.stack,
+					error: errorWithUpdatedInfo,
+				},
+				'Test connection',
+			);
+			callback({ message: errorWithUpdatedInfo.message, stack: errorWithUpdatedInfo.stack });
 		}
 	},
 
@@ -82,12 +92,17 @@ module.exports = {
 			const objects = await getObjectsFromDatabase(client);
 			callback(null, objects);
 		} catch (error) {
+			const errorWithUpdatedInfo = prepareError({ error });
 			logger.log(
 				'error',
-				{ message: error.message, stack: error.stack, error },
+				{
+					message: errorWithUpdatedInfo.message,
+					stack: errorWithUpdatedInfo.stack,
+					error: errorWithUpdatedInfo,
+				},
 				'Retrieving databases and tables information',
 			);
-			callback({ message: error.message, stack: error.stack });
+			callback({ message: errorWithUpdatedInfo.message, stack: errorWithUpdatedInfo.stack });
 		}
 	},
 
