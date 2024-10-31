@@ -50,7 +50,9 @@ const logInfo = (step, connectionInfo, logger) => {
 };
 
 const logAuthTokenInfo = ({ token, logger }) => {
-	logger.log('info', { token }, `MFA token is of type ${typeof token}`, ['token']);
+	const tokenType = typeof token;
+	const tokenLength = tokenType === 'string' ? `(${token.length})` : '';
+	logger.log('info', { token }, `MFA token is of type ${tokenType}${tokenLength}`, ['token']);
 };
 
 module.exports = {
