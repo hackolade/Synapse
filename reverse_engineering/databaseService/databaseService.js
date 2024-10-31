@@ -4,6 +4,7 @@ const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
 const msal = require('@azure/msal-node');
 const getSampleDocSize = require('../helpers/getSampleDocSize');
+const { logAuthTokenInfo } = require('../helpers/logInfo');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -16,7 +17,11 @@ const getConnectionClient = async (connectionInfo, logger) => {
 	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
 	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
 
-	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
+	logger.log(
+		'info',
+		`hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`,
+		'Auth info',
+	);
 
 	const commonConfig = {
 		server: connectionInfo.host,
@@ -55,6 +60,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			});
 		case 'Azure Active Directory (MFA)':
 			const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
+			logAuthTokenInfo({ token, logger });
 			return sql.connect({
 				...commonConfig,
 				options: {

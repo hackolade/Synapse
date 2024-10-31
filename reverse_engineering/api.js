@@ -1,6 +1,5 @@
 'use strict';
 
-const { BasePool } = require('mssql');
 const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
 const {
@@ -8,7 +7,7 @@ const {
 	mergeCollectionsWithViews,
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
-const logInfo = require('./helpers/logInfo');
+const { logInfo } = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');

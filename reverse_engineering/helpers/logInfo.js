@@ -49,4 +49,13 @@ const logInfo = (step, connectionInfo, logger) => {
 	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 };
 
-module.exports = logInfo;
+const logAuthTokenInfo = ({ token, logger }) => {
+	const tokenType = typeof token;
+	const tokenLength = tokenType === 'string' ? `(${token.length})` : '';
+	logger.log('info', { token }, `MFA token is of type ${tokenType}${tokenLength}`, ['token']);
+};
+
+module.exports = {
+	logAuthTokenInfo,
+	logInfo,
+};
