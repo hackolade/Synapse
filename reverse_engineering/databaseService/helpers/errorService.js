@@ -64,34 +64,55 @@ const getClientIdFromErrorMessage = ({ message }) => {
 
 /**
  *
+ * @param {{error}} param
+ * @returns {object[]}
+ */
+const getOriginalErrors = ({ error }) => {
+	const originalErrors = error?.originalError?.errors;
+	if (originalErrors) {
+		return originalErrors;
+	}
+
+	const originalError = error?.originalError;
+	if (originalError) {
+		return [originalError];
+	}
+
+	return [];
+};
+
+/**
+ *
  * @param {{error: object}} param
  * @returns {object}
  */
 const prepareError = ({ error }) => {
-	const originalErrors = error?.originalError?.errors;
-	if (!originalErrors || originalErrors?.length === 0) {
+	const originalErrors = getOriginalErrors({ error });
+	if (!originalErrors.length) {
 		return error;
 	}
 
 	const initialErrorDataIndex = originalErrors.length - 1;
 	const initialError = originalErrors[initialErrorDataIndex];
 
+	const fullStackTrace = originalErrors.map(({ stack }) => stack).join('\n\n');
+
 	const isInitialErrorConsentRequiredError = isConsentRequiredError(initialError);
 	if (isInitialErrorConsentRequiredError) {
 		const clientId = getClientIdFromErrorMessage({ message: initialError.message });
 		const newErrorMessage = getConsentRequiredErrorMessage({ clientId });
 
-		return updateErrorMessageAndStack({ error, newMessage: newErrorMessage, newStackTrace: initialError.stack });
+		return updateErrorMessageAndStack({ error, newMessage: newErrorMessage, newStackTrace: fullStackTrace });
 	}
 
 	const isInitialErrorDisabledPublicClientFlowsError = isDisabledPublicClientFlowsError(initialError);
 	if (isInitialErrorDisabledPublicClientFlowsError) {
 		const newErrorMessage = 'You need to allow Public client flows for the Entra ID application';
 
-		return updateErrorMessageAndStack({ error, newMessage: newErrorMessage, newStackTrace: initialError.stack });
+		return updateErrorMessageAndStack({ error, newMessage: newErrorMessage, newStackTrace: fullStackTrace });
 	}
 
-	return error;
+	return updateErrorMessageAndStack({ error, newMessage: initialError.message, newStackTrace: fullStackTrace });
 };
 
 module.exports = {
