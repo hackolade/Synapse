@@ -88,7 +88,7 @@ const getOriginalErrors = ({ error }) => {
  */
 const prepareError = ({ error }) => {
 	const originalErrors = getOriginalErrors({ error });
-	if (originalErrors?.length === 0) {
+	if (!originalErrors.length) {
 		return error;
 	}
 
