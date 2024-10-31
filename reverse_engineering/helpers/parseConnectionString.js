@@ -43,8 +43,8 @@ const parseSqlServerUrl = ({ url = '' }) => {
 const parseBasicString = ({ string = '' }) => {
 	const parsed = ConnectionPool.parseConnectionString(string);
 
-	const serverRegex = /Server=(?:[a-zA-Z]+:)?([^,;]+)(?:,\d+)?/i;
-	const match = string.match(serverRegex);
+	const serverRegex = /Server=(?:[a-z]+:)?([^,;]+)(?:,\d+)?/i;
+	const match = serverRegex.exec(string);
 	const host = match ? match[1] : parsed.server;
 
 	return {
