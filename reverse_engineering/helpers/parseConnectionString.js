@@ -42,10 +42,15 @@ const parseSqlServerUrl = ({ url = '' }) => {
 // example: Server=tcp:synapseworkspace.sql.azuresynapse.net,1433;Database=SampleDB;Authentication=Active Directory Password;User ID=myusername@mytenant.onmicrosoft.com;Password=password;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;
 const parseBasicString = ({ string = '' }) => {
 	const parsed = ConnectionPool.parseConnectionString(string);
+
+	const serverRegex = /Server=(?:[a-z]+:)?([^,;]+)(?:,\d+)?/i;
+	const match = serverRegex.exec(string);
+	const host = match ? match[1] : parsed.server;
+
 	return {
-		databaseName: parsed.database,
-		host: parsed.server,
+		host: host,
 		port: parsed.port,
+		databaseName: parsed.database,
 		userName: parsed.user,
 		userPassword: parsed.password,
 	};
