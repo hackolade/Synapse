@@ -49,12 +49,8 @@ const logInfo = (step, connectionInfo, logger) => {
 	logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 };
 
-const logAuthTokenInfo = ({ token, connectionInfo, logger }) => {
-	logger.log('info', { token }, 'MFA token info', [...connectionInfo.hiddenKeys, 'token']);
-	logger.log('info', `Auth token is ${token ? '' : 'not'} present`);
-	if (typeof token === 'string') {
-		logger.log('info', `Auth token is ${token.length} characters length`);
-	}
+const logAuthTokenInfo = ({ token, logger }) => {
+	logger.log('info', { token }, 'MFA token info', ['token']);
 	logger.log('info', `Auth token type is ${typeof token}`);
 };
 
