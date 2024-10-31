@@ -1,6 +1,5 @@
 'use strict';
 
-const { BasePool } = require('mssql');
 const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
 const {

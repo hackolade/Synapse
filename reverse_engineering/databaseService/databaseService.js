@@ -17,7 +17,11 @@ const getConnectionClient = async (connectionInfo, logger) => {
 	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
 	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
 
-	logger.log('info', `hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`);
+	logger.log(
+		'info',
+		`hostname: ${hostName}, username: ${userName}, auth method: ${connectionInfo.authMethod}`,
+		'Auth info',
+	);
 
 	const commonConfig = {
 		server: connectionInfo.host,
