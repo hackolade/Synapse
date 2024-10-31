@@ -56,7 +56,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 			});
 		case 'Azure Active Directory (MFA)':
 			const token = await getToken({ connectionInfo, tenantId, clientId, redirectUri, logger });
-			logAuthTokenInfo({ token, connectionInfo, logger });
+			logAuthTokenInfo({ token, logger });
 			return sql.connect({
 				...commonConfig,
 				options: {
