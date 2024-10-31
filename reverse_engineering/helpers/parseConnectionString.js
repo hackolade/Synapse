@@ -8,9 +8,9 @@ const sqlserverPrefix = 'jdbc:sqlserver://';
 const parseMssqlUrl = ({ url = '' }) => {
 	const parsed = new URL(url);
 	return {
-		database: parsed.pathname.slice(1),
 		host: parsed.hostname,
 		port: parsed.port ? Number(parsed.port) : null,
+		databaseName: parsed.pathname.slice(1),
 		userName: parsed.username,
 		userPassword: parsed.password,
 	};
@@ -18,11 +18,11 @@ const parseMssqlUrl = ({ url = '' }) => {
 
 // example: jdbc:sqlserver://synapseworkspace.sql.azuresynapse.net:1433;databaseName=SampleDB;user=myusername@mytenant.onmicrosoft.com;password=myStrongPassword123;encrypt=true;trustServerCertificate=false;authentication=ActiveDirectoryPassword;loginTimeout=30;
 const parseSqlServerUrl = ({ url = '' }) => {
-	const [_protocol, params] = url.split(sqlserverPrefix);
-	const [server, ...paramParts] = params.split(';');
+	const [_protocol, urlParams] = url.split(sqlserverPrefix);
+	const [server, ...paramParts] = urlParams.split(';');
 	const [host, port] = server.split(':');
 
-	const parsedParams = paramParts.reduce((acc, part) => {
+	const params = paramParts.reduce((acc, part) => {
 		const [key, value] = part.split('=');
 		if (key && value) {
 			acc[key] = value;
@@ -31,33 +31,34 @@ const parseSqlServerUrl = ({ url = '' }) => {
 	}, {});
 
 	return {
-		server: host,
+		host,
 		port: port ? Number(port) : null,
-		database: parsedParams.databaseName,
-		user: parsedParams.user,
-		password: parsedParams.password,
-	};
-};
-
-// Default connection string example:
-// Server=tcp:synapseworkspace.sql.azuresynapse.net,1433;Database=SampleDB;Authentication=Active Directory Password;User ID=myusername@mytenant.onmicrosoft.com;Password=password;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;
-const parseConnectionString = ({ string = '' }) => {
-	let params;
-	if (string.startsWith(sqlserverPrefix)) {
-		params = parseSqlServerUrl({ url: string });
-	} else if (string.startsWith(mssqlPrefix)) {
-		params = parseMssqlUrl({ url: string });
-	} else {
-		params = ConnectionPool.parseConnectionString(string);
-	}
-
-	return {
-		databaseName: params.database,
-		host: params.server,
-		port: params.port,
+		databaseName: params.databaseName,
 		userName: params.user,
 		userPassword: params.password,
 	};
+};
+
+// example: Server=tcp:synapseworkspace.sql.azuresynapse.net,1433;Database=SampleDB;Authentication=Active Directory Password;User ID=myusername@mytenant.onmicrosoft.com;Password=password;Encrypt=true;TrustServerCertificate=false;Connection Timeout=30;
+const parseBasicString = ({ string = '' }) => {
+	const parsed = ConnectionPool.parseConnectionString(string);
+	return {
+		databaseName: parsed.database,
+		host: parsed.server,
+		port: parsed.port,
+		userName: parsed.user,
+		userPassword: parsed.password,
+	};
+};
+
+const parseConnectionString = ({ string = '' }) => {
+	if (string.startsWith(sqlserverPrefix)) {
+		return parseSqlServerUrl({ url: string });
+	} else if (string.startsWith(mssqlPrefix)) {
+		return parseMssqlUrl({ url: string });
+	} else {
+		return parseBasicString({ string });
+	}
 };
 
 module.exports = {
