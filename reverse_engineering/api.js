@@ -8,7 +8,7 @@ const {
 	mergeCollectionsWithViews,
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
-const logInfo = require('./helpers/logInfo');
+const { logInfo } = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');

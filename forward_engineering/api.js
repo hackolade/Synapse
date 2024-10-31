@@ -1,7 +1,7 @@
 const { commentDropStatements } = require('./helpers/commentDropStatements');
 const { DROP_STATEMENTS } = require('./helpers/constants');
 const { connect, getExternalBrowserUrl } = require('../reverse_engineering/api');
-const logInfo = require('../reverse_engineering/helpers/logInfo');
+const { logInfo } = require('../reverse_engineering/helpers/logInfo');
 const applyToInstanceHelper = require('./helpers/applyToInstanceHelper');
 
 module.exports = {
