@@ -2,7 +2,6 @@ const axios = require('axios');
 const sql = require('mssql');
 const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
-const msal = require('@azure/msal-node');
 const getSampleDocSize = require('../helpers/getSampleDocSize');
 const { logAuthTokenInfo } = require('../helpers/logInfo');
 const { getConnection } = require('./helpers/connection');
@@ -34,16 +33,14 @@ const getConnectionClient = async (connectionInfo, logger) => {
 	const redirectUri = 'http://localhost:8080';
 
 	const connection = getConnection({
-		type: connectionInfo.authMethod,
-		data: {
-			connectionInfo,
-			commonConfig,
-			credentialsConfig,
-			tenantId,
-			clientId,
-			redirectUri,
-			logger,
-		},
+		authMethod: connectionInfo.authMethod,
+		connectionInfo,
+		commonConfig,
+		credentialsConfig,
+		tenantId,
+		clientId,
+		redirectUri,
+		logger,
 	});
 
 	return connection.connect();

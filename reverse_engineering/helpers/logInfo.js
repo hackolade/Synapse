@@ -55,7 +55,19 @@ const logAuthTokenInfo = ({ token, logger }) => {
 	logger.log('info', { token }, `MFA token is of type ${tokenType}${tokenLength}`, ['token']);
 };
 
+const logConnectionHostAndUsername = ({ hostname, username, authMethod, logger }) => {
+	const hostnameToDisplay = hostname ?? 'absent';
+	const usernameToDisplay = username ?? 'absent';
+
+	logger.log(
+		'info',
+		`hostname: ${hostnameToDisplay}, username: ${usernameToDisplay}, auth method: ${authMethod}`,
+		'Auth info',
+	);
+};
+
 module.exports = {
-	logAuthTokenInfo,
 	logInfo,
+	logAuthTokenInfo,
+	logConnectionHostAndUsername,
 };

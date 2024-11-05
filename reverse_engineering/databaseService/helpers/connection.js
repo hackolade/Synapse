@@ -2,16 +2,8 @@ const axios = require('axios');
 const sql = require('mssql');
 const https = require('https');
 const msal = require('@azure/msal-node');
-const { logAuthTokenInfo } = require('../../helpers/logInfo');
+const { logAuthTokenInfo, logConnectionHostAndUsername } = require('../../helpers/logInfo');
 const { prepareError } = require('./errorService');
-
-const logConnectionHostAndUsername = ({ hostname, username, authMethod, logger }) => {
-	logger.log(
-		'info',
-		`hostname: ${hostname ?? 'absent'}, username: ${username ?? 'absent'}, auth method: ${authMethod}`,
-		'Auth info',
-	);
-};
 
 class Connection {
 	constructor({ logger }) {
@@ -187,7 +179,7 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 		}
 	}
 
-	async #getAuthConfig() {
+	#getAuthConfig() {
 		return {
 			system: {
 				loggerOptions: {
@@ -243,8 +235,22 @@ class AzureActiveDirectoryUsernamePasswordConnection extends Connection {
 	}
 }
 
-const getConnection = ({ type, data }) => {
-	switch (type) {
+/**
+ *
+ * @param {{
+ * 	authMethod,
+ * 	connectionInfo,
+ *  commonConfig,
+ *	credentialsConfig,
+ *	tenantId,
+ * 	clientId,
+ * 	redirectUri,
+ *	logger,
+ * }} param
+ * @returns {Promise<object>}
+ */
+const getConnection = ({ authMethod, ...data }) => {
+	switch (authMethod) {
 		case 'Username / Password':
 			return new UsernamePasswordConnection(data);
 		case 'Username / Password (Windows)':
