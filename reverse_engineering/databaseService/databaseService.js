@@ -5,7 +5,9 @@ const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helper
 const msal = require('@azure/msal-node');
 const getSampleDocSize = require('../helpers/getSampleDocSize');
 const { logAuthTokenInfo } = require('../helpers/logInfo');
-const { queryForRetrievingTheTablesSelectedByTheUser } = require('../queries/queryForRetrievingTheTablesSelectedByTheUser');
+const {
+	queryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/queryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -329,9 +331,7 @@ const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) =
 		LEFT JOIN sys.partition_range_values rng ON pf.function_id = rng.function_id AND rng.boundary_id = prt.partition_number 
 	`;
 
-	return mapResponse(
-		await currentDbConnectionClient.query(queryForRetrievingThePartitions),
-	);
+	return mapResponse(await currentDbConnectionClient.query(queryForRetrievingThePartitions));
 };
 
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {
