@@ -310,7 +310,7 @@ const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) =
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const tablesSelectedByTheUser = queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap: tablesInfo });
 	const queryForRetrievingThePartitions = `
-		WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+    WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
     SELECT 
 			tbl.${tablesSelectedByTheUser.projection.schemaName} AS schemaName,
 			tbl.${tablesSelectedByTheUser.projection.tableName} AS tableName,
