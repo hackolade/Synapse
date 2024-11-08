@@ -15,6 +15,7 @@ function queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap }) {
 	const predicate = Object.entries(schemaToTablesMap)
 		.map(([schema, tables]) => buildPredicateForTablesInSchema({ schema, tables }))
 		.join('OR');
+	const whereClause = Object.entries(schemaToTablesMap).length > 0 ? `WHERE ${predicate}` : '';
 	const sql = `
   SELECT
       tbl.object_id   AS ${projection.tableId}
@@ -22,7 +23,7 @@ function queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap }) {
     , sch.name        AS ${projection.schemaName}
   FROM sys.tables tbl
   JOIN sys.schemas sch ON sch.schema_id = tbl.schema_id
-  WHERE ${predicate}`;
+  ${whereClause}`;
 	return {
 		projection,
 		sql: () => sql,
