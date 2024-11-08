@@ -308,7 +308,7 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = queryForRetrievingTheTablesSelectedByTheUser();
+	const tablesSelectedByTheUser = queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap: tablesInfo });
 	const queryForRetrievingThePartitions = `
 		WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
     SELECT 
