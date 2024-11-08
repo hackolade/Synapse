@@ -5,6 +5,9 @@ const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helper
 const getSampleDocSize = require('../helpers/getSampleDocSize');
 const { logAuthTokenInfo } = require('../helpers/logInfo');
 const { getConnection } = require('./helpers/connection');
+const {
+	queryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/queryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -253,32 +256,31 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 	);
 };
 
-const getPartitions = async (connectionClient, dbName, logger) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-
+const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
-
-	return mapResponse(
-		await currentDbConnectionClient.query`
-		SELECT 
-			sch.name AS schemaName,
-			tbl.name AS tableName,
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const tablesSelectedByTheUser = queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap: tablesInfo });
+	const queryForRetrievingThePartitions = `
+    WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+    SELECT 
+			tbl.${tablesSelectedByTheUser.projection.schemaName} AS schemaName,
+			tbl.${tablesSelectedByTheUser.projection.tableName} AS tableName,
 			prt.partition_number,
 			pf.boundary_value_on_right AS range,
 			c.name AS name,
 			rng.value AS value
-		FROM sys.schemas sch
-		INNER JOIN sys.tables tbl ON sch.schema_id = tbl.schema_id
-		INNER JOIN sys.partitions prt ON prt.object_id = tbl.object_id
+		FROM user_selected_tables tbl
+		INNER JOIN sys.partitions prt ON prt.object_id = tbl.${tablesSelectedByTheUser.projection.tableId}
 		INNER JOIN sys.indexes idx ON prt.object_id = idx.object_id AND prt.index_id = idx.index_id
 		INNER JOIN sys.data_spaces ds ON idx.data_space_id = ds.[data_space_id]
 		INNER JOIN sys.partition_schemes ps ON ds.data_space_id = ps.data_space_id
 		INNER JOIN sys.partition_functions pf ON ps.function_id = pf.function_id
 		INNER JOIN sys.index_columns ic ON ic.object_id = idx.object_id AND ic.index_id = idx.index_id AND ic.partition_ordinal >= 1
-		INNER JOIN sys.columns c ON tbl.object_id = c.object_id AND ic.column_id = c.column_id
+		INNER JOIN sys.columns c ON tbl.${tablesSelectedByTheUser.projection.tableId} = c.object_id AND ic.column_id = c.column_id
 		LEFT JOIN sys.partition_range_values rng ON pf.function_id = rng.function_id AND rng.boundary_id = prt.partition_number 
-	`,
-	);
+	`;
+
+	return mapResponse(await currentDbConnectionClient.query(queryForRetrievingThePartitions));
 };
 
 const getTableColumnsDescription = async (connectionClient, dbName, tableName, schemaName) => {

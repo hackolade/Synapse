@@ -411,7 +411,9 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 		getDatabaseUserDefinedTypes(dbConnectionClient, dbName, logger).catch(
 			logError(logger, 'Getting user defined types'),
 		),
-		getPartitions(dbConnectionClient, dbName, logger),
+		getPartitions({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
+			logError(logger, 'Getting partitions'),
+		),
 	]);
 
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
