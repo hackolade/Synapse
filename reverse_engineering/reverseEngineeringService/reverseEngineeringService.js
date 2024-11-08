@@ -404,14 +404,14 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
 	const [databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions] = await Promise.all([
-		getDatabaseIndexes(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting indexes')),
+		getDatabaseIndexes(dbConnectionClient, dbName, logger).catch(logAndRethrowError(logger, 'Getting indexes')),
 		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(
-			logError(logger, 'Getting memory optimized tables'),
+			logAndRethrowError(logger, 'Getting memory optimized tables'),
 		),
 		getDatabaseUserDefinedTypes(dbConnectionClient, dbName, logger).catch(
-			logError(logger, 'Getting user defined types'),
+			logAndRethrowError(logger, 'Getting user defined types'),
 		),
-		getPartitions(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting partitions')),
+		getPartitions(dbConnectionClient, dbName, logger).catch(logAndRethrowError(logger, 'Getting partitions')),
 	]);
 
 	return await Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
@@ -429,7 +429,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 
 			progress(logger, 'Fetching table information', dbName, tableName);
 			const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(
-				logError(logger, 'Getting table info'),
+				logAndRethrowError(logger, 'Getting table info'),
 			);
 
 			const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
@@ -441,13 +441,13 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 							schemaName,
 							reverseEngineeringOptions.recordSamplingSettings,
 							logger,
-						).catch(logError(logger, 'Getting table rows'))
+						).catch(logAndRethrowError(logger, 'Getting table rows'))
 					: Promise.resolve([]),
 				await getTableKeyConstraints(dbConnectionClient, dbName, tableName, schemaName).catch(
-					logError(logger, 'Getting table key constraints'),
+					logAndRethrowError(logger, 'Getting table key constraints'),
 				),
 				await queryDistribution(dbConnectionClient, dbName, tableName, schemaName).catch(
-					logError(logger, 'Getting distribution info'),
+					logAndRethrowError(logger, 'Getting distribution info'),
 				),
 			]);
 			const isView = tableInfo.length && tableInfo[0]['TABLE_TYPE']?.trim() === 'V';
@@ -472,7 +472,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				defineRequiredFields,
 				defineFieldsDescription(
 					await getTableColumnsDescription(dbConnectionClient, dbName, tableName, schemaName).catch(
-						logError(logger, 'Getting table column descriptions'),
+						logAndRethrowError(logger, 'Getting table column descriptions'),
 					),
 				),
 				defineFieldsKeyConstraints(fieldsKeyConstraints),
@@ -482,7 +482,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				defineJSONTypes(tableRows),
 				defineFieldsDefaultConstraintNames(
 					await getTableDefaultConstraintNames(dbConnectionClient, dbName, tableName, schemaName).catch(
-						logError(logger, 'Getting default constraint names'),
+						logAndRethrowError(logger, 'Getting default constraint names'),
 					),
 				),
 			)({ required: [], properties: {} });
@@ -570,8 +570,9 @@ const progress = (logger, message, dbName = '', entityName = '') => {
 	logger.log('info', { message: `[info] ${message}` }, `${dbName}${entityName ? '.' + entityName : ''}`);
 };
 
-const logError = (logger, step) => error => {
+const logAndRethrowError = (logger, step) => error => {
 	logger.log('error', { type: 'error', step, message: error.message, error }, '');
+	throw error;
 };
 
 module.exports = {
