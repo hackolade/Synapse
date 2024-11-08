@@ -304,22 +304,42 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 	);
 };
 
-const getPartitions = async (connectionClient, dbName, logger) => {
+const getTablesWhereClause = ({ schemaToTablesMap, schemaAlias, tableAlias }) => {
+	const schemas = Object.keys(schemaToTablesMap);
+
+	const tablesSelectionClauses = schemas.flatMap(schemaName =>
+		schemaToTablesMap[schemaName].map(
+			tableName => `(${schemaAlias}.name = '${schemaName}' AND ${tableAlias}.name = '${tableName}')`,
+		),
+	);
+	return `WHERE ${tablesSelectionClauses.join(' OR ')}`;
+};
+
+const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 
+	const tablesFilteringWhereClause = getTablesWhereClause({
+		schemaToTablesMap: tablesInfo,
+		schemaAlias: 'sch',
+		tableAlias: 'tbl',
+	});
+
 	return mapResponse(
 		await currentDbConnectionClient.query`
-		SELECT 
-			sch.name AS schemaName,
-			tbl.name AS tableName,
+		WITH user_selected_tables AS (
+        	SELECT tbl.object_id,tbl.name as tableName,sch.name as schemaName FROM sys.tables tbl JOIN sys.schemas sch ON sch.schema_id = tbl.schema_id
+        	${tablesFilteringWhereClause}
+    	)
+    	SELECT 
+			schemaName,
+			tableName,
 			prt.partition_number,
 			pf.boundary_value_on_right AS range,
 			c.name AS name,
 			rng.value AS value
-		FROM sys.schemas sch
-		INNER JOIN sys.tables tbl ON sch.schema_id = tbl.schema_id
+		FROM user_selected_tables tbl
 		INNER JOIN sys.partitions prt ON prt.object_id = tbl.object_id
 		INNER JOIN sys.indexes idx ON prt.object_id = idx.object_id AND prt.index_id = idx.index_id
 		INNER JOIN sys.data_spaces ds ON idx.data_space_id = ds.[data_space_id]
