@@ -404,7 +404,9 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
 	const [databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions] = await Promise.all([
-		getDatabaseIndexes(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting indexes')),
+		getDatabaseIndexes({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
+			logError(logger, 'Getting indexes'),
+		),
 		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(
 			logError(logger, 'Getting memory optimized tables'),
 		),

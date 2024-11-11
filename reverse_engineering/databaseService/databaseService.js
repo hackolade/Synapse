@@ -7,7 +7,13 @@ const { logAuthTokenInfo } = require('../helpers/logInfo');
 const { getConnection } = require('./helpers/connection');
 const {
 	queryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/queryForRetrievingTheTablesSelectedByTheUser');
+} = require('../queries/selectedTablesSubQuery/QueryForRetrievingTheTablesSelectedByTheUser');
+const {
+	PartitionsQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/PartitionsQueryForRetrievingTheTablesSelectedByTheUser');
+const {
+	DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -194,38 +200,40 @@ const getViewDistributedColumns = async (connectionClient, dbName, tableName, ta
 	);
 };
 
-const getDatabaseIndexes = async (connectionClient, dbName, logger) => {
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-
+const getDatabaseIndexes = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database indexes.` }, 'Reverse Engineering');
+	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+	const tablesSelectedByTheUser = new DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser().getQuery({
+		schemaToTablesMap: tablesInfo,
+	});
+	const queryRetrievingTheIndexes = `
+	WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+	SELECT
+		TableName = t.${tablesSelectedByTheUser.projection.tableName},
+		IndexName = ind.name,
+		ic.is_descending_key,
+		ic.is_included_column,
+		ic.column_store_order_ordinal,
+		COL_NAME(t.${tablesSelectedByTheUser.projection.tableId}, ic.column_id) as columnName,
+		S.name as schemaName,
+		p.data_compression_desc as dataCompression,
+		ind.*
+	FROM sys.indexes ind
+	LEFT JOIN user_selected_tables t
+		ON ind.object_id = t.${tablesSelectedByTheUser.projection.tableId}
+	INNER JOIN sys.index_columns ic
+		ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
+	INNER JOIN sys.partitions p
+		ON p.object_id = t.${tablesSelectedByTheUser.projection.tableId} AND ind.index_id = p.index_id
+	INNER JOIN sys.objects O ON O.object_id = t.${tablesSelectedByTheUser.projection.tableId}
+	INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
+	WHERE
+		ind.is_primary_key = 0
+		AND ind.is_unique_constraint = 0
+		AND t.${tablesSelectedByTheUser.projection.isMsSkipped} = 0
+	`;
 
-	return mapResponse(
-		await currentDbConnectionClient.query`
-		SELECT
-			TableName = t.name,
-			IndexName = ind.name,
-			ic.is_descending_key,
-			ic.is_included_column,
-			ic.column_store_order_ordinal,
-			COL_NAME(t.object_id, ic.column_id) as columnName,
-			S.name as schemaName,
-			p.data_compression_desc as dataCompression,
-			ind.*
-		FROM sys.indexes ind
-		LEFT JOIN sys.tables t
-			ON ind.object_id = t.object_id
-		INNER JOIN sys.index_columns ic
-			ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
-		INNER JOIN sys.partitions p
-			ON p.object_id = t.object_id AND ind.index_id = p.index_id
-		INNER JOIN sys.objects O ON O.object_id = t.object_id
-		INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
-		WHERE
-			ind.is_primary_key = 0
-			AND ind.is_unique_constraint = 0
-			AND t.is_ms_shipped = 0
-		`,
-	);
+	return mapResponse(await currentDbConnectionClient.query(queryRetrievingTheIndexes));
 };
 
 const getViewsIndexes = async (connectionClient, dbName) => {
@@ -259,7 +267,9 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap: tablesInfo });
+	const tablesSelectedByTheUser = new PartitionsQueryForRetrievingTheTablesSelectedByTheUser().getQuery({
+		schemaToTablesMap: tablesInfo,
+	});
 	const queryForRetrievingThePartitions = `
     WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
     SELECT 
