@@ -26,8 +26,9 @@ class ConnectionStringConnection extends Connection {
 }
 
 class UsernamePasswordConnection extends Connection {
-	constructor({ commonConfig, credentialsConfig, logger }) {
+	constructor({ commonConfig, credentialsConfig, connectionInfo, logger }) {
 		super({ logger });
+		this.connectionInfo = connectionInfo;
 		this.commonConfig = commonConfig;
 		this.credentialsConfig = credentialsConfig;
 	}
@@ -131,7 +132,7 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 		return new https.Agent({ cert, key, rejectUnauthorized: Boolean(reject) });
 	}
 
-	async #getTokenByAxios({ agent }) {
+	async #getTokenByAxios({ agent } = {}) {
 		try {
 			const params = new URLSearchParams();
 			params.append('code', this.connectionInfo?.externalBrowserQuery?.code || '');
