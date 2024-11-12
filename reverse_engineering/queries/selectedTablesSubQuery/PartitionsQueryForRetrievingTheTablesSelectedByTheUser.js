@@ -1,7 +1,12 @@
 const { QueryForRetrievingTheTablesSelectedByTheUser } = require('./QueryForRetrievingTheTablesSelectedByTheUser');
 
 class PartitionsQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
-	getQuery({ schemaToTablesMap }) {
+	constructor({ schemaToTablesMap }) {
+		super();
+		this.schemaToTablesMap = schemaToTablesMap;
+	}
+
+	getQuery() {
 		const propertiesToSelect = {
 			tableId: 'tbl.object_id',
 			tableName: 'tbl.name',
@@ -15,7 +20,7 @@ class PartitionsQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRet
 		};
 
 		const query = this.queryForRetrievingTheTablesSelectedByTheUser({
-			schemaToTablesMap,
+			schemaToTablesMap: this.schemaToTablesMap,
 			propertiesToSelect,
 			propertyNameProjection: projection,
 		});

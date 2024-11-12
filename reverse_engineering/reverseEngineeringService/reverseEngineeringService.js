@@ -336,11 +336,11 @@ const getMemoryOptimizedOptions = options => {
 
 	return {
 		memory_optimized: true,
-		durability: ['SCHEMA_ONLY', 'SCHEMA_AND_DATA'].includes(String(options.durability_desc).toUpperCase())
-			? String(options.durability_desc).toUpperCase()
+		durability: ['SCHEMA_ONLY', 'SCHEMA_AND_DATA'].includes(String(options.durabilityDescription).toUpperCase())
+			? String(options.durabilityDescription).toUpperCase()
 			: '',
-		systemVersioning: options.temporal_type_desc === 'SYSTEM_VERSIONED_TEMPORAL_TABLE',
-		historyTable: options.history_table ? `${options.history_schema}.${options.history_table}` : '',
+		systemVersioning: options.temporalTypeDescription === 'SYSTEM_VERSIONED_TEMPORAL_TABLE',
+		historyTable: options.historyTable ? `${options.historySchema}.${options.historyTable}` : '',
 	};
 };
 
@@ -377,7 +377,7 @@ const getIndexing = (indexingInfo, order) => {
 };
 
 const getOrder = indexingInfo => {
-	return indexingInfo.filter(column => column.column_store_order_ordinal).map(column => column.COLUMN_NAME);
+	return indexingInfo.filter(column => column.column_store_order_ordinal).map(column => column.columnName);
 };
 
 const getTableRole = (distribution, indexing) => {
@@ -407,10 +407,10 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 		getDatabaseIndexes({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
 			logError(logger, 'Getting indexes'),
 		),
-		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(
+		getDatabaseMemoryOptimizedTables({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
 			logError(logger, 'Getting memory optimized tables'),
 		),
-		getDatabaseUserDefinedTypes(dbConnectionClient, dbName, logger).catch(
+		getDatabaseUserDefinedTypes({ connectionClient: dbConnectionClient, dbName, logger }).catch(
 			logError(logger, 'Getting user defined types'),
 		),
 		getPartitions({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(

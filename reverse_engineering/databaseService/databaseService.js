@@ -14,6 +14,9 @@ const {
 const {
 	DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser,
 } = require('../queries/selectedTablesSubQuery/DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser');
+const {
+	MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -203,9 +206,9 @@ const getViewDistributedColumns = async (connectionClient, dbName, tableName, ta
 const getDatabaseIndexes = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database indexes.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser().getQuery({
+	const tablesSelectedByTheUser = new DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
-	});
+	}).getQuery();
 	const queryRetrievingTheIndexes = `
 	WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
 	SELECT
@@ -267,12 +270,12 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new PartitionsQueryForRetrievingTheTablesSelectedByTheUser().getQuery({
+	const tablesSelectedByTheUser = new PartitionsQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
-	});
+	}).getQuery();
 	const queryForRetrievingThePartitions = `
-    WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
-    SELECT 
+		WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+		SELECT 
 			tbl.${tablesSelectedByTheUser.projection.schemaName} AS schemaName,
 			tbl.${tablesSelectedByTheUser.projection.tableName} AS tableName,
 			prt.partition_number,
@@ -310,14 +313,27 @@ const getTableColumnsDescription = async (connectionClient, dbName, tableName, s
 	`);
 };
 
-const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName, logger) => {
+const getDatabaseMemoryOptimizedTables = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	try {
-		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-
 		logger.log('info', { message: `Get '${dbName}' database memory optimized indexes.` }, 'Reverse Engineering');
-
-		return mapResponse(currentDbConnectionClient.query`
-			SELECT
+		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+		const tablesSelectedByTheUser = new MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser({
+			schemaToTablesMap: tablesInfo,
+		}).getQuery();
+		// const queryForRetrievingMemoryOptimizedTables = `
+		// 	WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+		// 	SELECT
+		// 		T.${tablesSelectedByTheUser.projection.tableName},
+		// 		T.${tablesSelectedByTheUser.projection.durability},
+		// 		T.${tablesSelectedByTheUser.projection.durabilityDescription},
+		// 		OBJECT_NAME(T.${tablesSelectedByTheUser.projection.historyTableId}) AS ${tablesSelectedByTheUser.projection.historyTable},
+		// 		SCHEMA_NAME(O.schema_id) AS ${tablesSelectedByTheUser.projection.historySchema},
+		// 		T.${tablesSelectedByTheUser.projection.temporalTypeDescription}
+		// 	FROM user_selected_tables T LEFT JOIN sys.objects O ON T.${tablesSelectedByTheUser.projection.historyTableId} = O.object_id
+		// 	WHERE T.${tablesSelectedByTheUser.projection.isMemoryOptimized}=1
+		// `
+		const t = `
+					SELECT
 				T.name,
 				T.durability,
 				T.durability_desc,
@@ -326,7 +342,8 @@ const getDatabaseMemoryOptimizedTables = async (connectionClient, dbName, logger
 				T.temporal_type_desc
 			FROM sys.tables T LEFT JOIN sys.objects O ON T.history_table_id = O.object_id
 			WHERE T.is_memory_optimized=1
-		`);
+		`;
+		return mapResponse(currentDbConnectionClient.query(t));
 	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimized tables');
 
@@ -459,7 +476,7 @@ const getTableDefaultConstraintNames = async (connectionClient, dbName, tableNam
 	`);
 };
 
-const getDatabaseUserDefinedTypes = async (connectionClient, dbName, logger) => {
+const getDatabaseUserDefinedTypes = async ({ connectionClient, dbName, logger }) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
 	logger.log('info', { message: `Get '${dbName}' database UDTs.` }, 'Reverse Engineering');
