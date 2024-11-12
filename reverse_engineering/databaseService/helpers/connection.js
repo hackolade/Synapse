@@ -26,8 +26,9 @@ class ConnectionStringConnection extends Connection {
 }
 
 class UsernamePasswordConnection extends Connection {
-	constructor({ commonConfig, credentialsConfig, logger }) {
+	constructor({ commonConfig, credentialsConfig, connectionInfo, logger }) {
 		super({ logger });
+		this.connectionInfo = connectionInfo;
 		this.commonConfig = commonConfig;
 		this.credentialsConfig = credentialsConfig;
 	}
