@@ -1,4 +1,5 @@
 const { QueryForRetrievingTheTablesSelectedByTheUser } = require('./QueryForRetrievingTheTablesSelectedByTheUser');
+const { getProjectedPropertiesNames } = require('./getProjectedPropertiesNames');
 
 class DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
 	constructor({ schemaToTablesMap }) {
@@ -7,26 +8,19 @@ class DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser extends QueryF
 	}
 
 	getQuery() {
-		const propertiesToSelect = {
-			tableId: 'tbl.object_id',
-			tableName: 'tbl.name',
-			isMsSkipped: 'tbl.is_ms_shipped',
-		};
-
 		const projection = {
-			tableId: 'tableId',
-			tableName: 'tableName',
-			isMsSkipped: 'isMsSkipped',
+			'tbl.object_id': 'tableId',
+			'tbl.name': 'tableName',
+			'tbl.is_ms_shipped': 'isMsSkipped',
 		};
 
 		const query = this.queryForRetrievingTheTablesSelectedByTheUser({
 			schemaToTablesMap: this.schemaToTablesMap,
-			propertiesToSelect,
-			propertyNameProjection: projection,
+			projection,
 		});
 
 		return {
-			projection,
+			projection: getProjectedPropertiesNames({ projection }),
 			sql: () => query,
 		};
 	}

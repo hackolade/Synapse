@@ -320,30 +320,19 @@ const getDatabaseMemoryOptimizedTables = async ({ connectionClient, tablesInfo, 
 		const tablesSelectedByTheUser = new MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser({
 			schemaToTablesMap: tablesInfo,
 		}).getQuery();
-		// const queryForRetrievingMemoryOptimizedTables = `
-		// 	WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
-		// 	SELECT
-		// 		T.${tablesSelectedByTheUser.projection.tableName},
-		// 		T.${tablesSelectedByTheUser.projection.durability},
-		// 		T.${tablesSelectedByTheUser.projection.durabilityDescription},
-		// 		OBJECT_NAME(T.${tablesSelectedByTheUser.projection.historyTableId}) AS ${tablesSelectedByTheUser.projection.historyTable},
-		// 		SCHEMA_NAME(O.schema_id) AS ${tablesSelectedByTheUser.projection.historySchema},
-		// 		T.${tablesSelectedByTheUser.projection.temporalTypeDescription}
-		// 	FROM user_selected_tables T LEFT JOIN sys.objects O ON T.${tablesSelectedByTheUser.projection.historyTableId} = O.object_id
-		// 	WHERE T.${tablesSelectedByTheUser.projection.isMemoryOptimized}=1
-		// `
-		const t = `
-					SELECT
-				T.name,
-				T.durability,
-				T.durability_desc,
-				OBJECT_NAME(T.history_table_id) AS history_table,
-				SCHEMA_NAME(O.schema_id) AS history_schema,
-				T.temporal_type_desc
-			FROM sys.tables T LEFT JOIN sys.objects O ON T.history_table_id = O.object_id
-			WHERE T.is_memory_optimized=1
+		const queryForRetrievingMemoryOptimizedTables = `
+			WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
+			SELECT
+				T.${tablesSelectedByTheUser.projection.tableName},
+				T.${tablesSelectedByTheUser.projection.durability},
+				T.${tablesSelectedByTheUser.projection.durabilityDescription},
+				OBJECT_NAME(T.${tablesSelectedByTheUser.projection.historyTableId}) AS historyTable,
+				SCHEMA_NAME(O.schema_id) AS historySchema,
+				T.${tablesSelectedByTheUser.projection.temporalTypeDescription}
+			FROM user_selected_tables T LEFT JOIN sys.objects O ON T.${tablesSelectedByTheUser.projection.historyTableId} = O.object_id
+			WHERE T.${tablesSelectedByTheUser.projection.isMemoryOptimized}=1
 		`;
-		return mapResponse(currentDbConnectionClient.query(t));
+		return mapResponse(currentDbConnectionClient.query(queryForRetrievingMemoryOptimizedTables));
 	} catch (error) {
 		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimized tables');
 

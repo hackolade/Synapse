@@ -11,23 +11,22 @@ class QueryForRetrievingTheTablesSelectedByTheUser {
 		return `${propertyName} AS ${projectionName}`;
 	}
 
-	#buildProjectionsForPropertiesSelectedByQuery({ propertiesToSelect, propertyNameProjection }) {
-		const propertiesNames = Object.keys(propertiesToSelect);
+	#buildProjectionsForPropertiesSelectedByQuery({ projection }) {
+		const initialPropertiesNames = Object.keys(projection);
 
-		return propertiesNames
-			.map(propertyName =>
+		return initialPropertiesNames
+			.map(initialPropertyName =>
 				this.#buildProjectionForProperty({
-					propertyName: propertiesToSelect[propertyName],
-					projectionName: propertyNameProjection[propertyName],
+					propertyName: initialPropertyName,
+					projectionName: projection[initialPropertyName],
 				}),
 			)
 			.join(',');
 	}
 
-	queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap, propertiesToSelect, propertyNameProjection }) {
+	queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap, projection }) {
 		const propertiesToSelectProjections = this.#buildProjectionsForPropertiesSelectedByQuery({
-			propertiesToSelect,
-			propertyNameProjection,
+			projection,
 		});
 		const predicate = Object.entries(schemaToTablesMap)
 			.map(([schema, tables]) => this.#buildPredicateForTablesInSchema({ schema, tables }))
