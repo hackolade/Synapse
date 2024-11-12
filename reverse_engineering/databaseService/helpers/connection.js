@@ -132,7 +132,7 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 		return new https.Agent({ cert, key, rejectUnauthorized: Boolean(reject) });
 	}
 
-	async #getTokenByAxios({ agent }) {
+	async #getTokenByAxios({ agent } = {}) {
 		try {
 			const params = new URLSearchParams();
 			params.append('code', this.connectionInfo?.externalBrowserQuery?.code || '');
