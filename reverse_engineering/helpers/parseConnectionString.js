@@ -4,11 +4,22 @@ const { URL } = require('url');
 const mssqlPrefix = 'mssql://';
 const sqlserverPrefix = 'jdbc:sqlserver://';
 
-// example: mssql://username:password@host:1433/DatabaseName
+/**
+ * Parse MS SQLServer connection URL.
+ *
+ * Example: mssql://username:password@host:1433/DatabaseName
+ *
+ * Name instance example: mssql://username:password@host\instance/DatabaseName
+ */
 const parseMssqlUrl = ({ url = '' }) => {
-	const parsed = new URL(url);
+	const [, hostname = ''] = url.match(/@([^/]+)/) || []; // hostname between @ and first /
+
+	const isNamedInstance = hostname.includes('\\');
+	const replacedUrl = isNamedInstance ? url.replace(hostname, 'host') : url; // replace to make it valid
+	const parsed = new URL(replacedUrl);
+
 	return {
-		host: parsed.hostname,
+		host: isNamedInstance ? hostname : parsed.hostname,
 		port: parsed.port ? Number(parsed.port) : null,
 		databaseName: parsed.pathname.slice(1),
 		userName: parsed.username,
@@ -49,7 +60,7 @@ const parseBasicString = ({ string = '' }) => {
 
 	return {
 		host: host,
-		port: parsed.port,
+		port: host.includes('\\') ? null : parsed.port,
 		databaseName: parsed.database,
 		userName: parsed.user,
 		userPassword: parsed.password,
