@@ -12,7 +12,7 @@ const sqlserverPrefix = 'jdbc:sqlserver://';
  * Name instance example: mssql://username:password@host\instance/DatabaseName
  */
 const parseMssqlUrl = ({ url = '' }) => {
-	const [, hostname = ''] = url.match(/@([^/]+)/) || []; // hostname between @ and first /
+	const [, hostname = ''] = /@([^/]+)/.exec(url) || []; // hostname between @ and first /
 
 	const isNamedInstance = hostname.includes('\\');
 	const replacedUrl = isNamedInstance ? url.replace(hostname, 'host') : url; // replace to make it valid
