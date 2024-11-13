@@ -51,33 +51,6 @@ class UsernamePasswordConnection extends Connection {
 	}
 }
 
-class UsernamePasswordWindowsConnection extends Connection {
-	constructor({ connectionInfo, commonConfig, credentialsConfig, logger }) {
-		super({ logger });
-		this.connectionInfo = connectionInfo;
-		this.commonConfig = commonConfig;
-		this.credentialsConfig = credentialsConfig;
-	}
-
-	async connect() {
-		logConnectionHostAndUsername({
-			hostname: this.commonConfig.hostName,
-			username: this.credentialsConfig.user,
-			authMethod: this.connectionInfo.authMethod,
-			logger: this.logger,
-		});
-		return sql.connect({
-			...this.commonConfig,
-			...this.credentialsConfig,
-			domain: this.connectionInfo.userDomain,
-			options: {
-				encrypt: false,
-				enableArithAbort: true,
-			},
-		});
-	}
-}
-
 class AzureActiveDirectoryMFAConnection extends Connection {
 	constructor({ connectionInfo, commonConfig, tenantId, clientId, redirectUri, logger }) {
 		super({ logger });
@@ -254,8 +227,6 @@ const getConnection = ({ authMethod, ...data }) => {
 	switch (authMethod) {
 		case 'Username / Password':
 			return new UsernamePasswordConnection(data);
-		case 'Username / Password (Windows)':
-			return new UsernamePasswordWindowsConnection(data);
 		case 'Azure Active Directory (MFA)':
 			return new AzureActiveDirectoryMFAConnection(data);
 		case 'Azure Active Directory (Username / Password)':
