@@ -433,6 +433,13 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 			const tableInfo = await getTableInfo(dbConnectionClient, dbName, tableName, schemaName).catch(
 				logError(logger, 'Getting table info'),
 			);
+			if (!tableInfo) {
+				logger.log('error', {
+					type: 'warning',
+					message: `Can't find the information about ${tableName} table`,
+				});
+				return;
+			}
 
 			const [tableRows, fieldsKeyConstraints, distributionData] = await Promise.all([
 				containsJson(tableInfo)
