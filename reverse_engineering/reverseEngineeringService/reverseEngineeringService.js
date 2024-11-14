@@ -434,6 +434,10 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				logError(logger, 'Getting table info'),
 			);
 			if (!tableInfo) {
+				logger.log('error', {
+					type: 'warning',
+					message: `Can't find the information about ${tableName} table`,
+				});
 				return;
 			}
 
