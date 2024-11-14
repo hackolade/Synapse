@@ -11,7 +11,7 @@ class DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser extends QueryF
 		const projection = {
 			'tbl.object_id': 'tableId',
 			'tbl.name': 'tableName',
-			'tbl.is_ms_shipped': 'isMsSkipped',
+			'tbl.is_ms_shipped': 'isMsShipped',
 		};
 
 		const query = this.queryForRetrievingTheTablesSelectedByTheUser({

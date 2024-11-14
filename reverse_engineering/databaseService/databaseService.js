@@ -219,21 +219,18 @@ const getDatabaseIndexes = async ({ connectionClient, tablesInfo, dbName, logger
 		ic.column_store_order_ordinal,
 		COL_NAME(t.${tablesSelectedByTheUser.projection.tableId}, ic.column_id) as columnName,
 		S.name as schemaName,
-		p.data_compression_desc as dataCompression,
 		ind.*
 	FROM sys.indexes ind
 	LEFT JOIN user_selected_tables t
 		ON ind.object_id = t.${tablesSelectedByTheUser.projection.tableId}
 	INNER JOIN sys.index_columns ic
 		ON ind.object_id = ic.object_id AND ind.index_id = ic.index_id
-	INNER JOIN sys.partitions p
-		ON p.object_id = t.${tablesSelectedByTheUser.projection.tableId} AND ind.index_id = p.index_id
 	INNER JOIN sys.objects O ON O.object_id = t.${tablesSelectedByTheUser.projection.tableId}
 	INNER JOIN sys.schemas S ON S.schema_id = O.schema_id
 	WHERE
 		ind.is_primary_key = 0
 		AND ind.is_unique_constraint = 0
-		AND t.${tablesSelectedByTheUser.projection.isMsSkipped} = 0
+		AND t.${tablesSelectedByTheUser.projection.isMsShipped} = 0
 	`;
 
 	return mapResponse(await currentDbConnectionClient.query(queryRetrievingTheIndexes));
