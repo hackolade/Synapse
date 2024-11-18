@@ -66,8 +66,19 @@ const logConnectionHostAndUsername = ({ hostname, username, authMethod, logger }
 	);
 };
 
+const progress = (logger, message, dbName = '', entityName = '') => {
+	logger.progress({ message, containerName: dbName, entityName });
+	logger.log('info', { message: `[info] ${message}` }, `${dbName}${entityName ? '.' + entityName : ''}`);
+};
+
+const logError = (logger, step) => error => {
+	logger.log('error', { type: 'error', step, message: error.message, error }, '');
+};
+
 module.exports = {
 	logInfo,
 	logAuthTokenInfo,
 	logConnectionHostAndUsername,
+	progress,
+	logError,
 };
