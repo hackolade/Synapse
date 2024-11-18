@@ -694,7 +694,7 @@ const getDatabaseUserDefinedTypes = async ({ connectionClient, dbName, logger })
 };
 
 const mapResponse = (response = {}) => {
-	return response.recordset;
+	return response?.recordset;
 };
 
 async function getTableRowCount(tableSchema, tableName, currentDbConnectionClient) {
