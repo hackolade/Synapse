@@ -475,8 +475,6 @@ const mapResponse = async (response = {}) => {
 	return (await response).recordset;
 };
 
-const mapResponseWithDefaultValue = ({ responseData, defaultValue = undefined }) => responseData ?? defaultValue;
-
 async function getTableRowCount(tableSchema, tableName, currentDbConnectionClient) {
 	const rowCountQuery = `SELECT COUNT(*) as rowsCount FROM [${tableSchema}].[${tableName}]`;
 	const rowCountResponse = await currentDbConnectionClient.query(rowCountQuery);
