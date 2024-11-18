@@ -179,7 +179,8 @@ const getTableForeignKeys = async ({ connectionClient, dbName, logger }) => {
 	progress(logger, 'Fetching tables relationships', dbName);
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	try {
-		return await mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			SELECT obj.name AS FK_NAME,
 					sch.name AS [schema_name],
 					tab1.name AS [table],
@@ -199,7 +200,8 @@ const getTableForeignKeys = async ({ connectionClient, dbName, logger }) => {
 				ON tab2.object_id = fkc.referenced_object_id
 			INNER JOIN sys.columns col2
 				ON col2.column_id = referenced_column_id AND col2.object_id = tab2.object_id
-			`);
+			`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -376,7 +378,8 @@ const getTableColumnsDescription = async ({ connectionClient, dbName, tableName,
 	logger.log('info', { message: `Get '${tableName}' table columns description.` }, 'Reverse Engineering');
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			select
 				st.name [Table],
 				sc.name [Column],
@@ -388,7 +391,8 @@ const getTableColumnsDescription = async ({ connectionClient, dbName, tableName,
 															and sep.name = 'MS_Description'
 			where st.name = ${tableName}
 			and st.schema_id=schema_id(${schemaName})
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -410,7 +414,8 @@ const getDatabaseMemoryOptimizedTables = async ({ connectionClient, dbName, logg
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			SELECT
 				T.name,
 				T.durability,
@@ -420,7 +425,8 @@ const getDatabaseMemoryOptimizedTables = async ({ connectionClient, dbName, logg
 				T.temporal_type_desc
 			FROM sys.tables T LEFT JOIN sys.objects O ON T.history_table_id = O.object_id
 			WHERE T.is_memory_optimized=1
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -443,7 +449,8 @@ const getViewColumns = async ({ connectionClient, dbName, viewName, schemaName, 
 	const objectId = `${schemaName}.${viewName}`;
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			select c.name as name,
 				v.name as viewName,
 				m.name as type,
@@ -454,7 +461,8 @@ const getViewColumns = async ({ connectionClient, dbName, viewName, schemaName, 
 				m.system_type_id = c.system_type_id and
 				m.user_type_id = c.user_type_id
 			where c.object_id=object_id(${objectId})
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -477,7 +485,8 @@ const getViewTableInfo = async ({ connectionClient, dbName, viewName, schemaName
 	const objectId = `${schemaName}.${viewName}`;
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			select
 				schema_name(v.schema_id) as schema_name,
 				v.name as ViewName,
@@ -490,7 +499,8 @@ const getViewTableInfo = async ({ connectionClient, dbName, viewName, schemaName
 				join sys.objects o
 					on o.object_id = d.referenced_id
 			WHERE v.object_id=object_id(${objectId})
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -513,10 +523,12 @@ const getViewStatement = async ({ connectionClient, dbName, viewName, schemaName
 	const objectId = `${schemaName}.${viewName}`;
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`SELECT M.*, V.with_check_option
+		return mapResponse(
+			await currentDbConnectionClient.query`SELECT M.*, V.with_check_option
 			FROM sys.sql_modules M INNER JOIN sys.views V ON M.object_id=V.object_id
 			WHERE M.object_id=object_id(${objectId})
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -539,7 +551,8 @@ const getTableKeyConstraints = async ({ connectionClient, dbName, tableName, sch
 	const objectId = `${schemaName}.${tableName}`;
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			SELECT
 				'${tableName}' as tableName,
 				ind.name as constraintName,
@@ -564,7 +577,8 @@ const getTableKeyConstraints = async ({ connectionClient, dbName, tableName, sch
 				INNER JOIN sys.partitions p ON p.index_id = ind.index_id AND p.object_id = object_id(${objectId})
 			WHERE ind.object_id=object_id(${objectId}) AND (ind.is_unique_constraint=1 OR ind.is_primary_key=1)
 			ORDER BY ind.name
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -614,7 +628,8 @@ const getTableDefaultConstraintNames = async ({ connectionClient, dbName, tableN
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			SELECT
 				ac.name as columnName,
 				dc.name
@@ -632,7 +647,8 @@ const getTableDefaultConstraintNames = async ({ connectionClient, dbName, tableN
 			WHERE 
 					schemas.name = ${schemaName}
 				AND tables.name = ${tableName}
-			`);
+			`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -655,10 +671,12 @@ const getDatabaseUserDefinedTypes = async ({ connectionClient, dbName, logger })
 	logger.log('info', { message: `Get '${dbName}' database UDTs.` }, 'Reverse Engineering');
 
 	try {
-		return mapResponse(currentDbConnectionClient.query`
+		return mapResponse(
+			await currentDbConnectionClient.query`
 			select * from sys.types
 			where is_user_defined = 1
-		`);
+		`,
+		);
 	} catch (error) {
 		logger.log(
 			'error',
@@ -675,8 +693,8 @@ const getDatabaseUserDefinedTypes = async ({ connectionClient, dbName, logger })
 	}
 };
 
-const mapResponse = async (response = {}) => {
-	return (await response).recordset;
+const mapResponse = (response = {}) => {
+	return response.recordset;
 };
 
 async function getTableRowCount(tableSchema, tableName, currentDbConnectionClient) {
