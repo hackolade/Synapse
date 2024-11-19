@@ -4,7 +4,6 @@ const {
 	getTableForeignKeys,
 	getDatabaseIndexes,
 	getTableColumnsDescription,
-	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getViewColumns,
 	getTableKeyConstraints,
@@ -329,21 +328,6 @@ const cleanDocuments = documents => {
 	return documents.map(cleanNull);
 };
 
-const getMemoryOptimizedOptions = options => {
-	if (!options) {
-		return {};
-	}
-
-	return {
-		memory_optimized: true,
-		durability: ['SCHEMA_ONLY', 'SCHEMA_AND_DATA'].includes(String(options.durability_desc).toUpperCase())
-			? String(options.durability_desc).toUpperCase()
-			: '',
-		systemVersioning: options.temporal_type_desc === 'SYSTEM_VERSIONED_TEMPORAL_TABLE',
-		historyTable: options.history_table ? `${options.history_schema}.${options.history_table}` : '',
-	};
-};
-
 const getDistribution = distributionData => {
 	if (!Array.isArray(distributionData) || !distributionData.length) {
 		return '';
@@ -403,11 +387,8 @@ const getPersistence = tableName => {
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
-	const [databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions] = await Promise.all([
+	const [databaseIndexes, databaseUDT, dataBasePartitions] = await Promise.all([
 		getDatabaseIndexes(dbConnectionClient, dbName, logger).catch(logError(logger, 'Getting indexes')),
-		getDatabaseMemoryOptimizedTables(dbConnectionClient, dbName, logger).catch(
-			logError(logger, 'Getting memory optimized tables'),
-		),
 		getDatabaseUserDefinedTypes(dbConnectionClient, dbName, logger).catch(
 			logError(logger, 'Getting user defined types'),
 		),
@@ -515,7 +496,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				dbName: schemaName,
 				entityLevel: {
 					Indxs: reverseTableIndexes(tableIndexes),
-					...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
 					...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
 					indexingOrderColumn: order.map(column => ({ name: column })),
 					tableRole: getTableRole(distribution, indexing),
