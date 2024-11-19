@@ -9,14 +9,14 @@ const {
 	queryForRetrievingTheTablesSelectedByTheUser,
 } = require('../queries/selectedTablesSubQuery/QueryForRetrievingTheTablesSelectedByTheUser');
 const {
-	PartitionsQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/PartitionsQueryForRetrievingTheTablesSelectedByTheUser');
+	PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser');
 const {
-	DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser');
+	DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser');
 const {
-	MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser');
+	MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -206,7 +206,7 @@ const getViewDistributedColumns = async (connectionClient, dbName, tableName, ta
 const getDatabaseIndexes = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database indexes.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new DatabaseIndexesQueryForRetrievingTheTablesSelectedByTheUser({
+	const tablesSelectedByTheUser = new DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
 	}).getQuery();
 	const queryRetrievingTheIndexes = `
@@ -267,7 +267,7 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new PartitionsQueryForRetrievingTheTablesSelectedByTheUser({
+	const tablesSelectedByTheUser = new PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
 	}).getQuery();
 	const queryForRetrievingThePartitions = `
@@ -314,7 +314,7 @@ const getDatabaseMemoryOptimizedTables = async ({ connectionClient, tablesInfo, 
 	try {
 		logger.log('info', { message: `Get '${dbName}' database memory optimized indexes.` }, 'Reverse Engineering');
 		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-		const tablesSelectedByTheUser = new MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser({
+		const tablesSelectedByTheUser = new MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser({
 			schemaToTablesMap: tablesInfo,
 		}).getQuery();
 		const queryForRetrievingMemoryOptimizedTables = `

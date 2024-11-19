@@ -1,7 +1,7 @@
 const { QueryForRetrievingTheTablesSelectedByTheUser } = require('./QueryForRetrievingTheTablesSelectedByTheUser');
 const { getProjectedPropertiesNames } = require('./getProjectedPropertiesNames');
 
-class PartitionsQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
+class DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
 	constructor({ schemaToTablesMap }) {
 		super();
 		this.schemaToTablesMap = schemaToTablesMap;
@@ -11,7 +11,7 @@ class PartitionsQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRet
 		const projection = {
 			'tbl.object_id': 'tableId',
 			'tbl.name': 'tableName',
-			'sch.name': 'schemaName',
+			'tbl.is_ms_shipped': 'isMsShipped',
 		};
 
 		const query = this.queryForRetrievingTheTablesSelectedByTheUser({
@@ -27,5 +27,5 @@ class PartitionsQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRet
 }
 
 module.exports = {
-	PartitionsQueryForRetrievingTheTablesSelectedByTheUser,
+	DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
 };

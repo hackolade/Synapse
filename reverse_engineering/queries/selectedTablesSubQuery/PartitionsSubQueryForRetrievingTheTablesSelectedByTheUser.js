@@ -1,7 +1,7 @@
 const { QueryForRetrievingTheTablesSelectedByTheUser } = require('./QueryForRetrievingTheTablesSelectedByTheUser');
 const { getProjectedPropertiesNames } = require('./getProjectedPropertiesNames');
 
-class MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
+class PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
 	constructor({ schemaToTablesMap }) {
 		super();
 		this.schemaToTablesMap = schemaToTablesMap;
@@ -9,12 +9,9 @@ class MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser extends 
 
 	getQuery() {
 		const projection = {
+			'tbl.object_id': 'tableId',
 			'tbl.name': 'tableName',
-			'tbl.durability': 'durability',
-			'tbl.durability_desc': 'durabilityDescription',
-			'tbl.history_table_id': 'historyTableId',
-			'tbl.temporal_type_desc': 'temporalTypeDescription',
-			'tbl.is_memory_optimized': 'isMemoryOptimized',
+			'sch.name': 'schemaName',
 		};
 
 		const query = this.queryForRetrievingTheTablesSelectedByTheUser({
@@ -30,5 +27,5 @@ class MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser extends 
 }
 
 module.exports = {
-	MemoryOptimizedTablesQueryForRetrievingTheTablesSelectedByTheUser,
+	PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser,
 };
