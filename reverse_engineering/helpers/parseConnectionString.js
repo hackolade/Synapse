@@ -49,7 +49,7 @@ const parseBasicString = ({ string = '' }) => {
 
 	return {
 		host: host,
-		port: parsed.port,
+		port: host.includes('\\') ? null : parsed.port,
 		databaseName: parsed.database,
 		userName: parsed.user,
 		userPassword: parsed.password,
