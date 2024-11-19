@@ -7,25 +7,14 @@ class QueryForRetrievingTheTablesSelectedByTheUser {
 		return tables.map(table => this.#buildPredicateForTable({ schema, table })).join('OR');
 	}
 
-	#buildProjectionForProperty({ propertyName, projectionName }) {
-		return `${propertyName} AS ${projectionName}`;
-	}
-
-	#buildProjectionsForPropertiesSelectedByQuery({ projection }) {
-		const initialPropertiesNames = Object.keys(projection);
-
-		return initialPropertiesNames
-			.map(initialPropertyName =>
-				this.#buildProjectionForProperty({
-					propertyName: initialPropertyName,
-					projectionName: projection[initialPropertyName],
-				}),
-			)
+	#buildProjection({ columnToAliasMap }) {
+		return Object.entries(columnToAliasMap)
+			.map(([column, alias]) => `${column} AS ${alias}`)
 			.join(',');
 	}
 
 	queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap, projection }) {
-		const propertiesToSelectProjections = this.#buildProjectionsForPropertiesSelectedByQuery({
+		const propertiesToSelectProjections = this.#buildProjection({
 			projection,
 		});
 		const predicate = Object.entries(schemaToTablesMap)

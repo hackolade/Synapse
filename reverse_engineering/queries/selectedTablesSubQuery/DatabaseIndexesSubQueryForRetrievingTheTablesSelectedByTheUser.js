@@ -1,10 +1,10 @@
 const { QueryForRetrievingTheTablesSelectedByTheUser } = require('./QueryForRetrievingTheTablesSelectedByTheUser');
 const { getProjectedPropertiesNames } = require('./getProjectedPropertiesNames');
 
-class DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser extends QueryForRetrievingTheTablesSelectedByTheUser {
+class DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser {
 	constructor({ schemaToTablesMap }) {
-		super();
 		this.schemaToTablesMap = schemaToTablesMap;
+		this.query = new QueryForRetrievingTheTablesSelectedByTheUser();
 	}
 
 	getQuery() {
@@ -14,7 +14,7 @@ class DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser extends Que
 			'tbl.is_ms_shipped': 'isMsShipped',
 		};
 
-		const query = this.queryForRetrievingTheTablesSelectedByTheUser({
+		const query = this.query.queryForRetrievingTheTablesSelectedByTheUser({
 			schemaToTablesMap: this.schemaToTablesMap,
 			projection,
 		});
