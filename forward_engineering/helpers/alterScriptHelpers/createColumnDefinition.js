@@ -1,107 +1,106 @@
-module.exports = _ => {
-	const createColumnDefinition = data => {
-		return Object.assign(
-			{
-				name: '',
-				type: '',
-				nullable: true,
-				primaryKey: false,
-				default: '',
-				length: '',
-				scale: '',
-				precision: '',
-				hasMaxLength: false,
-			},
-			data,
-		);
-	};
+const { isBoolean, isNumber } = require('lodash');
 
-	const isNullable = (parentSchema, propertyName) => {
-		if (!Array.isArray(parentSchema.required)) {
-			return true;
-		}
+const createColumnDefinition = data => {
+	return Object.assign(
+		{
+			name: '',
+			type: '',
+			nullable: true,
+			primaryKey: false,
+			default: '',
+			length: '',
+			scale: '',
+			precision: '',
+			hasMaxLength: false,
+		},
+		data,
+	);
+};
 
-		return !parentSchema.required.includes(propertyName);
-	};
+const isNullable = (parentSchema, propertyName) => {
+	if (!Array.isArray(parentSchema.required)) {
+		return true;
+	}
 
-	const getDefault = jsonSchema => {
-		const defaultValue = jsonSchema.default;
+	return !parentSchema.required.includes(propertyName);
+};
 
-		if (_.isBoolean(defaultValue)) {
-			return defaultValue;
-		} else if (jsonSchema.default === null) {
-			return 'NULL';
-		} else {
-			return defaultValue;
-		}
-	};
+const getDefault = jsonSchema => {
+	const defaultValue = jsonSchema.default;
 
-	const getLength = jsonSchema => {
-		if (_.isNumber(jsonSchema.length)) {
-			return jsonSchema.length;
-		} else if (_.isNumber(jsonSchema.maxLength)) {
-			return jsonSchema.maxLength;
-		} else {
-			return '';
-		}
-	};
+	if (isBoolean(defaultValue)) {
+		return defaultValue;
+	} else if (jsonSchema.default === null) {
+		return 'NULL';
+	} else {
+		return defaultValue;
+	}
+};
 
-	const getScale = jsonSchema => {
-		if (_.isNumber(jsonSchema.scale)) {
-			return jsonSchema.scale;
-		} else {
-			return '';
-		}
-	};
+const getLength = jsonSchema => {
+	if (isNumber(jsonSchema.length)) {
+		return jsonSchema.length;
+	} else if (isNumber(jsonSchema.maxLength)) {
+		return jsonSchema.maxLength;
+	} else {
+		return '';
+	}
+};
 
-	const getPrecision = jsonSchema => {
-		if (_.isNumber(jsonSchema.precision)) {
-			return jsonSchema.precision;
-		} else if (_.isNumber(jsonSchema.fractSecPrecision)) {
-			return jsonSchema.fractSecPrecision;
-		} else {
-			return '';
-		}
-	};
+const getScale = jsonSchema => {
+	if (isNumber(jsonSchema.scale)) {
+		return jsonSchema.scale;
+	} else {
+		return '';
+	}
+};
 
-	const hasMaxLength = jsonSchema => {
-		if (jsonSchema.hasMaxLength) {
-			return jsonSchema.hasMaxLength;
-		} else {
-			return '';
-		}
-	};
+const getPrecision = jsonSchema => {
+	if (isNumber(jsonSchema.precision)) {
+		return jsonSchema.precision;
+	} else if (isNumber(jsonSchema.fractSecPrecision)) {
+		return jsonSchema.fractSecPrecision;
+	} else {
+		return '';
+	}
+};
 
-	const getType = jsonSchema => {
-		if (jsonSchema.$ref) {
-			return jsonSchema.$ref.split('/').pop();
-		}
+const hasMaxLength = jsonSchema => {
+	if (jsonSchema.hasMaxLength) {
+		return jsonSchema.hasMaxLength;
+	} else {
+		return '';
+	}
+};
 
-		return jsonSchema.mode || jsonSchema.childType || jsonSchema.type;
-	};
+const getType = jsonSchema => {
+	if (jsonSchema.$ref) {
+		return jsonSchema.$ref.split('/').pop();
+	}
 
-	const createColumnDefinitionBySchema = ({ name, jsonSchema, parentJsonSchema, ddlProvider, schemaData }) => {
-		const columnDefinition = createColumnDefinition({
-			name: name,
-			type: getType(jsonSchema),
-			nullable: isNullable(parentJsonSchema, name),
-			default: getDefault(jsonSchema),
-			primaryKey: jsonSchema.primaryKey,
-			length: getLength(jsonSchema),
-			scale: getScale(jsonSchema),
-			precision: getPrecision(jsonSchema),
-			hasMaxLength: hasMaxLength(jsonSchema),
-			isActivated: jsonSchema.isActivated,
-		});
+	return jsonSchema.mode || jsonSchema.childType || jsonSchema.type;
+};
 
-		return ddlProvider.hydrateColumn({
-			columnDefinition,
-			jsonSchema,
-			schemaData,
-		});
-	};
+const createColumnDefinitionBySchema = ({ name, jsonSchema, parentJsonSchema, ddlProvider, schemaData }) => {
+	const columnDefinition = createColumnDefinition({
+		name: name,
+		type: getType(jsonSchema),
+		nullable: isNullable(parentJsonSchema, name),
+		default: getDefault(jsonSchema),
+		primaryKey: jsonSchema.primaryKey,
+		length: getLength(jsonSchema),
+		scale: getScale(jsonSchema),
+		precision: getPrecision(jsonSchema),
+		hasMaxLength: hasMaxLength(jsonSchema),
+		isActivated: jsonSchema.isActivated,
+	});
 
-	return {
-		createColumnDefinitionBySchema,
-	};
+	return ddlProvider.hydrateColumn({
+		columnDefinition,
+		jsonSchema,
+		schemaData,
+	});
+};
+module.exports = {
+	createColumnDefinitionBySchema,
 };

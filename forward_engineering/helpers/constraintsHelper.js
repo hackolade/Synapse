@@ -1,7 +1,7 @@
+const _ = require('lodash');
 const { commentIfDeactivated } = require('./commentIfDeactivated');
 
 module.exports = app => {
-	const _ = app.require('lodash');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	const { checkAllKeysDeactivated, divideIntoActivatedAndDeactivated } =
 		app.require('@hackolade/ddl-fe-utils').general;
