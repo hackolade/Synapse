@@ -1,9 +1,9 @@
+const _ = require('lodash');
 const { commentIfDeactivated } = require('./commentIfDeactivated');
 const types = require('../configs/types');
 const templates = require('../configs/templates');
 
 module.exports = app => {
-	const _ = app.require('lodash');
 	const generalHasType = app.require('@hackolade/ddl-fe-utils').general.hasType;
 	const { decorateDefault } = require('./columnDefinitionHelper')(app);
 	const { checkAllKeysDeactivated } = app.require('@hackolade/ddl-fe-utils').general;

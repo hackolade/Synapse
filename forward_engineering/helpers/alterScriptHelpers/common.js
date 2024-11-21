@@ -1,6 +1,6 @@
-module.exports = app => {
-	const _ = app.require('lodash');
+const _ = require('lodash');
 
+module.exports = app => {
 	const checkFieldPropertiesChanged = (compMod, propertiesToCheck) => {
 		return propertiesToCheck.some(prop => compMod?.oldField[prop] !== compMod?.newField[prop]);
 	};

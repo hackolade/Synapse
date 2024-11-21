@@ -1,5 +1,6 @@
+const _ = require('lodash');
+
 module.exports = (app, options) => {
-	const _ = app.require('lodash');
 	const { mapProperties } = app.require('@hackolade/ddl-fe-utils');
 	const { checkCompModEqual } = require('./common')(app);
 	const ddlProvider = require('../../ddlProvider')(null, options, app);

@@ -1,6 +1,6 @@
-module.exports = app => {
-	const _ = app.require('lodash');
+const _ = require('lodash');
 
+module.exports = app => {
 	const addLength = (type, length) => {
 		return `${type}(${length})`;
 	};

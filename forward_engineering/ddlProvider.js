@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const defaultTypes = require('./configs/defaultTypes');
 const types = require('./configs/types');
 const templates = require('./configs/templates');
@@ -5,7 +6,6 @@ const { commentIfDeactivated } = require('./helpers/commentIfDeactivated');
 const { joinActivatedAndDeactivatedStatements } = require('./utils/joinActivatedAndDeactivatedStatements');
 
 const provider = (baseProvider, options, app) => {
-	const _ = app.require('lodash');
 	const { getTerminator } = require('./helpers/optionsHelper');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	const { divideIntoActivatedAndDeactivated, clean, tab } = app.require('@hackolade/ddl-fe-utils').general;

@@ -1,4 +1,8 @@
 'use strict';
+const _ = require('lodash');
+const crypto = require('crypto');
+const randomstring = require('randomstring');
+const base64url = require('base64url');
 
 const { getClient, setClient, clearClient, getConnectionInfo } = require('./connectionState');
 const { getObjectsFromDatabase } = require('./databaseService/databaseService');
@@ -11,9 +15,6 @@ const { logInfo } = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
-const crypto = require('crypto');
-const randomstring = require('randomstring');
-const base64url = require('base64url');
 const { prepareError } = require('./databaseService/helpers/errorService');
 const { parseConnectionString } = require('./helpers/parseConnectionString');
 
@@ -108,7 +109,6 @@ module.exports = {
 
 	async getDbCollectionsData(collectionsInfo, logger, callback, app) {
 		try {
-			const _ = app.require('lodash');
 			logger.log('info', collectionsInfo, 'Retrieving schema', collectionsInfo.hiddenKeys);
 			logger.progress({ message: 'Start reverse-engineering process', containerName: '', entityName: '' });
 			const { collections } = collectionsInfo.collectionData;
@@ -138,7 +138,7 @@ module.exports = {
 			]);
 			callback(
 				null,
-				mergeCollectionsWithViews({ jsonSchemas, _ }),
+				mergeCollectionsWithViews({ jsonSchemas }),
 				modelInfo,
 				filterRelationships(relationships, jsonSchemas),
 			);

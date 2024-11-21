@@ -1,5 +1,6 @@
+const _ = require('lodash');
+
 module.exports = (app, options) => {
-	const _ = app.require('lodash');
 	const { getEntityName } = app.require('@hackolade/ddl-fe-utils').general;
 	const { createColumnDefinitionBySchema } = require('./createColumnDefinition')(_);
 	const { getTableName } = require('../general')(app);

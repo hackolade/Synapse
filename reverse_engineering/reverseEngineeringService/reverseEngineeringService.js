@@ -1,3 +1,4 @@
+const { groupBy, partition, omit } = require('lodash');
 const {
 	getTableInfo,
 	getTableRow,
@@ -37,16 +38,16 @@ const {
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
 
-const mergeCollectionsWithViews = ({ jsonSchemas, _ }) => {
-	const [viewSchemas, collectionSchemas] = _.partition(jsonSchemas, jsonSchema => jsonSchema.relatedTables);
-	const groupedViewSchemas = _.groupBy(viewSchemas, 'dbName');
+const mergeCollectionsWithViews = ({ jsonSchemas }) => {
+	const [viewSchemas, collectionSchemas] = partition(jsonSchemas, jsonSchema => jsonSchema.relatedTables);
+	const groupedViewSchemas = groupBy(viewSchemas, 'dbName');
 	const combinedViewSchemas = Object.entries(groupedViewSchemas).map(([dbName, views]) => {
 		return {
 			dbName,
 			entityLevel: {},
 			emptyBucket: false,
 			bucketInfo: views[0].bucketInfo,
-			views: views.map(view => _.omit(view, ['relatedTables'])),
+			views: views.map(view => omit(view, ['relatedTables'])),
 		};
 	});
 
