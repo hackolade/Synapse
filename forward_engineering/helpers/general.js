@@ -5,7 +5,7 @@ const templates = require('../configs/templates');
 
 module.exports = app => {
 	const generalHasType = app.require('@hackolade/ddl-fe-utils').general.hasType;
-	const { decorateDefault } = require('./columnDefinitionHelper')(app);
+	const { decorateDefault } = require('./columnDefinitionHelper');
 	const { checkAllKeysDeactivated } = app.require('@hackolade/ddl-fe-utils').general;
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 

@@ -13,8 +13,13 @@ const provider = (baseProvider, options, app) => {
 	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
 		require('./helpers/ifNotExistStatementHelper')(app);
 
-	const { decorateType, getIdentity, getEncryptedWith, decorateDefault, canHaveIdentity } =
-		require('./helpers/columnDefinitionHelper')(app);
+	const {
+		decorateType,
+		getIdentity,
+		getEncryptedWith,
+		decorateDefault,
+		canHaveIdentity,
+	} = require('./helpers/columnDefinitionHelper');
 
 	const { getMemoryOptimizedIndexes, createMemoryOptimizedIndex, hydrateTableIndex, createTableIndex } =
 		require('./helpers/indexHelper')(app);
