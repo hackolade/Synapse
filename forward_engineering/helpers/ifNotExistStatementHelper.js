@@ -1,5 +1,6 @@
+const _ = require('lodash');
+
 module.exports = app => {
-	const _ = app.require('lodash');
 	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
 	const { tab } = app.require('@hackolade/ddl-fe-utils').general;
 
