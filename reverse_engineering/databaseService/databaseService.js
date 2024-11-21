@@ -409,40 +409,6 @@ const getTableColumnsDescription = async ({ connectionClient, dbName, tableName,
 	}
 };
 
-const getDatabaseMemoryOptimizedTables = async ({ connectionClient, dbName, logger }) => {
-	logger.log('info', { message: `Get '${dbName}' database memory optimized tables.` }, 'Reverse Engineering');
-	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-
-	try {
-		return mapResponse(
-			await currentDbConnectionClient.query`
-			SELECT
-				T.name,
-				T.durability,
-				T.durability_desc,
-				OBJECT_NAME(T.history_table_id) AS history_table,
-				SCHEMA_NAME(O.schema_id) AS history_schema,
-				T.temporal_type_desc
-			FROM sys.tables T LEFT JOIN sys.objects O ON T.history_table_id = O.object_id
-			WHERE T.is_memory_optimized=1
-		`,
-		);
-	} catch (error) {
-		logger.log(
-			'error',
-			{ message: error.message, stack: error.stack, error },
-			`Get '${dbName}' database memory optimized tables`,
-		);
-		logger.progress({
-			message: `Warning: failed to reverse-engineer memory optimized tables.`,
-			containerName: '',
-			entityName: '',
-		});
-
-		return [];
-	}
-};
-
 const getViewColumns = async ({ connectionClient, dbName, viewName, schemaName, logger }) => {
 	logger.log('info', { message: `Get '${viewName}' view columns.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
@@ -713,7 +679,6 @@ module.exports = {
 	getTableForeignKeys,
 	getDatabaseIndexes,
 	getTableColumnsDescription,
-	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getTableKeyConstraints,
 	getTableMaskedColumns,

@@ -1,10 +1,10 @@
+const { groupBy, partition, omit } = require('lodash');
 const {
 	getTableInfo,
 	getTableRow,
 	getTableForeignKeys,
 	getDatabaseIndexes,
 	getTableColumnsDescription,
-	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getViewColumns,
 	getTableKeyConstraints,
@@ -38,38 +38,20 @@ const {
 const pipe = require('../helpers/pipe');
 const { progress, logError } = require('../helpers/logInfo');
 
-const mergeCollectionsWithViews = jsonSchemas => {
-	return jsonSchemas.reduce((structuredJSONSchemas, jsonSchema) => {
-		if (jsonSchema.relatedTables) {
-			const currentIndex = structuredJSONSchemas.findIndex(
-				structuredSchema =>
-					jsonSchema.collectionName === structuredSchema.collectionName &&
-					jsonSchema.dbName === structuredSchema.dbName,
-			);
-			const relatedTableSchemaIndex = structuredJSONSchemas.findIndex(({ collectionName, dbName }) =>
-				jsonSchema.relatedTables.find(
-					({ tableName, schemaName }) => tableName === collectionName && schemaName === dbName,
-				),
-			);
+const mergeCollectionsWithViews = ({ jsonSchemas }) => {
+	const [viewSchemas, collectionSchemas] = partition(jsonSchemas, jsonSchema => jsonSchema.relatedTables);
+	const groupedViewSchemas = groupBy(viewSchemas, 'dbName');
+	const combinedViewSchemas = Object.entries(groupedViewSchemas).map(([dbName, views]) => {
+		return {
+			dbName,
+			entityLevel: {},
+			emptyBucket: false,
+			bucketInfo: views[0].bucketInfo,
+			views: views.map(view => omit(view, ['relatedTables'])),
+		};
+	});
 
-			if (relatedTableSchemaIndex !== -1 && doesViewHaveRelatedTables(jsonSchema, structuredJSONSchemas)) {
-				structuredJSONSchemas[relatedTableSchemaIndex].views.push(jsonSchema);
-			} else {
-				structuredJSONSchemas.push({
-					dbName: jsonSchema.dbName,
-					entityLevel: {},
-					views: [jsonSchema],
-					emptyBucket: false,
-					bucketInfo: jsonSchema.bucketInfo,
-				});
-			}
-
-			delete jsonSchema.relatedTables;
-			return structuredJSONSchemas.filter((schema, i) => i !== currentIndex);
-		}
-
-		return structuredJSONSchemas;
-	}, jsonSchemas);
+	return [...collectionSchemas, ...combinedViewSchemas];
 };
 
 const getCollectionsRelationships = logger => async dbConnectionClient => {
@@ -328,21 +310,6 @@ const cleanDocuments = documents => {
 	return documents.map(cleanNull);
 };
 
-const getMemoryOptimizedOptions = options => {
-	if (!options) {
-		return {};
-	}
-
-	return {
-		memory_optimized: true,
-		durability: ['SCHEMA_ONLY', 'SCHEMA_AND_DATA'].includes(String(options.durability_desc).toUpperCase())
-			? String(options.durability_desc).toUpperCase()
-			: '',
-		systemVersioning: options.temporal_type_desc === 'SYSTEM_VERSIONED_TEMPORAL_TABLE',
-		historyTable: options.history_table ? `${options.history_schema}.${options.history_table}` : '',
-	};
-};
-
 const getDistribution = distributionData => {
 	if (!Array.isArray(distributionData) || !distributionData.length) {
 		return '';
@@ -402,9 +369,8 @@ const getPersistence = tableName => {
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
-	const [databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions] = await Promise.all([
+	const [databaseIndexes, databaseUDT, dataBasePartitions] = await Promise.all([
 		getDatabaseIndexes({ connectionClient: dbConnectionClient, dbName, logger }),
-		getDatabaseMemoryOptimizedTables({ connectionClient: dbConnectionClient, dbName, logger }),
 		getDatabaseUserDefinedTypes({ connectionClient: dbConnectionClient, dbName, logger }),
 		getPartitions({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }),
 	]);
@@ -533,7 +499,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				dbName: schemaName,
 				entityLevel: {
 					Indxs: reverseTableIndexes(tableIndexes),
-					...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
 					...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
 					indexingOrderColumn: order.map(column => ({ name: column })),
 					tableRole: getTableRole(distribution, indexing),

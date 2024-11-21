@@ -1,5 +1,6 @@
+const _ = require('lodash');
+
 module.exports = (app, options) => {
-	const _ = app.require('lodash');
 	const { getDbData } = app.require('@hackolade/ddl-fe-utils').general;
 	const ddlProvider = require('../../ddlProvider')(null, options, app);
 
