@@ -9,11 +9,11 @@ const {
 	queryForRetrievingTheTablesSelectedByTheUser,
 } = require('../queries/selectedTablesSubQuery/QueryForRetrievingTheTablesSelectedByTheUser');
 const {
-	PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser');
+	getPartitionsSubQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/partitionsSubQueryForRetrievingTheTablesSelectedByTheUser');
 const {
-	DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser');
+	getDatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
+} = require('../queries/selectedTablesSubQuery/databaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -203,9 +203,9 @@ const getViewDistributedColumns = async (connectionClient, dbName, tableName, ta
 const getDatabaseIndexes = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database indexes.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser({
+	const tablesSelectedByTheUser = getDatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
-	}).getQuery();
+	});
 	const queryRetrievingTheIndexes = `
 	WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
 	SELECT
@@ -264,9 +264,9 @@ const getViewsIndexes = async (connectionClient, dbName) => {
 const getPartitions = async ({ connectionClient, tablesInfo, dbName, logger }) => {
 	logger.log('info', { message: `Get '${dbName}' database partitions.` }, 'Reverse Engineering');
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-	const tablesSelectedByTheUser = new PartitionsSubQueryForRetrievingTheTablesSelectedByTheUser({
+	const tablesSelectedByTheUser = getPartitionsSubQueryForRetrievingTheTablesSelectedByTheUser({
 		schemaToTablesMap: tablesInfo,
-	}).getQuery();
+	});
 	const queryForRetrievingThePartitions = `
 		WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
 		SELECT 

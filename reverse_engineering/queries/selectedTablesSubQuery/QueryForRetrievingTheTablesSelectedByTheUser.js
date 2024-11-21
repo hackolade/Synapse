@@ -1,3 +1,11 @@
+const { getProjectedPropertiesNames } = require('./getProjectedPropertiesNames');
+
+/**
+ @typedef {{
+* 	sql: () => string,
+* 	projection: Record<string, string>
+* }} Query
+ */
 class QueryForRetrievingTheTablesSelectedByTheUser {
 	#buildPredicateForTable({ schema, table }) {
 		return `(sch.name = '${schema}' AND tbl.name = '${table}')`;
@@ -13,9 +21,9 @@ class QueryForRetrievingTheTablesSelectedByTheUser {
 			.join(',');
 	}
 
-	queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap, projection }) {
-		const propertiesToSelectProjections = this.#buildProjection({
-			projection,
+	#queryForRetrievingTheTablesSelectedByTheUser({ schemaToTablesMap, columnToAliasMap }) {
+		const projection = this.#buildProjection({
+			columnToAliasMap,
 		});
 		const predicate = Object.entries(schemaToTablesMap)
 			.map(([schema, tables]) => this.#buildPredicateForTablesInSchema({ schema, tables }))
@@ -23,11 +31,28 @@ class QueryForRetrievingTheTablesSelectedByTheUser {
 		const whereClause = Object.entries(schemaToTablesMap).length > 0 ? `WHERE ${predicate}` : '';
 		return `
 			SELECT
-				${propertiesToSelectProjections}
+				${projection}
 			FROM sys.tables tbl
 			JOIN sys.schemas sch ON sch.schema_id = tbl.schema_id
 			${whereClause}
 		  `;
+	}
+
+	/**
+	 *
+	 * @param {{columnToAliasMap: Record<string, string>, schemaToTablesMap: Record<string, string[]>}} param
+	 * @returns {Query}
+	 */
+	getQuery({ columnToAliasMap, schemaToTablesMap }) {
+		const query = this.#queryForRetrievingTheTablesSelectedByTheUser({
+			schemaToTablesMap,
+			columnToAliasMap,
+		});
+
+		return {
+			projection: getProjectedPropertiesNames({ columnToAliasMap }),
+			sql: () => query,
+		};
 	}
 }
 
