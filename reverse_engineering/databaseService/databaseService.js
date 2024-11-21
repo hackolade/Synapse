@@ -14,9 +14,6 @@ const {
 const {
 	DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
 } = require('../queries/selectedTablesSubQuery/DatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser');
-const {
-	MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser,
-} = require('../queries/selectedTablesSubQuery/MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -310,33 +307,6 @@ const getTableColumnsDescription = async (connectionClient, dbName, tableName, s
 	`);
 };
 
-const getDatabaseMemoryOptimizedTables = async ({ connectionClient, tablesInfo, dbName, logger }) => {
-	try {
-		logger.log('info', { message: `Get '${dbName}' database memory optimized indexes.` }, 'Reverse Engineering');
-		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
-		const tablesSelectedByTheUser = new MemoryOptimizedTablesSubQueryForRetrievingTheTablesSelectedByTheUser({
-			schemaToTablesMap: tablesInfo,
-		}).getQuery();
-		const queryForRetrievingMemoryOptimizedTables = `
-			WITH user_selected_tables AS (${tablesSelectedByTheUser.sql()})
-			SELECT
-				T.${tablesSelectedByTheUser.projection.tableName},
-				T.${tablesSelectedByTheUser.projection.durability},
-				T.${tablesSelectedByTheUser.projection.durabilityDescription},
-				OBJECT_NAME(T.${tablesSelectedByTheUser.projection.historyTableId}) AS historyTable,
-				SCHEMA_NAME(O.schema_id) AS historySchema,
-				T.${tablesSelectedByTheUser.projection.temporalTypeDescription}
-			FROM user_selected_tables T LEFT JOIN sys.objects O ON T.${tablesSelectedByTheUser.projection.historyTableId} = O.object_id
-			WHERE T.${tablesSelectedByTheUser.projection.isMemoryOptimized}=1
-		`;
-		return mapResponse(currentDbConnectionClient.query(queryForRetrievingMemoryOptimizedTables));
-	} catch (error) {
-		logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieve memory optimized tables');
-
-		return [];
-	}
-};
-
 const getViewColumns = async (connectionClient, dbName, viewName, schemaName) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	const objectId = `${schemaName}.${viewName}`;
@@ -493,7 +463,6 @@ module.exports = {
 	getTableForeignKeys,
 	getDatabaseIndexes,
 	getTableColumnsDescription,
-	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getTableKeyConstraints,
 	getTableMaskedColumns,

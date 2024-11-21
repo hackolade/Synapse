@@ -4,7 +4,6 @@ const {
 	getTableForeignKeys,
 	getDatabaseIndexes,
 	getTableColumnsDescription,
-	getDatabaseMemoryOptimizedTables,
 	getViewTableInfo,
 	getViewColumns,
 	getTableKeyConstraints,
@@ -403,12 +402,9 @@ const getPersistence = tableName => {
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
-	const [databaseIndexes, databaseMemoryOptimizedTables, databaseUDT, dataBasePartitions] = await Promise.all([
+	const [databaseIndexes, databaseUDT, dataBasePartitions] = await Promise.all([
 		getDatabaseIndexes({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
 			logError(logger, 'Getting indexes'),
-		),
-		getDatabaseMemoryOptimizedTables({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }).catch(
-			logError(logger, 'Getting memory optimized tables'),
 		),
 		getDatabaseUserDefinedTypes({ connectionClient: dbConnectionClient, dbName, logger }).catch(
 			logError(logger, 'Getting user defined types'),
@@ -517,7 +513,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				dbName: schemaName,
 				entityLevel: {
 					Indxs: reverseTableIndexes(tableIndexes),
-					...getMemoryOptimizedOptions(databaseMemoryOptimizedTables.find(item => item.name === tableName)),
 					...defineFieldsCompositeKeyConstraints(fieldsKeyConstraints),
 					indexingOrderColumn: order.map(column => ({ name: column })),
 					tableRole: getTableRole(distribution, indexing),
