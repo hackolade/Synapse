@@ -343,7 +343,7 @@ const getIndexing = (indexingInfo, order) => {
 };
 
 const getOrder = indexingInfo => {
-	return indexingInfo.filter(column => column.column_store_order_ordinal).map(column => column.COLUMN_NAME);
+	return indexingInfo.filter(column => column.column_store_order_ordinal).map(column => column.columnName);
 };
 
 const getTableRole = (distribution, indexing) => {
@@ -370,7 +370,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
 	const [databaseIndexes, databaseUDT, dataBasePartitions] = await Promise.all([
-		getDatabaseIndexes({ connectionClient: dbConnectionClient, dbName, logger }),
+		getDatabaseIndexes({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }),
 		getDatabaseUserDefinedTypes({ connectionClient: dbConnectionClient, dbName, logger }),
 		getPartitions({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }),
 	]);
