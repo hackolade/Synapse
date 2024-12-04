@@ -107,7 +107,7 @@ module.exports = app => {
 		const clustered = index.clustered ? ` CLUSTERED` : ' NONCLUSTERED';
 
 		return assignTemplates(templates.index, {
-			name: getIndexName(index.name, index.schemaName),
+			name: getIndexName({ name: index.name, schemaName: index.schemaName }),
 			clustered,
 			table: getTableName(tableName, index.schemaName),
 			keys,
@@ -125,7 +125,7 @@ module.exports = app => {
 		const order = getIndexKeys(index.orderKeys || [], key => `[${key.name}]`, isParentActivated);
 
 		return assignTemplates(templates.columnStoreIndex, {
-			name: getIndexName(index.name, index.schemaName),
+			name: getIndexName({ name: index.name, schemaName: index.schemaName }),
 			table: getTableName(tableName, index.schemaName),
 			order: order ? `\n\tORDER (${order})` : '',
 			index_options: createIndexOptions(indexOptions),
