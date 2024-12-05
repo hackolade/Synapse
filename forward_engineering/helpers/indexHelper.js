@@ -82,16 +82,6 @@ module.exports = app => {
 			: activatedKeys + (deactivatedKeys ? ', ' : '') + deactivatedKeys;
 	};
 
-	const getIndexName = ({ name, schemaName }) => {
-		const indexName = name ? `[${name}]` : '';
-
-		if (!indexName) {
-			return '';
-		}
-
-		return schemaName ? `[${schemaName}].[${indexName}]` : indexName;
-	};
-
 	const createIndex = (terminator, tableName, index, isParentActivated = true) => {
 		if (_.isEmpty(index.keys) || !index.name) {
 			return '';
@@ -107,7 +97,7 @@ module.exports = app => {
 		const clustered = index.clustered ? ` CLUSTERED` : ' NONCLUSTERED';
 
 		return assignTemplates(templates.index, {
-			name: getIndexName({ name: index.name, schemaName: index.schemaName }),
+			name: index.name,
 			clustered,
 			table: getTableName(tableName, index.schemaName),
 			keys,
@@ -125,7 +115,7 @@ module.exports = app => {
 		const order = getIndexKeys(index.orderKeys || [], key => `[${key.name}]`, isParentActivated);
 
 		return assignTemplates(templates.columnStoreIndex, {
-			name: getIndexName({ name: index.name, schemaName: index.schemaName }),
+			name: index.name,
 			table: getTableName(tableName, index.schemaName),
 			order: order ? `\n\tORDER (${order})` : '',
 			index_options: createIndexOptions(indexOptions),
