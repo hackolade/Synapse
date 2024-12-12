@@ -420,7 +420,10 @@ making sure that you maintain a proper JSON format.
 						"propertyName": "Name",
 						"propertyKeyword": "indxName",
 						"propertyTooltip": "",
-						"propertyType": "text"
+						"propertyType": "text",
+						"validation": {
+							"required": true
+						}
 					},
 					{
 						"propertyName": "Activated",
