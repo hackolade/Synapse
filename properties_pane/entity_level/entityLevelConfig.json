@@ -456,6 +456,10 @@ making sure that you maintain a proper JSON format.
 						"dependency": {
 							"key": "indxType",
 							"value": "Index"
+						},
+						"validation": {
+							"minLength": 1,
+							"required": true
 						}
 					},
 					{
