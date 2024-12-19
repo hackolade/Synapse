@@ -43,12 +43,15 @@ const provider = (baseProvider, options, app) => {
 	const terminator = getTerminator(options);
 
 	return {
-		createSchema({ schemaName, databaseName, ifNotExist }) {
+		createSchema({ schemaName, databaseName, ifNotExist, isActivated }) {
 			const schemaTerminator = ifNotExist ? ';' : terminator;
-			let schemaStatement = assignTemplates(templates.createSchema, {
-				name: schemaName,
-				terminator: schemaTerminator,
-			});
+			let schemaStatement = commentIfDeactivated(
+				assignTemplates(templates.createSchema, {
+					name: schemaName,
+					terminator: schemaTerminator,
+				}),
+				{ isActivated },
+			);
 
 			if (!databaseName) {
 				return ifNotExist
@@ -375,6 +378,7 @@ const provider = (baseProvider, options, app) => {
 				schemaName: containerData.name,
 				databaseName: containerData.databaseName,
 				ifNotExist: containerData.ifNotExist,
+				isActivated: containerData.isActivated,
 			};
 		},
 
