@@ -43,7 +43,7 @@ const provider = (baseProvider, options, app) => {
 	const terminator = getTerminator(options);
 
 	return {
-		createSchema({ schemaName, databaseName, ifNotExist, isActivated }) {
+		createSchema({ schemaName, databaseName, ifNotExist, isActivated = true }) {
 			const schemaTerminator = ifNotExist ? ';' : terminator;
 			let schemaStatement = commentIfDeactivated(
 				assignTemplates(templates.createSchema, {
