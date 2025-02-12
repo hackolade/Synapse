@@ -879,6 +879,30 @@ making sure that you maintain a proper JSON format.
 				"valueType": "string"
 			},
 			{
+				"propertyName": "Synonym",
+				"propertyKeyword": "synonym",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": ["", "dec"],
+				"defaultValue": "",
+				"dependency": {
+					"key": "mode",
+					"value": "decimal"
+				}
+			},
+			{
+				"propertyName": "Synonym",
+				"propertyKeyword": "synonym",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": ["", "double precision"],
+				"defaultValue": "",
+				"dependency": {
+					"key": "mode",
+					"value": "float"
+				}
+			},
+			{
 				"propertyName": "Precision",
 				"propertyKeyword": "precision",
 				"propertyType": "numeric",
@@ -1437,6 +1461,18 @@ making sure that you maintain a proper JSON format.
 				"options": ["binary", "varbinary"],
 				"data": "options",
 				"valueType": "string"
+			},
+			{
+				"propertyName": "Synonym",
+				"propertyKeyword": "synonym",
+				"propertyTooltip": "Select from list of options",
+				"propertyType": "select",
+				"options": ["", "binary varying"],
+				"defaultValue": "",
+				"dependency": {
+					"key": "mode",
+					"value": "varbinary"
+				}
 			},
 			{
 				"propertyName": "Has max length",
