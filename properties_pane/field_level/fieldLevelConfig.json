@@ -1471,7 +1471,7 @@ making sure that you maintain a proper JSON format.
 				"defaultValue": "",
 				"dependency": {
 					"key": "mode",
-					"value": "binary"
+					"value": "varbinary"
 				}
 			},
 			{
