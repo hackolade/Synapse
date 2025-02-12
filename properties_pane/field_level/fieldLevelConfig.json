@@ -886,13 +886,8 @@ making sure that you maintain a proper JSON format.
 				"options": ["", "dec"],
 				"defaultValue": "",
 				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "mode",
-							"value": "decimal"
-						}
-					]
+					"key": "mode",
+					"value": "decimal"
 				}
 			},
 			{
@@ -903,13 +898,8 @@ making sure that you maintain a proper JSON format.
 				"options": ["", "double precision"],
 				"defaultValue": "",
 				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "mode",
-							"value": "float"
-						}
-					]
+					"key": "mode",
+					"value": "float"
 				}
 			},
 			{
@@ -1480,13 +1470,8 @@ making sure that you maintain a proper JSON format.
 				"options": ["", "binary varying"],
 				"defaultValue": "",
 				"dependency": {
-					"type": "and",
-					"values": [
-						{
-							"key": "mode",
-							"value": "binary"
-						}
-					]
+					"key": "mode",
+					"value": "binary"
 				}
 			},
 			{
