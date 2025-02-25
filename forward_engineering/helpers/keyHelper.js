@@ -1,3 +1,9 @@
+/**
+ * @typedef {import('../types').ColumnDefinition} ColumnDefinition
+ * @typedef {import('../types').ConstraintDto} ConstraintDto
+ * @typedef {import('../types').JsonSchema} JsonSchema
+ */
+
 const _ = require('lodash');
 
 module.exports = app => {
@@ -210,10 +216,54 @@ module.exports = app => {
 		};
 	};
 
+	/**
+	 * @param {{ columnDefinition: ColumnDefinition }}
+	 * @returns {ConstraintDto | undefined}
+	 */
+	const getPrimaryKeyConstraint = ({ columnDefinition }) => {
+		if (!isPrimaryKey(columnDefinition) && !isInlinePrimaryKey(columnDefinition)) {
+			return;
+		}
+
+		return hydratePrimaryKeyOptions(_.get(columnDefinition, 'primaryKeyOptions.[0]', {}));
+	};
+
+	/**
+	 * @param {{ columnDefinition: ColumnDefinition }}
+	 * @returns {ConstraintDto | undefined}
+	 */
+	const getUniqueKeyConstraint = ({ columnDefinition }) => {
+		if (!isUnique(columnDefinition) && !isInlineUnique(columnDefinition)) {
+			return;
+		}
+
+		return hydrateUniqueOptions(_.get(columnDefinition, 'uniqueKeyOptions.[0]', {}));
+	};
+
+	const getCompositeKeyConstraints = ({ jsonSchema }) => {
+		const compositePrimaryKeys = getCompositePrimaryKeys(jsonSchema);
+		const compositeUniqueKeys = getCompositeUniqueKeys(jsonSchema);
+
+		return [...compositePrimaryKeys, ...compositeUniqueKeys];
+	};
+
+	/**
+	 * @param {{ columnDefinition: ColumnDefinition }}
+	 * @returns {ConstraintDto[]}
+	 */
+	const getColumnConstraints = ({ columnDefinition }) => {
+		const primaryKeyConstraint = getPrimaryKeyConstraint({ columnDefinition });
+		const uniqueKeyConstraint = getUniqueKeyConstraint({ columnDefinition });
+
+		return [primaryKeyConstraint, uniqueKeyConstraint].filter(Boolean);
+	};
+
 	return {
 		getTableKeyConstraints,
 		isInlineUnique,
 		isInlinePrimaryKey,
 		getTablePartitionKey,
+		getCompositeKeyConstraints,
+		getColumnConstraints,
 	};
 };
