@@ -36,7 +36,7 @@ const {
 	defineMaskedColumns,
 } = require('./helpers');
 const pipe = require('../helpers/pipe');
-const { progress, logError } = require('../helpers/logInfo');
+const { progress } = require('../helpers/logInfo');
 
 const mergeCollectionsWithViews = ({ jsonSchemas }) => {
 	const [viewSchemas, collectionSchemas] = partition(jsonSchemas, jsonSchema => jsonSchema.relatedTables);
