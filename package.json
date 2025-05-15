@@ -39,7 +39,7 @@
             "discoverRelationships": true
         }
     },
-    "description": "Hackolade plugin for Azure Synpase and Azure SQL Data Warehouse",
+    "description": "Hackolade plugin for Azure Synapse and Azure SQL Data Warehouse",
     "icon_url": "logo.jpg",
     "disabled": false,
     "dependencies": {
