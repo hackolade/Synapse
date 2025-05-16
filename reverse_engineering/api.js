@@ -1,3 +1,4 @@
+'use strict';
 const _ = require('lodash');
 const crypto = require('crypto');
 const randomstring = require('randomstring');
@@ -10,6 +11,7 @@ const {
 	mergeCollectionsWithViews,
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
+const { logInfo } = require('./helpers/logInfo');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
@@ -34,6 +36,7 @@ module.exports = {
 
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
+			logInfo('Test connection', connectionInfo, logger);
 			if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
 				await this.getExternalBrowserUrl(connectionInfo, logger, callback);
 			} else {
@@ -56,6 +59,7 @@ module.exports = {
 	},
 
 	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
+		logInfo('Get external browser URL', connectionInfo, logger);
 		const verifier = randomstring.generate(32);
 		const base64Digest = crypto.createHash('sha256').update(verifier).digest('base64');
 		const challenge = base64url.fromBase64(base64Digest);
@@ -80,6 +84,7 @@ module.exports = {
 
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
+			logInfo('Retrieving databases and tables information', connectionInfo, logger);
 			const client = await this.connect(connectionInfo, logger);
 			if (!client.config.database) {
 				throw new Error('No database specified');
@@ -104,6 +109,7 @@ module.exports = {
 
 	async getDbCollectionsData(collectionsInfo, logger, callback, app) {
 		try {
+			logger.log('info', collectionsInfo, 'Retrieving schema', collectionsInfo.hiddenKeys);
 			logger.progress({ message: 'Start reverse-engineering process', containerName: '', entityName: '' });
 			const { collections } = collectionsInfo.collectionData;
 			const client = getClient();
