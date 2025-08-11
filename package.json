@@ -33,7 +33,8 @@
             "views": {
                 "enabled": true,
                 "viewLevel": "model",
-                "disablePipelines": true
+                "disablePipelines": true,
+                "includeViews": true
             },
             "FEScriptCommentsSupported": true,
             "discoverRelationships": true
