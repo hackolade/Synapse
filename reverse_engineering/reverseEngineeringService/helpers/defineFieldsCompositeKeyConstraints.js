@@ -7,7 +7,7 @@ const PRIMARY_KEY = 'PRIMARY KEY';
 const reverseCompositeKeys = keyConstraintsInfo => {
 	const keyCompositionStatuses = getKeyConstraintsCompositionStatuses(keyConstraintsInfo);
 	return keyConstraintsInfo.reduce((reversedKeys, keyConstraintInfo) => {
-		const { columnName, constraintName, constraintType, isDescending } = keyConstraintInfo;
+		const { columnName, constraintName, constraintType } = keyConstraintInfo;
 		const compositionStatus = keyCompositionStatuses[constraintName];
 		const existingReversedKey = reversedKeys[constraintName];
 		const keyType = constraintType === PRIMARY_KEY ? 'compositePrimaryKey' : 'compositeUniqueKey';
@@ -24,7 +24,6 @@ const reverseCompositeKeys = keyConstraintsInfo => {
 					[keyType]: [
 						{
 							name: columnName,
-							type: isDescending ? 'descending' : 'ascending',
 						},
 					],
 				},
@@ -44,7 +43,6 @@ const reverseCompositeKeys = keyConstraintsInfo => {
 					...existingReversedKey[keyType],
 					{
 						name: columnName,
-						type: isDescending ? 'descending' : 'ascending',
 					},
 				],
 			},

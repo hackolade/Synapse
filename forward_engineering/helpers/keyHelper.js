@@ -65,16 +65,6 @@ module.exports = app => {
 		}
 	};
 
-	const getOrder = order => {
-		if (_.toLower(order) === 'asc') {
-			return 'ASC';
-		} else if (_.toLower(order) === 'desc') {
-			return 'DESC';
-		} else {
-			return '';
-		}
-	};
-
 	const hydrateUniqueOptions = (options, columnName, isActivated) =>
 		clean({
 			keyType: 'UNIQUE',
@@ -82,7 +72,6 @@ module.exports = app => {
 			columns: [
 				{
 					name: columnName,
-					order: getOrder(options['order']),
 					isActivated: isActivated,
 				},
 			],
@@ -108,7 +97,6 @@ module.exports = app => {
 			columns: [
 				{
 					name: columnName,
-					order: getOrder(options['order']),
 					isActivated: isActivated,
 				},
 			],
@@ -143,7 +131,6 @@ module.exports = app => {
 		return keys.map(key => {
 			return {
 				name: findName(key.keyId, jsonSchema.properties),
-				order: key.type === 'descending' ? 'DESC' : 'ASC',
 				isActivated: checkIfActivated(key.keyId, jsonSchema.properties),
 			};
 		});
