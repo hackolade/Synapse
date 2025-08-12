@@ -9,7 +9,7 @@ module.exports = app => {
 
 	const createKeyConstraint = (templates, terminator, isParentActivated) => keyData => {
 		const partition = keyData.partition ? ` ON [${keyData.partition}]` : '';
-		const columnMapToString = ({ name, order }) => `[${name}] ${order}`.trim();
+		const columnMapToString = ({ name }) => `[${name}]`.trim();
 
 		const isAllColumnsDeactivated = checkAllKeysDeactivated(keyData.columns);
 
