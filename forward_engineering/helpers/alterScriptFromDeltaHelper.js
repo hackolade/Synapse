@@ -69,8 +69,8 @@ const getAlterCollectionsScripts = (collection, app, options) => {
 	return [
 		...createCollectionsScripts,
 		...deleteCollectionScripts,
-		...modifyCollectionScripts,
 		...addColumnScripts,
+		...modifyCollectionScripts,
 		...deleteColumnScripts,
 		...modifyColumnScript,
 	]
