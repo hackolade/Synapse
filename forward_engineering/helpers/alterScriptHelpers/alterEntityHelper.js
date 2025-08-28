@@ -161,8 +161,8 @@ module.exports = (app, options) => {
 	return {
 		getAddCollectionScript,
 		getDeleteCollectionScript,
-		getModifyCollectionScript,
 		getAddColumnScript,
+		getModifyCollectionScript,
 		getDeleteColumnScript,
 		getModifyColumnScript,
 	};
