@@ -86,10 +86,10 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 			return axiosExtendedToken;
 		}
 
-		const msalToken = await this.#getTokenByMSAL();
-		if (msalToken) {
-			return msalToken;
-		}
+		// const msalToken = await this.#getTokenByMSAL();
+		// if (msalToken) {
+		// 	return msalToken;
+		// }
 
 		const axiosToken = await this.#getTokenByAxios();
 		if (axiosToken) {
@@ -113,19 +113,19 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 			params.append('redirect_uri', this.redirectUri);
 			params.append('grant_type', 'authorization_code');
 			params.append('code_verifier', this.connectionInfo?.proofKey);
-			params.append('resource', 'https://database.windows.net/');
-
+			// params.append('resource', 'https://database.windows.net/');
 			const responseData = await axios.post(
-				`https://login.microsoftonline.com/${this.tenantId}/oauth2/token`,
+				`https://login.microsoftonline.com/organizations/oauth2/v2.0/token`,
 				params,
 				{
 					headers: {
+						'Accept': 'application/json',
 						'Content-Type': 'application/x-www-form-urlencoded',
+						'Origin': 'http://localhost',
 					},
 					...(agent && { httpsAgent: agent }),
 				},
 			);
-
 			return responseData?.data?.access_token || '';
 		} catch (error) {
 			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
@@ -154,11 +154,12 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 	}
 
 	#getAuthConfig() {
+		const logger = this.logger;
 		return {
 			system: {
 				loggerOptions: {
 					loggerCallback(loglevel, message) {
-						this.logger.log(message);
+						logger.log(message);
 					},
 					piiLoggingEnabled: false,
 					logLevel: msal.LogLevel.Verbose,
