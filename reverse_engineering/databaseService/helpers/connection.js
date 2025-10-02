@@ -107,7 +107,7 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 			params.append('redirect_uri', this.redirectUri);
 			params.append('grant_type', 'authorization_code');
 			params.append('code_verifier', this.connectionInfo?.proofKey);
-			// params.append('resource', 'https://database.windows.net/');
+
 			const responseData = await axios.post(
 				`https://login.microsoftonline.com/organizations/oauth2/v2.0/token`,
 				params,
@@ -123,26 +123,6 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 			return responseData?.data?.access_token || '';
 		} catch (error) {
 			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
-			return '';
-		}
-	}
-
-	async #getTokenByMSAL() {
-		try {
-			const pca = new msal.PublicClientApplication(this.#getAuthConfig());
-			const tokenRequest = {
-				code: this.connectionInfo?.externalBrowserQuery?.code || '',
-				scopes: ['https://database.windows.net//.default'],
-				redirectUri: this.redirectUri,
-				codeVerifier: this.connectionInfo?.proofKey,
-				clientInfo: this.connectionInfo?.externalBrowserQuery?.client_info || '',
-			};
-
-			const responseData = await pca.acquireTokenByCode(tokenRequest);
-
-			return responseData.accessToken;
-		} catch (error) {
-			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA MSAL auth error');
 			return '';
 		}
 	}
