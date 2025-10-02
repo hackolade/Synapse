@@ -1,9 +1,9 @@
-const axios = require('axios');
+const { hckFetch } = require('@hackolade/fetch');
 const sql = require('mssql');
-const https = require('https');
 const msal = require('@azure/msal-node');
 const { logAuthTokenInfo, logConnectionHostAndUsername } = require('../../helpers/logInfo');
 const { prepareError } = require('./errorService');
+const { parseResponse } = require('../../helpers/parseResponse');
 
 class Connection {
 	constructor({ logger }) {
@@ -81,46 +81,32 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 	}
 
 	async #getToken() {
-		const axiosExtendedToken = await this.#getTokenByAxiosExtended();
-		if (axiosExtendedToken) {
-			return axiosExtendedToken;
-		}
-		const axiosToken = await this.#getTokenByAxios();
-		if (axiosToken) {
-			return axiosToken;
-		}
-	}
-
-	#getTokenByAxiosExtended() {
-		return this.#getTokenByAxios({ agent: this.#getAgent() });
-	}
-
-	#getAgent(reject, cert, key) {
-		return new https.Agent({ cert, key, rejectUnauthorized: Boolean(reject) });
-	}
-
-	async #getTokenByAxios({ agent } = {}) {
 		try {
-			const params = new URLSearchParams();
-			params.append('code', this.connectionInfo?.externalBrowserQuery?.code || '');
-			params.append('client_id', this.clientId);
-			params.append('redirect_uri', this.redirectUri);
-			params.append('grant_type', 'authorization_code');
-			params.append('code_verifier', this.connectionInfo?.proofKey);
+			const urlParams = new URLSearchParams();
 
-			const responseData = await axios.post(
-				`https://login.microsoftonline.com/organizations/oauth2/v2.0/token`,
-				params,
-				{
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/x-www-form-urlencoded',
-						'Origin': 'http://localhost',
-					},
-					...(agent && { httpsAgent: agent }),
+			urlParams.append('code', this.connectionInfo?.externalBrowserQuery?.code || '');
+			urlParams.append('client_id', this.clientId);
+			urlParams.append('redirect_uri', this.redirectUri);
+			urlParams.append('grant_type', 'authorization_code');
+			urlParams.append('code_verifier', this.connectionInfo?.proofKey);
+
+			const options = {
+				method: 'POST',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/x-www-form-urlencoded',
+					'Origin': 'http://localhost',
 				},
+				body: urlParams,
+			};
+
+			const response = await hckFetch(
+				`https://login.microsoftonline.com/organizations/oauth2/v2.0/token`,
+				options,
 			);
-			return responseData?.data?.access_token || '';
+			const responseData = await parseResponse(response);
+
+			return responseData?.access_token || '';
 		} catch (error) {
 			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
 			return '';
