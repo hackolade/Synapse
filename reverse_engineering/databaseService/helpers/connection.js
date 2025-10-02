@@ -85,12 +85,6 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 		if (axiosExtendedToken) {
 			return axiosExtendedToken;
 		}
-
-		// const msalToken = await this.#getTokenByMSAL();
-		// if (msalToken) {
-		// 	return msalToken;
-		// }
-
 		const axiosToken = await this.#getTokenByAxios();
 		if (axiosToken) {
 			return axiosToken;
