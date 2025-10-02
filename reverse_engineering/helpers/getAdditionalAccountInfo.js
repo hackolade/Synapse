@@ -1,4 +1,3 @@
-const qs = require('qs');
 const { hckFetch } = require('@hackolade/fetch');
 const { parseResponse } = require('./parseResponse');
 
