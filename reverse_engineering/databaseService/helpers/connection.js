@@ -126,25 +126,6 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 			return '';
 		}
 	}
-
-	#getAuthConfig() {
-		const logger = this.logger;
-		return {
-			system: {
-				loggerOptions: {
-					loggerCallback(loglevel, message) {
-						logger.log(message);
-					},
-					piiLoggingEnabled: false,
-					logLevel: msal.LogLevel.Verbose,
-				},
-			},
-			auth: {
-				clientId: this.clientId,
-				authority: `https://login.microsoftonline.com/${this.tenantId}`,
-			},
-		};
-	}
 }
 
 class AzureActiveDirectoryUsernamePasswordConnection extends Connection {
