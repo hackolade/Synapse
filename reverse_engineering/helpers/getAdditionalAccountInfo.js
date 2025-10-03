@@ -1,5 +1,53 @@
-const qs = require('qs');
-const axios = require('axios');
+const { hckFetch } = require('@hackolade/fetch');
+const { parseResponse } = require('./parseResponse');
+
+async function getTokenData({ tenantId, clientId, appSecret }) {
+	const tokenBaseURl = `https://login.microsoftonline.com/${tenantId}/oauth2/token`;
+	const urlParams = new URLSearchParams();
+
+	urlParams.append('client_id', clientId);
+	urlParams.append('client_secret', appSecret);
+	urlParams.append('grant_type', 'client_credentials');
+	urlParams.append('resource', 'https://management.azure.com/');
+
+	const options = {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		},
+		body: urlParams,
+	};
+
+	const response = await hckFetch(tokenBaseURl, options);
+
+	return parseResponse(response);
+}
+
+async function getAccountData({ subscriptionId, resourceGroupName, serverName, tokenData }) {
+	const dbAccountBaseUrl = `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Sql/servers/${serverName}?api-version=2019-06-01-preview`;
+	const options = {
+		headers: {
+			'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
+		},
+	};
+
+	const response = await hckFetch(dbAccountBaseUrl, options);
+
+	return parseResponse(response);
+}
+
+async function getLocationsData({ subscriptionId, tokenData }) {
+	const locationsUrl = `https://management.azure.com/subscriptions/${subscriptionId}/locations?api-version=2020-06-01`;
+	const options = {
+		headers: {
+			'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
+		},
+	};
+
+	const response = await hckFetch(locationsUrl, options);
+
+	return parseResponse(response);
+}
 
 async function getAdditionalAccountInfo(_, connectionInfo, logger) {
 	if (!connectionInfo.includeAccountInformation) {
@@ -12,37 +60,11 @@ async function getAdditionalAccountInfo(_, connectionInfo, logger) {
 		const { clientId, appSecret, tenantId, subscriptionId, resourceGroupName, host } = connectionInfo;
 		const accNameRegex = /(?:https:\/\/)?(.+)\.(?:documents|database).+/i;
 		const serverName = accNameRegex.test(host) ? accNameRegex.exec(host)[1] : '';
-		const tokenBaseURl = `https://login.microsoftonline.com/${tenantId}/oauth2/token`;
-		const { data: tokenData } = await axios({
-			method: 'post',
-			url: tokenBaseURl,
-			data: qs.stringify({
-				grant_type: 'client_credentials',
-				client_id: clientId,
-				client_secret: appSecret,
-				resource: 'https://management.azure.com/',
-			}),
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
-		});
 
-		const dbAccountBaseUrl = `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${resourceGroupName}/providers/Microsoft.Sql/servers/${serverName}?api-version=2019-06-01-preview`;
-		const { data: accountData } = await axios({
-			method: 'get',
-			url: dbAccountBaseUrl,
-			headers: {
-				'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
-			},
-		});
-		const locationsUrl = `https://management.azure.com/subscriptions/${subscriptionId}/locations?api-version=2020-06-01`;
-		const { data: locationsData } = await axios({
-			method: 'get',
-			url: locationsUrl,
-			headers: {
-				'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
-			},
-		});
+		const tokenData = await getTokenData({ tenantId, clientId, appSecret });
+		const accountData = await getAccountData({ subscriptionId, resourceGroupName, serverName, tokenData });
+		const locationsData = await getLocationsData({ subscriptionId, tokenData });
+
 		const preferredLocationData = _.get(locationsData, 'value', []).find(location => {
 			return location.name === accountData.location;
 		});

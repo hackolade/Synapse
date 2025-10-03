@@ -1,4 +1,3 @@
-const axios = require('axios');
 const sql = require('mssql');
 const https = require('https');
 const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helpers');
