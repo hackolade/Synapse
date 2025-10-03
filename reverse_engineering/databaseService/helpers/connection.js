@@ -108,7 +108,7 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 
 			return responseData?.access_token || '';
 		} catch (error) {
-			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA Axios auth error');
+			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA auth error');
 			return '';
 		}
 	}
