@@ -1,6 +1,5 @@
 const { hckFetch } = require('@hackolade/fetch');
 const sql = require('mssql');
-const msal = require('@azure/msal-node');
 const { logAuthTokenInfo, logConnectionHostAndUsername } = require('../../helpers/logInfo');
 const { prepareError } = require('./errorService');
 const { parseResponse } = require('../../helpers/parseResponse');
