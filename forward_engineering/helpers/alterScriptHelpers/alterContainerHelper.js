@@ -1,7 +1,7 @@
 const _ = require('lodash');
+const { getDbData } = require('../../utils/general');
 
-module.exports = (app, options) => {
-	const { getDbData } = app.require('@hackolade/ddl-fe-utils').general;
+const alterContainerHelper = (app, options) => {
 	const ddlProvider = require('../../ddlProvider')(null, options, app);
 
 	const getAddContainerScript = containerData => {
@@ -20,3 +20,5 @@ module.exports = (app, options) => {
 		getDeleteContainerScript,
 	};
 };
+
+module.exports = alterContainerHelper;

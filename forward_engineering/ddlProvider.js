@@ -4,42 +4,46 @@ const types = require('./configs/types');
 const templates = require('./configs/templates');
 const { commentIfDeactivated } = require('./helpers/commentIfDeactivated');
 const { joinActivatedAndDeactivatedStatements } = require('./utils/joinActivatedAndDeactivatedStatements');
+const { getTerminator } = require('./helpers/optionsHelper');
+const { assignTemplates } = require('./utils/assignTemplates');
+const { clean, divideIntoActivatedAndDeactivated, tab } = require('./utils/general');
+const keyHelper = require('./helpers/keyHelper');
+const {
+	wrapIfNotExistDatabase,
+	wrapIfNotExistSchema,
+	wrapIfNotExistTable,
+	wrapIfNotExistView,
+} = require('./helpers/ifNotExistStatementHelper');
+const {
+	canHaveIdentity,
+	decorateDefault,
+	decorateType,
+	getEncryptedWith,
+	getIdentity,
+} = require('./helpers/columnDefinitionHelper');
+const {
+	checkIndexActivated,
+	getCollation,
+	getDefaultConstraints,
+	getTableName,
+	getTableOptions,
+	getViewData,
+	hasType,
+	setPersistenceSpecificName,
+} = require('./helpers/general');
+const {
+	createMemoryOptimizedIndex,
+	createTableIndex,
+	getMemoryOptimizedIndexes,
+	hydrateTableIndex,
+} = require('./helpers/indexHelper');
+const {
+	createKeyConstraint,
+	createDefaultConstraint,
+	generateConstraintsString,
+} = require('./helpers/constraintsHelper');
 
 const provider = (baseProvider, options, app) => {
-	const { getTerminator } = require('./helpers/optionsHelper');
-	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
-	const { divideIntoActivatedAndDeactivated, clean, tab } = app.require('@hackolade/ddl-fe-utils').general;
-
-	const { wrapIfNotExistSchema, wrapIfNotExistDatabase, wrapIfNotExistTable, wrapIfNotExistView } =
-		require('./helpers/ifNotExistStatementHelper')(app);
-
-	const {
-		decorateType,
-		getIdentity,
-		getEncryptedWith,
-		decorateDefault,
-		canHaveIdentity,
-	} = require('./helpers/columnDefinitionHelper');
-
-	const { getMemoryOptimizedIndexes, createMemoryOptimizedIndex, hydrateTableIndex, createTableIndex } =
-		require('./helpers/indexHelper')(app);
-
-	const {
-		getTableName,
-		getTableOptions,
-		hasType,
-		getDefaultConstraints,
-		checkIndexActivated,
-		getViewData,
-		getCollation,
-		setPersistenceSpecificName,
-	} = require('./helpers/general')(app);
-
-	const { createKeyConstraint, createDefaultConstraint, generateConstraintsString } =
-		require('./helpers/constraintsHelper')(app);
-
-	const keyHelper = require('./helpers/keyHelper')(app);
-
 	const terminator = getTerminator(options);
 
 	return {
@@ -143,17 +147,17 @@ const provider = (baseProvider, options, app) => {
 				: getTableName(columnDefinition.type, columnDefinition.schemaName);
 			const notNull = columnDefinition.nullable ? '' : ' NOT NULL';
 			const primaryKey = columnDefinition.primaryKey ? ' PRIMARY KEY NONCLUSTERED NOT ENFORCED' : '';
-			const defaultValue = !_.isUndefined(columnDefinition.default)
-				? ' DEFAULT ' + decorateDefault(type, columnDefinition.default)
-				: '';
+			const defaultValue = _.isUndefined(columnDefinition.default)
+				? ''
+				: ' DEFAULT ' + decorateDefault(type, columnDefinition.default);
 			const sparse = columnDefinition.sparse ? ' SPARSE' : '';
 			const maskedWithFunction = columnDefinition.maskedWithFunction
 				? ` MASKED WITH (FUNCTION='${columnDefinition.maskedWithFunction}')`
 				: '';
 			const identityContainer = columnDefinition.identity && { identity: getIdentity(columnDefinition.identity) };
-			const encryptedWith = !_.isEmpty(columnDefinition.encryption)
-				? getEncryptedWith(columnDefinition.encryption[0])
-				: '';
+			const encryptedWith = _.isEmpty(columnDefinition.encryption)
+				? ''
+				: getEncryptedWith(columnDefinition.encryption[0]);
 			const unique = columnDefinition.unique ? ' UNIQUE NOT ENFORCED' : '';
 
 			return commentIfDeactivated(
@@ -177,7 +181,7 @@ const provider = (baseProvider, options, app) => {
 		createIndex(tableName, index, dbData, isParentActivated = true) {
 			const isActivated = checkIndexActivated(index);
 			if (!isParentActivated) {
-				return createTableIndex(terminator, tableName, index, isActivated && isParentActivated);
+				return createTableIndex(terminator, tableName, index, isParentActivated);
 			}
 			return commentIfDeactivated(
 				createTableIndex(terminator, tableName, index, isActivated && isParentActivated),
@@ -312,7 +316,8 @@ const provider = (baseProvider, options, app) => {
 			const isTempTableEndTimeColumnHidden =
 				_.get(parentJsonSchema, 'periodForSystemTime[0].startTime[0].type', '') === 'hidden';
 
-			return Object.assign({}, columnDefinition, {
+			return {
+				...columnDefinition,
 				default: jsonSchema.defaultConstraintName ? '' : columnDefinition.default,
 				defaultConstraint: {
 					name: jsonSchema.defaultConstraintName,
@@ -350,7 +355,7 @@ const provider = (baseProvider, options, app) => {
 						increment: Number(_.get(jsonSchema, 'identity.identityIncrement', 0)),
 					},
 				}),
-			});
+			};
 		},
 
 		hydrateIndex(indexData, tableData, schemaData) {
@@ -388,7 +393,8 @@ const provider = (baseProvider, options, app) => {
 				idToNameHashTable[_.get(jsonSchema, 'periodForSystemTime[0].startTime[0].keyId', '')];
 			const temporalTableTimeEndColumnName =
 				idToNameHashTable[_.get(jsonSchema, 'periodForSystemTime[0].endTime[0].keyId', '')];
-			return Object.assign({}, tableData, {
+			return {
+				...tableData,
 				foreignKeyConstraints: tableData.foreignKeyConstraints || [],
 				keyConstraints: keyHelper.getTableKeyConstraints({ jsonSchema }),
 				defaultConstraints: getDefaultConstraints(tableData.columnDefinitions),
@@ -424,7 +430,7 @@ const provider = (baseProvider, options, app) => {
 				memoryOptimizedIndexes: isMemoryOptimized
 					? getMemoryOptimizedIndexes(entityData, tableData.schemaData)
 					: [],
-			});
+			};
 		},
 
 		hydrateViewColumn(data) {

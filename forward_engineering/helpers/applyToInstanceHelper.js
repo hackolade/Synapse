@@ -26,21 +26,23 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 	}
 };
 
+const isGoStatement = query => query.endsWith(GO_STATEMENT) && query.length === 2;
+
 const getQueries = (script = '') => {
 	script = filterDeactivatedQuery(script);
+
 	const queries = script
 		.split('\n\n')
 		.map(script => script.trim())
 		.filter(query => {
-			if (!Boolean(query)) {
-				return false;
-			} else if (query.endsWith(GO_STATEMENT) && query.length === 2) {
+			if (!query || isGoStatement(query)) {
 				return false;
 			}
 
 			return !queryIsDeactivated(query);
 		})
 		.map(query => (query.endsWith(GO_STATEMENT) ? query.slice(0, -3) + ';' : query));
+
 	return queries;
 };
 

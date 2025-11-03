@@ -58,7 +58,7 @@ const decorateType = (type, columnDefinition) => {
 
 const isString = type => ['CHAR', 'VARCHAR', 'NCHAR', 'NVARCHAR', 'TEXT', 'NTEXT'].includes(_.toUpper(type));
 
-const escapeQuotes = str => _.trim(str).replace(/(\')+/g, "'$1");
+const escapeQuotes = str => _.trim(str).replaceAll(/(')+/g, "'$1");
 
 const decorateDefault = (type, defaultValue) => {
 	if (isString(type) && defaultValue !== 'NULL') {
@@ -83,10 +83,10 @@ const addClustered = (statement, columnDefinition) => {
 		return '';
 	}
 
-	if (!columnDefinition.clustered) {
-		return statement + ' NONCLUSTERED';
-	} else {
+	if (columnDefinition.clustered) {
 		return statement + ' CLUSTERED';
+	} else {
+		return statement + ' NONCLUSTERED';
 	}
 };
 

@@ -39,9 +39,11 @@ module.exports = {
 			callback({ message: error.message, stack: error.stack });
 		}
 	},
+
 	generateViewScript(data, logger, callback, app) {
 		callback(new Error('Forward-Engineering of delta model on view level is not supported'));
 	},
+
 	generateContainerScript(data, logger, callback, app) {
 		try {
 			data.jsonSchema = data.collections[0];
@@ -56,6 +58,7 @@ module.exports = {
 			callback({ message: error.message, stack: error.stack });
 		}
 	},
+
 	isDropInStatements(data, logger, callback, app) {
 		try {
 			const cb = (error, script = '') =>
