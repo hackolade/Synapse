@@ -8,8 +8,6 @@ const PRIMARY_KEY_CONFIG = {
 	compModKeyName: 'primaryKey',
 	columnKeyProperty: 'primaryKey',
 	compositeKeyProperty: 'compositePrimaryKey',
-	constraintNameProperty: 'primaryKeyConstraintName',
-	optionsProperty: 'primaryKeyOptions',
 };
 
 /**

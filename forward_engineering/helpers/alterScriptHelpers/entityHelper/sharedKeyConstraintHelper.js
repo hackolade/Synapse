@@ -66,8 +66,6 @@ const activeKeysToString = keys => {
  * @property {string} compModKeyName - e.g., 'primaryKey' or 'uniqueKey'
  * @property {string} columnKeyProperty - e.g., 'primaryKey' or 'unique'
  * @property {string} compositeKeyProperty - e.g., 'compositePrimaryKey' or 'compositeUniqueKey'
- * @property {string} constraintNameProperty - e.g., 'primaryKeyConstraintName' or 'uniqueKeyConstraintName'
- * @property {string} optionsProperty - e.g., 'primaryKeyOptions' or 'uniqueKeyOptions'
  */
 
 /**
@@ -263,35 +261,8 @@ const isFieldNoLongerARegularKey = (columnJsonSchema, collection, config) => {
 };
 
 /**
- * Check if regular key was modified
- * @param {Object} columnJsonSchema
- * @param {Object} collection
- * @param {KeyConstraintConfig} config
- * @return {boolean}
- */
-const wasRegularKeyModified = (columnJsonSchema, collection, config) => {
-	const oldName = columnJsonSchema.compMod.oldField.name;
-	const oldJsonSchema = collection.role.properties[oldName] || {};
-
-	const isRegularKey = columnJsonSchema[config.columnKeyProperty] && !columnJsonSchema[config.compositeKeyProperty];
-	const wasTheFieldARegularKey =
-		oldJsonSchema?.[config.columnKeyProperty] && !oldJsonSchema?.[config.compositeKeyProperty];
-
-	if (!(isRegularKey && wasTheFieldARegularKey)) {
-		return false;
-	}
-
-	const oldOptions = _.get(oldJsonSchema, config.optionsProperty, [{}])[0] || {};
-	const newOptions = _.get(columnJsonSchema, config.optionsProperty, [{}])[0] || {};
-
-	const oldConstraintName = oldOptions.constraintName || '';
-	const newConstraintName = newOptions.constraintName || '';
-
-	return !areConstraintsEqual({ constraintName: oldConstraintName }, { constraintName: newConstraintName });
-};
-
-/**
  * Get ADD CONSTRAINT scripts for regular (column-level) keys
+ * Note: Synapse doesn't support named constraints for column-level keys
  * @param {Object} collection
  * @param {KeyConstraintConfig} config
  * @param {Object} options
@@ -308,18 +279,11 @@ const getAddRegularKeyScripts = (collection, config, options) => {
 
 	return _.toPairs(collection.properties)
 		.filter(([name, jsonSchema]) => {
-			if (wasFieldChangedToBeARegularKey(jsonSchema, collection, config)) {
-				return true;
-			}
-			return wasRegularKeyModified(jsonSchema, collection, config);
+			return wasFieldChangedToBeARegularKey(jsonSchema, collection, config);
 		})
 		.map(([name, jsonSchema]) => {
-			const options = _.get(jsonSchema, config.optionsProperty, [{}])[0] || {};
-			const constraintName = options.constraintName ? `[${options.constraintName}]` : '';
-
-			const statement = constraintName
-				? `CONSTRAINT ${constraintName} ${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`
-				: `${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`;
+			// Synapse doesn't support constraint names for column-level keys
+			const statement = `${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`;
 
 			const script = assignTemplates(templates.alterTableAddConstraint, {
 				tableName: fullName,
@@ -340,46 +304,20 @@ const getAddRegularKeyScripts = (collection, config, options) => {
 
 /**
  * Get DROP CONSTRAINT scripts for regular (column-level) keys
+ * Note: Synapse doesn't support named constraints for column-level keys,
+ * so we cannot generate DROP scripts for them. They would need to be
+ * handled by recreating the column or converting to composite constraints.
  * @param {Object} collection
  * @param {KeyConstraintConfig} config
  * @param {Object} options
  * @return {string[]}
  */
 const getDropRegularKeyScripts = (collection, config, options) => {
-	const terminator = getTerminator(options);
-	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
-	const tableName = getEntityName(collectionSchema);
-	const schemaName = collection.compMod?.keyspaceName;
-	const fullName = getTableName(tableName, schemaName);
-
-	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
-
-	return _.toPairs(collection.properties)
-		.filter(([name, jsonSchema]) => {
-			if (isFieldNoLongerARegularKey(jsonSchema, collection, config)) {
-				return true;
-			}
-			return wasRegularKeyModified(jsonSchema, collection, config);
-		})
-		.map(([name, jsonSchema]) => {
-			const oldName = jsonSchema.compMod.oldField.name;
-			const oldJsonSchema = collection.role.properties[oldName];
-			const oldOptions = _.get(oldJsonSchema, config.optionsProperty, [{}])[0] || {};
-			const constraintName = oldOptions.constraintName;
-
-			if (!constraintName) {
-				return null;
-			}
-
-			const script = assignTemplates(templates.alterTable, {
-				tableName: fullName,
-				command: `DROP CONSTRAINT [${constraintName}]`,
-				terminator,
-			});
-
-			return commentIfDeactivated(script, { isActivated: isTableActivated });
-		})
-		.filter(Boolean);
+	// Synapse doesn't support dropping unnamed column-level constraints
+	// Return empty array - these constraints can only be removed by:
+	// 1. Dropping and recreating the column
+	// 2. Converting to composite constraint (which can be named and dropped)
+	return [];
 };
 
 /**

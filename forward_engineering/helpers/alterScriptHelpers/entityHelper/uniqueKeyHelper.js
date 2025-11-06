@@ -8,8 +8,6 @@ const UNIQUE_KEY_CONFIG = {
 	compModKeyName: 'uniqueKey',
 	columnKeyProperty: 'unique',
 	compositeKeyProperty: 'compositeUniqueKey',
-	constraintNameProperty: 'uniqueKeyConstraintName',
-	optionsProperty: 'uniqueKeyOptions',
 };
 
 /**
