@@ -4,8 +4,60 @@ const { getEntityName } = require('../../../utils/general');
 const { assignTemplates } = require('../../../utils/assignTemplates');
 const templates = require('../../../configs/templates');
 const { getTerminator } = require('../../optionsHelper');
+const { commentIfDeactivated } = require('../../commentIfDeactivated');
 
-const amountOfColumnsInRegularKey = 1;
+/**
+ * Convert keys to string with proper handling of activated/deactivated columns
+ * @param {Array<{name: string, isActivated: boolean}>} keys
+ * @param {boolean} isParentActivated - whether the parent table is activated
+ * @return {string}
+ */
+const keysToString = (keys, isParentActivated) => {
+	if (!Array.isArray(keys) || keys.length === 0) {
+		return '';
+	}
+
+	const splitter = ', ';
+	let deactivatedKeys = [];
+	const processedKeys = keys
+		.reduce((keysArray, key) => {
+			const keyName = `[${key.name}]`;
+
+			if (!_.get(key, 'isActivated', true)) {
+				deactivatedKeys.push(keyName);
+				return keysArray;
+			}
+
+			return [...keysArray, keyName];
+		}, [])
+		.filter(Boolean);
+
+	// If parent is not activated or no activated keys,
+	// return all keys without commenting, to avoid nested comments
+	if (!isParentActivated || processedKeys.length === 0) {
+		return keys.map(key => `[${key.name}]`).join(splitter);
+	}
+
+	// If no deactivated keys, return activated keys only
+	if (deactivatedKeys.length === 0) {
+		return processedKeys.join(splitter);
+	}
+
+	// Mix of activated and deactivated keys
+	return (
+		processedKeys.join(splitter) +
+		commentIfDeactivated(splitter + deactivatedKeys.join(splitter), { isActivated: false }, true)
+	);
+};
+
+/**
+ * Get only activated keys as string (for when we don't support partial deactivation)
+ * @param {Array<{name: string, isActivated: boolean}>} keys
+ * @return {string}
+ */
+const activeKeysToString = keys => {
+	return keys?.map(key => `[${key.name}]`).join(', ');
+};
 
 /**
  * Configuration object for key constraint handling
@@ -72,6 +124,8 @@ const getAddCompositeKeyScripts = (collection, config, options) => {
 	const schemaName = collection.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
 
+	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+
 	return newKeys
 		.map(newKey => {
 			const columns = getCompositeKeyColumnNames(
@@ -84,18 +138,30 @@ const getAddCompositeKeyScripts = (collection, config, options) => {
 				return null;
 			}
 
-			const columnsStr = columns.map(col => `[${col.name}]`).join(', ');
+			// For PK: use activeKeysToString (PK columns can't be deactivated)
+			// For UK: use keysToString to handle deactivated columns
+			const isPrimaryKey = config.constraintType === 'PRIMARY KEY';
+			const columnsStr = isPrimaryKey ? activeKeysToString(columns) : keysToString(columns, isTableActivated);
+
 			const constraintName = newKey.constraintName ? `[${newKey.constraintName}]` : '';
 
 			const statement = constraintName
 				? `CONSTRAINT ${constraintName} ${config.constraintType} NONCLUSTERED (${columnsStr}) NOT ENFORCED`
 				: `${config.constraintType} NONCLUSTERED (${columnsStr}) NOT ENFORCED`;
 
-			return assignTemplates(templates.alterTableAddConstraint, {
+			const script = assignTemplates(templates.alterTableAddConstraint, {
 				tableName: fullName,
 				constraint: statement,
 				terminator,
 			});
+
+			// Determine if the constraint should be activated
+			// For PK: all columns are always activated, so check table activation only
+			// For UK: check if at least one column is activated AND table is activated
+			const atLeastOneColumnActivated = isPrimaryKey || columns.some(col => _.get(col, 'isActivated', true));
+			const isConstraintActivated = isTableActivated && atLeastOneColumnActivated;
+
+			return commentIfDeactivated(script, { isActivated: isConstraintActivated });
 		})
 		.filter(Boolean);
 };
@@ -129,6 +195,8 @@ const getDropCompositeKeyScripts = (collection, config, options) => {
 	const schemaName = collection.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
 
+	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+
 	return oldKeys
 		.map(oldKey => {
 			const constraintName = oldKey.constraintName;
@@ -136,11 +204,13 @@ const getDropCompositeKeyScripts = (collection, config, options) => {
 				return null;
 			}
 
-			return assignTemplates(templates.alterTable, {
+			const script = assignTemplates(templates.alterTable, {
 				tableName: fullName,
 				command: `DROP CONSTRAINT [${constraintName}]`,
 				terminator,
 			});
+
+			return commentIfDeactivated(script, { isActivated: isTableActivated });
 		})
 		.filter(Boolean);
 };
@@ -234,6 +304,8 @@ const getAddRegularKeyScripts = (collection, config, options) => {
 	const schemaName = collection.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
 
+	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+
 	return _.toPairs(collection.properties)
 		.filter(([name, jsonSchema]) => {
 			if (wasFieldChangedToBeARegularKey(jsonSchema, collection, config)) {
@@ -249,11 +321,19 @@ const getAddRegularKeyScripts = (collection, config, options) => {
 				? `CONSTRAINT ${constraintName} ${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`
 				: `${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`;
 
-			return assignTemplates(templates.alterTableAddConstraint, {
+			const script = assignTemplates(templates.alterTableAddConstraint, {
 				tableName: fullName,
 				constraint: statement,
 				terminator,
 			});
+
+			// For PK: column is always activated (PK columns can't be deactivated)
+			// For UK: check column activation
+			const isPrimaryKey = config.constraintType === 'PRIMARY KEY';
+			const isColumnActivated = isPrimaryKey || _.get(jsonSchema, 'isActivated', true);
+			const isConstraintActivated = isTableActivated && isColumnActivated;
+
+			return commentIfDeactivated(script, { isActivated: isConstraintActivated });
 		})
 		.filter(Boolean);
 };
@@ -272,6 +352,8 @@ const getDropRegularKeyScripts = (collection, config, options) => {
 	const schemaName = collection.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
 
+	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+
 	return _.toPairs(collection.properties)
 		.filter(([name, jsonSchema]) => {
 			if (isFieldNoLongerARegularKey(jsonSchema, collection, config)) {
@@ -289,11 +371,13 @@ const getDropRegularKeyScripts = (collection, config, options) => {
 				return null;
 			}
 
-			return assignTemplates(templates.alterTable, {
+			const script = assignTemplates(templates.alterTable, {
 				tableName: fullName,
 				command: `DROP CONSTRAINT [${constraintName}]`,
 				terminator,
 			});
+
+			return commentIfDeactivated(script, { isActivated: isTableActivated });
 		})
 		.filter(Boolean);
 };
