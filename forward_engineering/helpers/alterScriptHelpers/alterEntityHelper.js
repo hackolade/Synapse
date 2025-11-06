@@ -3,6 +3,8 @@ const { getTableName } = require('../general');
 const { getEntityName } = require('../../utils/general');
 const { createColumnDefinitionBySchema } = require('./createColumnDefinition');
 const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common');
+const { getModifyPkScripts } = require('./entityHelper/primaryKeyHelper');
+const { getModifyUkScripts } = require('./entityHelper/uniqueKeyHelper');
 
 const alterEntityHelper = (app, options) => {
 	const ddlProvider = require('../../ddlProvider')(null, options, app);
@@ -150,6 +152,13 @@ const alterEntityHelper = (app, options) => {
 		return [...renameColumnScripts, ...changeTypeScripts];
 	};
 
+	const getModifyCollectionKeysScript = collection => {
+		const modifyPkScripts = getModifyPkScripts(collection, options);
+		const modifyUkScripts = getModifyUkScripts(collection, options);
+
+		return [...modifyPkScripts, ...modifyUkScripts].filter(Boolean);
+	};
+
 	const hydrateIndex =
 		({ idToNameHashTable, idToActivatedHashTable, ddlProvider, tableData, schemaData }) =>
 		index => {
@@ -165,6 +174,7 @@ const alterEntityHelper = (app, options) => {
 		getAddColumnScript,
 		getDeleteColumnScript,
 		getModifyColumnScript,
+		getModifyCollectionKeysScript,
 	};
 };
 
