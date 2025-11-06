@@ -102,28 +102,6 @@
 			]
 		},
 		{
-			"keyword": "foreignKeys",
-			"label": "FE_SCRIPT_GENERATION_OPTIONS___FOREIGN_KEYS",
-			"disabled": false,
-			"value": {
-				"inline": {
-					"default": true,
-					"disabled": false,
-					"disabledLabel": ""
-				},
-				"separate": {
-					"default": false,
-					"disabled": false,
-					"disabledLabel": ""
-				},
-				"ignore": {
-					"default": false,
-					"disabled": false,
-					"disabledLabel": ""
-				}
-			}
-		},
-		{
 			"keyword": "uniqueConstraints",
 			"label": "FE_SCRIPT_GENERATION_OPTIONS___UNIQUE_KEYS",
 			"disabled": false,
@@ -217,49 +195,6 @@
 					},
 					"defaultValue": {
 						"required": false
-					}
-				}
-			]
-		},
-		{
-			"keyword": "checkConstraints",
-			"label": "FE_SCRIPT_GENERATION_OPTIONS___CHECK_CONSTRAINTS",
-			"disabled": false,
-			"value": {
-				"inline": {
-					"default": true,
-					"disabled": false,
-					"disabledLabel": ""
-				},
-				"separate": {
-					"default": false,
-					"disabled": false,
-					"disabledLabel": ""
-				},
-				"ignore": {
-					"default": false,
-					"disabled": false,
-					"disabledLabel": ""
-				}
-			},
-			"adapters": [
-				{
-					"dependency": {
-						"type": "or",
-						"values": [
-							{
-								"key": "chkConstr",
-								"valueType": "array"
-							},
-							{
-								"key": "checkConstraint",
-								"valueType": "array"
-							}
-						]
-					},
-					"defaultValue": {
-						"chkConstr": [],
-						"checkConstraint": []
 					}
 				}
 			]
