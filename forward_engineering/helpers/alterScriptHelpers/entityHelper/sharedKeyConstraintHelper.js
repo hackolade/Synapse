@@ -94,26 +94,24 @@ const areConstraintsEqual = (oldConstraint, newConstraint) => {
 };
 
 /**
- * Get ADD CONSTRAINT scripts for composite keys
+ * Check if composite keys have changed and return key data if so
  * @param {Object} collection
  * @param {KeyConstraintConfig} config
- * @param {Object} options
- * @return {string[]}
+ * @return {{hasChanges: boolean, newKeys: Array, oldKeys: Array, tableInfo: Object} | null}
  */
-const getAddCompositeKeyScripts = (collection, config, options) => {
-	const terminator = getTerminator(options);
+const getCompositeKeyChangeData = (collection, config) => {
 	const keyDto = collection?.role?.compMod?.[config.compModKeyName] || {};
 	const newKeys = keyDto.new || [];
 	const oldKeys = keyDto.old || [];
 
 	if (newKeys.length === 0 && oldKeys.length === 0) {
-		return [];
+		return null;
 	}
 
 	if (newKeys.length === oldKeys.length) {
 		const areKeyArraysEqual = _(oldKeys).differenceWith(newKeys, _.isEqual).isEmpty();
 		if (areKeyArraysEqual) {
-			return [];
+			return null;
 		}
 	}
 
@@ -121,8 +119,35 @@ const getAddCompositeKeyScripts = (collection, config, options) => {
 	const tableName = getEntityName(collectionSchema);
 	const schemaName = collection.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
-
 	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+
+	return {
+		hasChanges: true,
+		newKeys,
+		oldKeys,
+		tableInfo: {
+			fullName,
+			isTableActivated,
+		},
+	};
+};
+
+/**
+ * Get ADD CONSTRAINT scripts for composite keys
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getAddCompositeKeyScripts = (collection, config, options) => {
+	const changeData = getCompositeKeyChangeData(collection, config);
+	if (!changeData) {
+		return [];
+	}
+
+	const terminator = getTerminator(options);
+	const { newKeys, tableInfo } = changeData;
+	const { fullName, isTableActivated } = tableInfo;
 
 	return newKeys
 		.map(newKey => {
@@ -172,28 +197,14 @@ const getAddCompositeKeyScripts = (collection, config, options) => {
  * @return {string[]}
  */
 const getDropCompositeKeyScripts = (collection, config, options) => {
-	const terminator = getTerminator(options);
-	const keyDto = collection?.role?.compMod?.[config.compModKeyName] || {};
-	const newKeys = keyDto.new || [];
-	const oldKeys = keyDto.old || [];
-
-	if (newKeys.length === 0 && oldKeys.length === 0) {
+	const changeData = getCompositeKeyChangeData(collection, config);
+	if (!changeData) {
 		return [];
 	}
 
-	if (newKeys.length === oldKeys.length) {
-		const areKeyArraysEqual = _(oldKeys).differenceWith(newKeys, _.isEqual).isEmpty();
-		if (areKeyArraysEqual) {
-			return [];
-		}
-	}
-
-	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
-	const tableName = getEntityName(collectionSchema);
-	const schemaName = collection.compMod?.keyspaceName;
-	const fullName = getTableName(tableName, schemaName);
-
-	const isTableActivated = _.get(collectionSchema, 'isActivated', true);
+	const terminator = getTerminator(options);
+	const { oldKeys, tableInfo } = changeData;
+	const { fullName, isTableActivated } = tableInfo;
 
 	return oldKeys
 		.map(oldKey => {
