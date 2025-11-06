@@ -123,7 +123,6 @@ const alterEntityHelper = (app, options) => {
 	};
 
 	const getModifyColumnScript = collection => {
-		// TODO: entrypoint
 		const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 		const tableName = collectionSchema?.code || collectionSchema?.collectionName || collectionSchema?.name;
 		const schemaName = collectionSchema.compMod?.keyspaceName;
