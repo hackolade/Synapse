@@ -29,6 +29,7 @@ const getAlterCollectionsScripts = (collection, app, options) => {
 		getDeleteColumnScript,
 		getModifyColumnScript,
 		getModifyCollectionScript,
+		getModifyCollectionKeysScript,
 	} = require('./alterScriptHelpers/alterEntityHelper')(app, options);
 
 	const createCollectionsScripts = [collection.properties?.entities?.properties?.added?.items]
@@ -72,6 +73,12 @@ const getAlterCollectionsScripts = (collection, app, options) => {
 		.map(item => Object.values(item.properties)[0])
 		.flatMap(getModifyColumnScript);
 
+	const modifyCollectionKeysScripts = [collection.properties?.entities?.properties?.modified?.items]
+		.flat()
+		.filter(Boolean)
+		.map(item => Object.values(item.properties)[0])
+		.flatMap(getModifyCollectionKeysScript);
+
 	return [
 		...createCollectionsScripts,
 		...deleteCollectionScripts,
@@ -79,6 +86,7 @@ const getAlterCollectionsScripts = (collection, app, options) => {
 		...modifyCollectionScripts,
 		...deleteColumnScripts,
 		...modifyColumnScript,
+		...modifyCollectionKeysScripts,
 	]
 		.filter(Boolean)
 		.map(script => script.trim());

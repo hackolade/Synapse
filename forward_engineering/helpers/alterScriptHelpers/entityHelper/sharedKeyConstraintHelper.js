@@ -1,0 +1,331 @@
+const _ = require('lodash');
+const { getTableName } = require('../../general');
+const { getEntityName } = require('../../../utils/general');
+const { assignTemplates } = require('../../../utils/assignTemplates');
+const templates = require('../../../configs/templates');
+const { getTerminator } = require('../../optionsHelper');
+
+const amountOfColumnsInRegularKey = 1;
+
+/**
+ * Configuration object for key constraint handling
+ * @typedef {Object} KeyConstraintConfig
+ * @property {string} constraintType - e.g., 'PRIMARY KEY' or 'UNIQUE'
+ * @property {string} compModKeyName - e.g., 'primaryKey' or 'uniqueKey'
+ * @property {string} columnKeyProperty - e.g., 'primaryKey' or 'unique'
+ * @property {string} compositeKeyProperty - e.g., 'compositePrimaryKey' or 'compositeUniqueKey'
+ * @property {string} constraintNameProperty - e.g., 'primaryKeyConstraintName' or 'uniqueKeyConstraintName'
+ * @property {string} optionsProperty - e.g., 'primaryKeyOptions' or 'uniqueKeyOptions'
+ */
+
+/**
+ * Get column names from composite key by matching keyId with column GUID
+ * @param {Array<{ type: string, keyId: string}>} compositeKey
+ * @param {Object.<string, any>} properties
+ * @param {KeyConstraintConfig} config
+ */
+const getCompositeKeyColumnNames = (compositeKey, properties, config) => {
+	return compositeKey
+		.map(keyDto => {
+			const column = Object.entries(properties).find(([name, col]) => col.GUID === keyDto.keyId);
+			return column ? { name: column[0], isActivated: column[1].isActivated } : null;
+		})
+		.filter(Boolean);
+};
+
+/**
+ * Compare constraint details
+ * @param {Object} oldConstraint
+ * @param {Object} newConstraint
+ * @return {boolean}
+ */
+const areConstraintsEqual = (oldConstraint, newConstraint) => {
+	return _.isEqual(oldConstraint, newConstraint);
+};
+
+/**
+ * Get ADD CONSTRAINT scripts for composite keys
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getAddCompositeKeyScripts = (collection, config, options) => {
+	const terminator = getTerminator(options);
+	const keyDto = collection?.role?.compMod?.[config.compModKeyName] || {};
+	const newKeys = keyDto.new || [];
+	const oldKeys = keyDto.old || [];
+
+	if (newKeys.length === 0 && oldKeys.length === 0) {
+		return [];
+	}
+
+	if (newKeys.length === oldKeys.length) {
+		const areKeyArraysEqual = _(oldKeys).differenceWith(newKeys, _.isEqual).isEmpty();
+		if (areKeyArraysEqual) {
+			return [];
+		}
+	}
+
+	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
+	const tableName = getEntityName(collectionSchema);
+	const schemaName = collection.compMod?.keyspaceName;
+	const fullName = getTableName(tableName, schemaName);
+
+	return newKeys
+		.map(newKey => {
+			const columns = getCompositeKeyColumnNames(
+				newKey[config.compositeKeyProperty] || [],
+				collection.role.properties,
+				config,
+			);
+
+			if (_.isEmpty(columns)) {
+				return null;
+			}
+
+			const columnsStr = columns.map(col => `[${col.name}]`).join(', ');
+			const constraintName = newKey.constraintName ? `[${newKey.constraintName}]` : '';
+
+			const statement = constraintName
+				? `CONSTRAINT ${constraintName} ${config.constraintType} NONCLUSTERED (${columnsStr}) NOT ENFORCED`
+				: `${config.constraintType} NONCLUSTERED (${columnsStr}) NOT ENFORCED`;
+
+			return assignTemplates(templates.alterTableAddConstraint, {
+				tableName: fullName,
+				constraint: statement,
+				terminator,
+			});
+		})
+		.filter(Boolean);
+};
+
+/**
+ * Get DROP CONSTRAINT scripts for composite keys
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getDropCompositeKeyScripts = (collection, config, options) => {
+	const terminator = getTerminator(options);
+	const keyDto = collection?.role?.compMod?.[config.compModKeyName] || {};
+	const newKeys = keyDto.new || [];
+	const oldKeys = keyDto.old || [];
+
+	if (newKeys.length === 0 && oldKeys.length === 0) {
+		return [];
+	}
+
+	if (newKeys.length === oldKeys.length) {
+		const areKeyArraysEqual = _(oldKeys).differenceWith(newKeys, _.isEqual).isEmpty();
+		if (areKeyArraysEqual) {
+			return [];
+		}
+	}
+
+	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
+	const tableName = getEntityName(collectionSchema);
+	const schemaName = collection.compMod?.keyspaceName;
+	const fullName = getTableName(tableName, schemaName);
+
+	return oldKeys
+		.map(oldKey => {
+			const constraintName = oldKey.constraintName;
+			if (!constraintName) {
+				return null;
+			}
+
+			return assignTemplates(templates.alterTable, {
+				tableName: fullName,
+				command: `DROP CONSTRAINT [${constraintName}]`,
+				terminator,
+			});
+		})
+		.filter(Boolean);
+};
+
+/**
+ * Get modify scripts for composite keys (drop + add)
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getModifyCompositeKeyScripts = (collection, config, options) => {
+	const dropCompositeKeyScripts = getDropCompositeKeyScripts(collection, config, options);
+	const addCompositeKeyScripts = getAddCompositeKeyScripts(collection, config, options);
+	return [...dropCompositeKeyScripts, ...addCompositeKeyScripts].filter(Boolean);
+};
+
+/**
+ * Check if field was changed to be a regular key
+ * @param {Object} columnJsonSchema
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @return {boolean}
+ */
+const wasFieldChangedToBeARegularKey = (columnJsonSchema, collection, config) => {
+	const oldName = columnJsonSchema.compMod.oldField.name;
+	const oldColumnJsonSchema = collection.role.properties[oldName];
+
+	const isRegularKey = columnJsonSchema[config.columnKeyProperty] && !columnJsonSchema[config.compositeKeyProperty];
+	const wasTheFieldAnyKey = Boolean(oldColumnJsonSchema?.[config.columnKeyProperty]);
+
+	return isRegularKey && !wasTheFieldAnyKey;
+};
+
+/**
+ * Check if field is no longer a regular key
+ * @param {Object} columnJsonSchema
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @return {boolean}
+ */
+const isFieldNoLongerARegularKey = (columnJsonSchema, collection, config) => {
+	const oldName = columnJsonSchema.compMod.oldField.name;
+	const oldJsonSchema = collection.role.properties[oldName];
+	const wasTheFieldARegularKey =
+		oldJsonSchema?.[config.columnKeyProperty] && !oldJsonSchema?.[config.compositeKeyProperty];
+
+	const isNotAnyKey = !columnJsonSchema[config.columnKeyProperty] && !columnJsonSchema[config.compositeKeyProperty];
+	return wasTheFieldARegularKey && isNotAnyKey;
+};
+
+/**
+ * Check if regular key was modified
+ * @param {Object} columnJsonSchema
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @return {boolean}
+ */
+const wasRegularKeyModified = (columnJsonSchema, collection, config) => {
+	const oldName = columnJsonSchema.compMod.oldField.name;
+	const oldJsonSchema = collection.role.properties[oldName] || {};
+
+	const isRegularKey = columnJsonSchema[config.columnKeyProperty] && !columnJsonSchema[config.compositeKeyProperty];
+	const wasTheFieldARegularKey =
+		oldJsonSchema?.[config.columnKeyProperty] && !oldJsonSchema?.[config.compositeKeyProperty];
+
+	if (!(isRegularKey && wasTheFieldARegularKey)) {
+		return false;
+	}
+
+	const oldOptions = _.get(oldJsonSchema, config.optionsProperty, [{}])[0] || {};
+	const newOptions = _.get(columnJsonSchema, config.optionsProperty, [{}])[0] || {};
+
+	const oldConstraintName = oldOptions.constraintName || '';
+	const newConstraintName = newOptions.constraintName || '';
+
+	return !areConstraintsEqual({ constraintName: oldConstraintName }, { constraintName: newConstraintName });
+};
+
+/**
+ * Get ADD CONSTRAINT scripts for regular (column-level) keys
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getAddRegularKeyScripts = (collection, config, options) => {
+	const terminator = getTerminator(options);
+	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
+	const tableName = getEntityName(collectionSchema);
+	const schemaName = collection.compMod?.keyspaceName;
+	const fullName = getTableName(tableName, schemaName);
+
+	return _.toPairs(collection.properties)
+		.filter(([name, jsonSchema]) => {
+			if (wasFieldChangedToBeARegularKey(jsonSchema, collection, config)) {
+				return true;
+			}
+			return wasRegularKeyModified(jsonSchema, collection, config);
+		})
+		.map(([name, jsonSchema]) => {
+			const options = _.get(jsonSchema, config.optionsProperty, [{}])[0] || {};
+			const constraintName = options.constraintName ? `[${options.constraintName}]` : '';
+
+			const statement = constraintName
+				? `CONSTRAINT ${constraintName} ${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`
+				: `${config.constraintType} NONCLUSTERED ([${name}]) NOT ENFORCED`;
+
+			return assignTemplates(templates.alterTableAddConstraint, {
+				tableName: fullName,
+				constraint: statement,
+				terminator,
+			});
+		})
+		.filter(Boolean);
+};
+
+/**
+ * Get DROP CONSTRAINT scripts for regular (column-level) keys
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getDropRegularKeyScripts = (collection, config, options) => {
+	const terminator = getTerminator(options);
+	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
+	const tableName = getEntityName(collectionSchema);
+	const schemaName = collection.compMod?.keyspaceName;
+	const fullName = getTableName(tableName, schemaName);
+
+	return _.toPairs(collection.properties)
+		.filter(([name, jsonSchema]) => {
+			if (isFieldNoLongerARegularKey(jsonSchema, collection, config)) {
+				return true;
+			}
+			return wasRegularKeyModified(jsonSchema, collection, config);
+		})
+		.map(([name, jsonSchema]) => {
+			const oldName = jsonSchema.compMod.oldField.name;
+			const oldJsonSchema = collection.role.properties[oldName];
+			const oldOptions = _.get(oldJsonSchema, config.optionsProperty, [{}])[0] || {};
+			const constraintName = oldOptions.constraintName;
+
+			if (!constraintName) {
+				return null;
+			}
+
+			return assignTemplates(templates.alterTable, {
+				tableName: fullName,
+				command: `DROP CONSTRAINT [${constraintName}]`,
+				terminator,
+			});
+		})
+		.filter(Boolean);
+};
+
+/**
+ * Get modify scripts for regular keys (drop + add)
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getModifyRegularKeyScripts = (collection, config, options) => {
+	const dropKeyScripts = getDropRegularKeyScripts(collection, config, options);
+	const addKeyScripts = getAddRegularKeyScripts(collection, config, options);
+	return [...dropKeyScripts, ...addKeyScripts].filter(Boolean);
+};
+
+/**
+ * Get all modify key scripts (both composite and regular)
+ *
+ * @param {Object} collection
+ * @param {KeyConstraintConfig} config
+ * @param {Object} options
+ * @return {string[]}
+ */
+const getModifyKeyScripts = (collection, config, options) => {
+	const modifyCompositeKeyScripts = getModifyCompositeKeyScripts(collection, config, options);
+	const modifyRegularKeyScripts = getModifyRegularKeyScripts(collection, config, options);
+
+	return [...modifyCompositeKeyScripts, ...modifyRegularKeyScripts].filter(Boolean);
+};
+
+module.exports = {
+	getModifyKeyScripts,
+};
