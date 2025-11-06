@@ -5,7 +5,7 @@ module.exports = {
 
 	createTable:
 		'CREATE${external} TABLE ${name} (\n' +
-		'\t${column_definitions}${temporalTableTime}${keyConstraints}${checkConstraints}${foreignKeyConstraints}${memoryOptimizedIndexes}\n' +
+		'\t${column_definitions}${temporalTableTime}${keyConstraints}${memoryOptimizedIndexes}\n' +
 		')${options}${terminator}\n',
 
 	columnDefinition:
@@ -22,11 +22,6 @@ module.exports = {
 		'CREATE FULLTEXT INDEX ON ${table} (\n\t${keys}\n)\nKEY INDEX ${indexName}\n${catalog}${options}${terminator}\n',
 
 	spatialIndex: 'CREATE SPATIAL INDEX ${name} ON ${table} (${column})${using}\n${options}${terminator}\n',
-
-	checkConstraint: 'CONSTRAINT [${name}] CHECK${notForReplication} (${expression})',
-
-	createForeignKeyConstraint:
-		'CONSTRAINT [${name}] FOREIGN KEY (${foreignKey}) REFERENCES ${primaryTable}(${primaryKey})',
 
 	createView:
 		'CREATE${materialized} VIEW ${name}\n${view_attribute}AS ${select_statement}${check_option}${options}${terminator}\n',

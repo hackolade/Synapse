@@ -173,23 +173,6 @@ const getDefaultConstraints = columnDefinitions => {
 		}));
 };
 
-const foreignKeysToString = keys => {
-	if (Array.isArray(keys)) {
-		const activatedKeys = keys.filter(key => _.get(key, 'isActivated', true)).map(key => `[${key.name.trim()}]`);
-		const deactivatedKeys = keys.filter(key => !_.get(key, 'isActivated', true)).map(key => `[${key.name.trim()}]`);
-		const deactivatedKeysAsString = deactivatedKeys.length
-			? commentIfDeactivated(deactivatedKeys, { isActivated: false }, true)
-			: '';
-
-		return activatedKeys.join(', ') + deactivatedKeysAsString;
-	}
-	return keys;
-};
-
-const foreignActiveKeysToString = keys => {
-	return keys.map(key => key.name.trim()).join(', ');
-};
-
 const trimBraces = expression =>
 	/^\(([\s\S]+?)\)$/i.test(_.trim(expression)) ? _.trim(expression).replace(/^\(([\s\S]+?)\)$/i, '$1') : expression;
 
@@ -254,10 +237,8 @@ module.exports = {
 	hasType,
 	getViewData,
 	getDefaultConstraints,
-	foreignKeysToString,
 	trimBraces,
 	checkIndexActivated,
-	foreignActiveKeysToString,
 	getDefaultValue,
 	getTempTableTime,
 	getCollation,

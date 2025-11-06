@@ -26,14 +26,10 @@ const alterEntityHelper = (app, options) => {
 				schemaData,
 			}),
 		);
-		const checkConstraints = (jsonSchema.chkConstr || []).map(check =>
-			ddlProvider.createCheckConstraint(ddlProvider.hydrateCheckConstraint(check)),
-		);
+
 		const tableData = {
 			name: tableName,
 			columns: columnDefinitions.map(ddlProvider.convertColumnDefinition),
-			checkConstraints: checkConstraints,
-			foreignKeyConstraints: [],
 			schemaData,
 			columnDefinitions,
 		};

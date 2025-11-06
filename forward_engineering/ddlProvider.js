@@ -88,7 +88,6 @@ const provider = (baseProvider, options, app) => {
 			{
 				name,
 				columns,
-				checkConstraints,
 				keyConstraints,
 				options,
 				schemaData,
@@ -112,8 +111,6 @@ const provider = (baseProvider, options, app) => {
 				name: tableName,
 				external: persistence === 'external' ? ' EXTERNAL' : '',
 				column_definitions: columnStatements,
-				checkConstraints: checkConstraints.length ? ',\n\t' + checkConstraints.join(',\n\t') : '',
-				foreignKeyConstraints: '',
 				options: getTableOptions(options),
 				keyConstraints: keyConstraintsString,
 				memoryOptimizedIndexes: memoryOptimizedIndexes.length
@@ -189,23 +186,6 @@ const provider = (baseProvider, options, app) => {
 					isActivated,
 				},
 			);
-		},
-
-		createCheckConstraint(checkConstraint) {
-			return assignTemplates(templates.checkConstraint, {
-				name: checkConstraint.name,
-				notForReplication: checkConstraint.enforceForReplication ? '' : ' NOT FOR REPLICATION',
-				expression: _.trim(checkConstraint.expression).replace(/^\(([\s\S]*)\)$/, '$1'),
-				terminator,
-			});
-		},
-
-		createForeignKeyConstraint() {
-			return '';
-		},
-
-		createForeignKey() {
-			return '';
 		},
 
 		createView(
@@ -368,16 +348,6 @@ const provider = (baseProvider, options, app) => {
 			return hydrateTableIndex(indexData, schemaData);
 		},
 
-		hydrateCheckConstraint(checkConstraint) {
-			return {
-				name: checkConstraint.chkConstrName,
-				expression: checkConstraint.constrExpression,
-				existingData: checkConstraint.constrCheck,
-				enforceForUpserts: checkConstraint.constrEnforceUpserts,
-				enforceForReplication: checkConstraint.constrEnforceReplication,
-			};
-		},
-
 		hydrateSchema(containerData) {
 			return {
 				schemaName: containerData.name,
@@ -395,7 +365,6 @@ const provider = (baseProvider, options, app) => {
 				idToNameHashTable[_.get(jsonSchema, 'periodForSystemTime[0].endTime[0].keyId', '')];
 			return {
 				...tableData,
-				foreignKeyConstraints: tableData.foreignKeyConstraints || [],
 				keyConstraints: keyHelper.getTableKeyConstraints({ jsonSchema }),
 				defaultConstraints: getDefaultConstraints(tableData.columnDefinitions),
 				ifNotExist: jsonSchema.ifNotExist,
