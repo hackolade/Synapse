@@ -154,7 +154,7 @@ const provider = (baseProvider, options, app) => {
 			if (isInline) {
 				if (!_.isUndefined(columnDefinition.default)) {
 					defaultValue = ' DEFAULT ' + decorateDefault(type, columnDefinition.default);
-				} else if (columnDefinition.defaultConstraint.name) {
+				} else if (columnDefinition.defaultConstraint.name && columnDefinition.defaultConstraint.value) {
 					defaultValue = ` ${createDefaultConstraint({ constraint: columnDefinition.defaultConstraint })}`;
 				}
 			}
@@ -532,6 +532,7 @@ const provider = (baseProvider, options, app) => {
 				constraintName: constraint.name,
 				default: constraint.value,
 				columnName,
+				terminator,
 			});
 		},
 
