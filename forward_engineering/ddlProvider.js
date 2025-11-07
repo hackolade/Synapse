@@ -505,9 +505,8 @@ const provider = (baseProvider, options, app) => {
 			});
 		},
 
-		alterColumn({ fullTableName, columnDefinition, alterType = true, alterNullable = true }) {
+		alterColumn({ fullTableName, columnDefinition, alterType = true }) {
 			let type = '';
-			let notNull = '';
 
 			if (alterType) {
 				type = hasType(columnDefinition.type)
@@ -515,14 +514,9 @@ const provider = (baseProvider, options, app) => {
 					: getTableName(columnDefinition.type, columnDefinition.schemaName);
 			}
 
-			if (alterNullable) {
-				notNull = columnDefinition.nullable ? 'NULL' : 'NOT NULL';
-			}
-
 			const command = assignTemplates(templates.alterColumn, {
 				name: columnDefinition.name,
 				type,
-				not_null: type ? ` ${notNull}` : notNull,
 			});
 
 			return assignTemplates(templates.alterTable, {

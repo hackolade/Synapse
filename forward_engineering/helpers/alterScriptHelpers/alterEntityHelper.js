@@ -2,7 +2,7 @@ const _ = require('lodash');
 const { getTableName } = require('../general');
 const { getEntityName } = require('../../utils/general');
 const { createColumnDefinitionBySchema } = require('./createColumnDefinition');
-const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys, checkRequiredChanged } = require('./common');
+const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common');
 const { getModifyPkScripts } = require('./entityHelper/primaryKeyHelper');
 const { getModifyUkScripts } = require('./entityHelper/uniqueKeyHelper');
 
@@ -139,7 +139,6 @@ const alterEntityHelper = (app, options) => {
 
 		const alterColumnScripts = pairs.reduce((acc, [name, jsonSchema]) => {
 			const fieldTypeChanged = checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']);
-			const fieldRequiredChanged = checkRequiredChanged(collection, name);
 
 			const columnDefinition = createColumnDefinitionBySchema({
 				name,
@@ -149,13 +148,12 @@ const alterEntityHelper = (app, options) => {
 				schemaData,
 			});
 
-			if (fieldTypeChanged || fieldRequiredChanged) {
+			if (fieldTypeChanged) {
 				acc.push(
 					ddlProvider.alterColumn({
 						fullTableName,
 						columnDefinition,
 						alterType: fieldTypeChanged,
-						alterNullable: fieldRequiredChanged,
 					}),
 				);
 			}

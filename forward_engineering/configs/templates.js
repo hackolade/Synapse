@@ -65,7 +65,7 @@ module.exports = {
 
 	addColumn: 'ADD ${script}',
 
-	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}${not_null}',
+	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}',
 
 	renameColumn: "EXEC sp_rename '${fullTableName}.${oldColumnName}', '${newColumnName}', 'COLUMN';${terminator}",
 

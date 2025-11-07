@@ -82,21 +82,10 @@ const setIndexKeys = (idToNameHashTable, idToActivatedHashTable, index) => {
 	};
 };
 
-const checkRequiredChanged = (collection, propertyName) => {
-	const currentRequiredColumnNames = collection.required || [];
-	const previousRequiredColumnNames = collection.role.required || [];
-
-	const isRequired = currentRequiredColumnNames.includes(propertyName);
-	const wasRequired = previousRequiredColumnNames.includes(propertyName);
-
-	return isRequired !== wasRequired;
-};
-
 module.exports = {
 	checkFieldPropertiesChanged,
 	getCompMod,
 	modifyGroupItems,
 	checkCompModEqual,
 	setIndexKeys,
-	checkRequiredChanged,
 };
