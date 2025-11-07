@@ -135,7 +135,9 @@ const alterEntityHelper = (app, options) => {
 				),
 			);
 
-		const alterColumnScripts = _.toPairs(collection.properties).reduce((acc, [name, jsonSchema]) => {
+		const pairs = _.toPairs(collection.properties);
+
+		const alterColumnScripts = pairs.reduce((acc, [name, jsonSchema]) => {
 			const fieldTypeChanged = checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']);
 			const fieldRequiredChanged = checkRequiredChanged(collection, name);
 
@@ -161,7 +163,21 @@ const alterEntityHelper = (app, options) => {
 			return acc;
 		}, []);
 
-		return [...renameColumnScripts, ...alterColumnScripts];
+		const alterDefaultScripts = pairs
+			.filter(
+				([, jsonSchema]) =>
+					options?.scriptGenerationOptions?.feActiveOptions?.columnDefaultValues === 'separate' &&
+					jsonSchema.defaultConstraintName,
+			)
+			.map(([name, jsonSchema]) => {
+				return ddlProvider.alterColumnDefault({
+					fullTableName,
+					columnName: name,
+					constraint: { name: jsonSchema.defaultConstraintName, value: jsonSchema.default },
+				});
+			});
+
+		return [...renameColumnScripts, ...alterColumnScripts, ...alterDefaultScripts];
 	};
 
 	const getModifyCollectionKeysScript = collection => {

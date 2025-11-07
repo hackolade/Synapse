@@ -532,6 +532,15 @@ const provider = (baseProvider, options, app) => {
 			});
 		},
 
+		alterColumnDefault({ fullTableName, constraint, columnName }) {
+			return assignTemplates(templates.alterDefaultConstraint, {
+				tableName: fullTableName,
+				constraintName: constraint.name,
+				default: constraint.value,
+				columnName,
+			});
+		},
+
 		dropView(fullViewName) {
 			return assignTemplates(templates.dropView, {
 				name: fullViewName,
