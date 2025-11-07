@@ -512,6 +512,8 @@ const provider = (baseProvider, options, app) => {
 				type = hasType(columnDefinition.type)
 					? _.toUpper(columnDefinition.type)
 					: getTableName(columnDefinition.type, columnDefinition.schemaName);
+
+				type = decorateType(type, columnDefinition);
 			}
 
 			const command = assignTemplates(templates.alterColumn, {
