@@ -493,16 +493,24 @@ const provider = (baseProvider, options, app) => {
 			});
 		},
 
-		alterColumn(fullTableName, columnDefinition) {
-			const type = hasType(columnDefinition.type)
-				? _.toUpper(columnDefinition.type)
-				: getTableName(columnDefinition.type, columnDefinition.schemaName);
-			const notNull = columnDefinition.nullable ? ' NULL' : ' NOT NULL';
+		alterColumn({ fullTableName, columnDefinition, alterType = true, alterNullable = true }) {
+			let type = '';
+			let notNull = '';
+
+			if (alterType) {
+				type = hasType(columnDefinition.type)
+					? _.toUpper(columnDefinition.type)
+					: getTableName(columnDefinition.type, columnDefinition.schemaName);
+			}
+
+			if (alterNullable) {
+				notNull = columnDefinition.nullable ? 'NULL' : 'NOT NULL';
+			}
 
 			const command = assignTemplates(templates.alterColumn, {
 				name: columnDefinition.name,
-				type: decorateType(type, columnDefinition),
-				not_null: notNull,
+				type,
+				not_null: type ? ` ${notNull}` : notNull,
 			});
 
 			return assignTemplates(templates.alterTable, {

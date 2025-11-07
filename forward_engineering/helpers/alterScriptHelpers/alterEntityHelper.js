@@ -2,7 +2,7 @@ const _ = require('lodash');
 const { getTableName } = require('../general');
 const { getEntityName } = require('../../utils/general');
 const { createColumnDefinitionBySchema } = require('./createColumnDefinition');
-const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common');
+const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys, checkRequiredChanged } = require('./common');
 const { getModifyPkScripts } = require('./entityHelper/primaryKeyHelper');
 const { getModifyUkScripts } = require('./entityHelper/uniqueKeyHelper');
 
@@ -122,30 +122,46 @@ const alterEntityHelper = (app, options) => {
 		const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 		const tableName = collectionSchema?.code || collectionSchema?.collectionName || collectionSchema?.name;
 		const schemaName = collectionSchema.compMod?.keyspaceName;
-		const fullName = getTableName(tableName, schemaName);
+		const fullTableName = getTableName(tableName, schemaName);
 		const schemaData = { schemaName };
 
 		const renameColumnScripts = _.values(collection.properties)
 			.filter(jsonSchema => checkFieldPropertiesChanged(jsonSchema.compMod, ['name']))
 			.map(jsonSchema =>
-				ddlProvider.renameColumn(fullName, jsonSchema.compMod.oldField.name, jsonSchema.compMod.newField.name),
+				ddlProvider.renameColumn(
+					fullTableName,
+					jsonSchema.compMod.oldField.name,
+					jsonSchema.compMod.newField.name,
+				),
 			);
 
-		const changeTypeScripts = _.toPairs(collection.properties)
-			.filter(([, jsonSchema]) => checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']))
-			.map(([name, jsonSchema]) => {
-				const columnDefinition = createColumnDefinitionBySchema({
-					name,
-					jsonSchema,
-					parentJsonSchema: collectionSchema,
-					ddlProvider,
-					schemaData,
-				});
+		const alterColumnScripts = _.toPairs(collection.properties).reduce((acc, [name, jsonSchema]) => {
+			const fieldTypeChanged = checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']);
+			const fieldRequiredChanged = checkRequiredChanged(collection, name);
 
-				return ddlProvider.alterColumn(fullName, columnDefinition);
+			const columnDefinition = createColumnDefinitionBySchema({
+				name,
+				jsonSchema,
+				parentJsonSchema: collectionSchema,
+				ddlProvider,
+				schemaData,
 			});
 
-		return [...renameColumnScripts, ...changeTypeScripts];
+			if (fieldTypeChanged || fieldRequiredChanged) {
+				acc.push(
+					ddlProvider.alterColumn({
+						fullTableName,
+						columnDefinition,
+						alterType: fieldTypeChanged,
+						alterNullable: fieldRequiredChanged,
+					}),
+				);
+			}
+
+			return acc;
+		}, []);
+
+		return [...renameColumnScripts, ...alterColumnScripts];
 	};
 
 	const getModifyCollectionKeysScript = collection => {
