@@ -32,7 +32,9 @@ module.exports = {
 
 	createKeyConstraint: '${constraintName}${keyType}${clustered}${columns}${options}${partition}',
 
-	createDefaultConstraint:
+	columnDefaultConstraint: 'CONSTRAINT [${constraintName}] DEFAULT (${default})',
+
+	alterDefaultConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT [${constraintName}] DEFAULT (${default}) FOR [${columnName}]${terminator}\n',
 
 	ifNotExistSchema:

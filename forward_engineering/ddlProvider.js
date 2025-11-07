@@ -102,11 +102,16 @@ const provider = (baseProvider, options, app) => {
 			const tableName = getTableName(setPersistenceSpecificName(persistence, name), schemaData.schemaName);
 
 			const dividedKeysConstraints = divideIntoActivatedAndDeactivated(
-				keyConstraints.map(createKeyConstraint(templates, tableTerminator, isActivated)),
+				keyConstraints.map(
+					createKeyConstraint({ terminator: tableTerminator, isParentActivated: isActivated }),
+				),
 				key => key.statement,
 			);
+
 			const keyConstraintsString = generateConstraintsString(dividedKeysConstraints, isActivated);
+
 			const columnStatements = joinActivatedAndDeactivatedStatements({ statements: columns, indent: '\n\t' });
+
 			const tableStatement = assignTemplates(templates.createTable, {
 				name: tableName,
 				external: persistence === 'external' ? ' EXTERNAL' : '',
@@ -122,11 +127,8 @@ const provider = (baseProvider, options, app) => {
 					: '',
 				terminator: tableTerminator,
 			});
-			const defaultConstraintsStatements = defaultConstraints
-				.map(data => createDefaultConstraint(templates, tableTerminator)(data, tableName))
-				.join('\n');
 
-			const fullTableStatement = [tableStatement, defaultConstraintsStatements].filter(Boolean).join('\n\n');
+			const fullTableStatement = [tableStatement].filter(Boolean).join('\n\n');
 
 			return ifNotExist
 				? wrapIfNotExistTable({
@@ -144,9 +146,19 @@ const provider = (baseProvider, options, app) => {
 				: getTableName(columnDefinition.type, columnDefinition.schemaName);
 			const notNull = columnDefinition.nullable ? '' : ' NOT NULL';
 			const primaryKey = columnDefinition.primaryKey ? ' PRIMARY KEY NONCLUSTERED NOT ENFORCED' : '';
-			const defaultValue = _.isUndefined(columnDefinition.default)
-				? ''
-				: ' DEFAULT ' + decorateDefault(type, columnDefinition.default);
+
+			const isInline = options?.scriptGenerationOptions?.feActiveOptions?.columnDefaultValues === 'inline';
+
+			let defaultValue;
+
+			if (isInline) {
+				if (!_.isUndefined(columnDefinition.default)) {
+					defaultValue = ' DEFAULT ' + decorateDefault(type, columnDefinition.default);
+				} else if (columnDefinition.defaultConstraint.name) {
+					defaultValue = ` ${createDefaultConstraint({ constraint: columnDefinition.defaultConstraint })}`;
+				}
+			}
+
 			const sparse = columnDefinition.sparse ? ' SPARSE' : '';
 			const maskedWithFunction = columnDefinition.maskedWithFunction
 				? ` MASKED WITH (FUNCTION='${columnDefinition.maskedWithFunction}')`
@@ -298,7 +310,7 @@ const provider = (baseProvider, options, app) => {
 
 			return {
 				...columnDefinition,
-				default: jsonSchema.defaultConstraintName ? '' : columnDefinition.default,
+				default: jsonSchema.defaultConstraintName ? undefined : columnDefinition.default,
 				defaultConstraint: {
 					name: jsonSchema.defaultConstraintName,
 					value: columnDefinition.default,

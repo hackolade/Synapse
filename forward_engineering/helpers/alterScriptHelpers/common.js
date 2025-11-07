@@ -1,4 +1,4 @@
-const { isEqual, difference } = require('lodash');
+const { isEqual } = require('lodash');
 
 const checkFieldPropertiesChanged = (compMod, propertiesToCheck) => {
 	return propertiesToCheck.some(prop => compMod?.oldField[prop] !== compMod?.newField[prop]);
