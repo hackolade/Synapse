@@ -14,7 +14,7 @@ const modifyGroupItems = ({ data, key, hydrate, drop, create }) => {
 	const addedScripts = added.map(item => create(parentName, item));
 	const modifiedScripts = modified.map(item => create(parentName, { ...item, orReplace: true }));
 
-	return [].concat(modifiedScripts).concat(removedScripts).concat(addedScripts).filter(Boolean).join('\n\n');
+	return [modifiedScripts].flat().concat(removedScripts).concat(addedScripts).filter(Boolean).join('\n\n');
 };
 
 const getModifiedGroupItems = ({ new: newItems = [], old: oldItems = [] }, hydrate) => {

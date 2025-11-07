@@ -1,13 +1,13 @@
 const _ = require('lodash');
 const { commentIfDeactivated } = require('./commentIfDeactivated');
+const { trimBraces } = require('./general');
+const { checkAllKeysDeactivated, divideIntoActivatedAndDeactivated } = require('../utils/general');
+const { assignTemplates } = require('../utils/assignTemplates');
+const templates = require('../configs/templates');
 
-module.exports = app => {
-	const { assignTemplates } = app.require('@hackolade/ddl-fe-utils');
-	const { checkAllKeysDeactivated, divideIntoActivatedAndDeactivated } =
-		app.require('@hackolade/ddl-fe-utils').general;
-	const { trimBraces } = require('./general')(app);
-
-	const createKeyConstraint = (templates, terminator, isParentActivated) => keyData => {
+const createKeyConstraint =
+	({ terminator, isParentActivated }) =>
+	keyData => {
 		const partition = keyData.partition ? ` ON [${keyData.partition}]` : '';
 		const columnMapToString = ({ name }) => `[${name}]`.trim();
 
@@ -37,36 +37,32 @@ module.exports = app => {
 		};
 	};
 
-	const createDefaultConstraint = (templates, terminator) => (constraintData, tableName) => {
-		return assignTemplates(templates.createDefaultConstraint, {
-			tableName,
-			constraintName: constraintData.constraintName,
-			columnName: constraintData.columnName,
-			default: trimBraces(constraintData.value),
-			terminator,
-		});
-	};
+const createDefaultConstraint = ({ constraint }) => {
+	return assignTemplates(templates.columnDefaultConstraint, {
+		constraintName: constraint.name,
+		default: trimBraces(constraint.value),
+	});
+};
 
-	const generateConstraintsString = (dividedConstraints, isParentActivated) => {
-		const activatedConstraints = dividedConstraints.activatedItems.length
-			? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
-			: '';
+const generateConstraintsString = (dividedConstraints, isParentActivated) => {
+	const activatedConstraints = dividedConstraints.activatedItems.length
+		? ',\n\t' + dividedConstraints.activatedItems.join(',\n\t')
+		: '';
 
-		const deactivatedConstraints = dividedConstraints.deactivatedItems.length
-			? '\n\t' +
-				commentIfDeactivated(
-					dividedConstraints.deactivatedItems.join(',\n\t'),
-					{ isActivated: !isParentActivated },
-					true,
-				)
-			: '';
+	const deactivatedConstraints = dividedConstraints.deactivatedItems.length
+		? '\n\t' +
+			commentIfDeactivated(
+				dividedConstraints.deactivatedItems.join(',\n\t'),
+				{ isActivated: !isParentActivated },
+				true,
+			)
+		: '';
 
-		return activatedConstraints + deactivatedConstraints;
-	};
+	return activatedConstraints + deactivatedConstraints;
+};
 
-	return {
-		createDefaultConstraint,
-		createKeyConstraint,
-		generateConstraintsString,
-	};
+module.exports = {
+	createDefaultConstraint,
+	createKeyConstraint,
+	generateConstraintsString,
 };

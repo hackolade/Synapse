@@ -5,7 +5,7 @@ module.exports = {
 
 	createTable:
 		'CREATE${external} TABLE ${name} (\n' +
-		'\t${column_definitions}${temporalTableTime}${keyConstraints}${checkConstraints}${foreignKeyConstraints}${memoryOptimizedIndexes}\n' +
+		'\t${column_definitions}${temporalTableTime}${keyConstraints}${memoryOptimizedIndexes}\n' +
 		')${options}${terminator}\n',
 
 	columnDefinition:
@@ -23,11 +23,6 @@ module.exports = {
 
 	spatialIndex: 'CREATE SPATIAL INDEX ${name} ON ${table} (${column})${using}\n${options}${terminator}\n',
 
-	checkConstraint: 'CONSTRAINT [${name}] CHECK${notForReplication} (${expression})',
-
-	createForeignKeyConstraint:
-		'CONSTRAINT [${name}] FOREIGN KEY (${foreignKey}) REFERENCES ${primaryTable}(${primaryKey})',
-
 	createView:
 		'CREATE${materialized} VIEW ${name}\n${view_attribute}AS ${select_statement}${check_option}${options}${terminator}\n',
 
@@ -37,7 +32,9 @@ module.exports = {
 
 	createKeyConstraint: '${constraintName}${keyType}${clustered}${columns}${options}${partition}',
 
-	createDefaultConstraint:
+	columnDefaultConstraint: 'CONSTRAINT [${constraintName}] DEFAULT (${default})',
+
+	alterDefaultConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT [${constraintName}] DEFAULT (${default}) FOR [${columnName}]${terminator}\n',
 
 	ifNotExistSchema:
@@ -68,7 +65,7 @@ module.exports = {
 
 	addColumn: 'ADD ${script}',
 
-	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}${not_null}',
+	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}',
 
 	renameColumn: "EXEC sp_rename '${fullTableName}.${oldColumnName}', '${newColumnName}', 'COLUMN';${terminator}",
 

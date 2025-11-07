@@ -1,20 +1,18 @@
 const { isBoolean, isNumber } = require('lodash');
 
 const createColumnDefinition = data => {
-	return Object.assign(
-		{
-			name: '',
-			type: '',
-			nullable: true,
-			primaryKey: false,
-			default: '',
-			length: '',
-			scale: '',
-			precision: '',
-			hasMaxLength: false,
-		},
-		data,
-	);
+	return {
+		name: '',
+		type: '',
+		nullable: true,
+		primaryKey: false,
+		default: '',
+		length: '',
+		scale: '',
+		precision: '',
+		hasMaxLength: false,
+		...data,
+	};
 };
 
 const isNullable = (parentSchema, propertyName) => {
@@ -83,7 +81,7 @@ const getType = jsonSchema => {
 
 const createColumnDefinitionBySchema = ({ name, jsonSchema, parentJsonSchema, ddlProvider, schemaData }) => {
 	const columnDefinition = createColumnDefinition({
-		name: name,
+		name,
 		type: getType(jsonSchema),
 		nullable: isNullable(parentJsonSchema, name),
 		default: getDefault(jsonSchema),
@@ -101,6 +99,7 @@ const createColumnDefinitionBySchema = ({ name, jsonSchema, parentJsonSchema, dd
 		schemaData,
 	});
 };
+
 module.exports = {
 	createColumnDefinitionBySchema,
 };

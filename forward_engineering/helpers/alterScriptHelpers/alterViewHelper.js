@@ -1,13 +1,13 @@
 const _ = require('lodash');
+const { getTableName } = require('../general');
 
-module.exports = (app, options) => {
+const alterViewHelper = (app, options) => {
 	const { mapProperties } = app.require('@hackolade/ddl-fe-utils');
 	const { checkCompModEqual } = require('./common');
 	const ddlProvider = require('../../ddlProvider')(null, options, app);
-	const { getTableName } = require('../general')(app);
 
 	const getAddViewScript = view => {
-		const viewSchema = { ...view, ...(view.role ?? {}) };
+		const viewSchema = { ...view, ...view.role };
 
 		const viewData = {
 			name: viewSchema.code || viewSchema.name,
@@ -26,7 +26,7 @@ module.exports = (app, options) => {
 	};
 
 	const getModifiedViewScript = view => {
-		const viewSchema = { ...view, ...(view.role ?? {}) };
+		const viewSchema = { ...view, ...view.role };
 		const schemaData = { schemaName: viewSchema.compMod.keyspaceName };
 		const viewData = {
 			name: viewSchema.code || viewSchema.name,
@@ -97,3 +97,5 @@ module.exports = (app, options) => {
 		getModifiedViewScript,
 	};
 };
+
+module.exports = alterViewHelper;

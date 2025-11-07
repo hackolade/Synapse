@@ -1,17 +1,19 @@
 const _ = require('lodash');
+const { getTableName } = require('../general');
+const { getEntityName } = require('../../utils/general');
+const { createColumnDefinitionBySchema } = require('./createColumnDefinition');
+const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common');
+const { getModifyPkScripts } = require('./entityHelper/primaryKeyHelper');
+const { getModifyUkScripts } = require('./entityHelper/uniqueKeyHelper');
 
-module.exports = (app, options) => {
-	const { getEntityName } = app.require('@hackolade/ddl-fe-utils').general;
-	const { createColumnDefinitionBySchema } = require('./createColumnDefinition');
-	const { getTableName } = require('../general')(app);
+const alterEntityHelper = (app, options) => {
 	const ddlProvider = require('../../ddlProvider')(null, options, app);
 	const { generateIdToNameHashTable, generateIdToActivatedHashTable } = app.require('@hackolade/ddl-fe-utils');
-	const { checkFieldPropertiesChanged, modifyGroupItems, setIndexKeys } = require('./common');
 
 	const getAddCollectionScript = collection => {
 		const schemaName = collection.compMod.keyspaceName;
 		const schemaData = { schemaName };
-		const jsonSchema = { ...collection, ...(collection?.role || {}) };
+		const jsonSchema = { ...collection, ...collection?.role };
 		const tableName = getEntityName(jsonSchema);
 		const idToNameHashTable = generateIdToNameHashTable(jsonSchema);
 		const idToActivatedHashTable = generateIdToActivatedHashTable(jsonSchema);
@@ -24,14 +26,10 @@ module.exports = (app, options) => {
 				schemaData,
 			}),
 		);
-		const checkConstraints = (jsonSchema.chkConstr || []).map(check =>
-			ddlProvider.createCheckConstraint(ddlProvider.hydrateCheckConstraint(check)),
-		);
+
 		const tableData = {
 			name: tableName,
 			columns: columnDefinitions.map(ddlProvider.convertColumnDefinition),
-			checkConstraints: checkConstraints,
-			foreignKeyConstraints: [],
 			schemaData,
 			columnDefinitions,
 		};
@@ -52,7 +50,7 @@ module.exports = (app, options) => {
 	};
 
 	const getDeleteCollectionScript = collection => {
-		const jsonSchema = { ...collection, ...(collection?.role || {}) };
+		const jsonSchema = { ...collection, ...collection?.role };
 		const tableName = getEntityName(jsonSchema);
 		const schemaName = collection.compMod.keyspaceName;
 		const fullName = getTableName(tableName, schemaName);
@@ -61,7 +59,7 @@ module.exports = (app, options) => {
 	};
 
 	const getModifyCollectionScript = collection => {
-		const jsonSchema = { ...collection, ...(collection?.role || {}) };
+		const jsonSchema = { ...collection, ...collection?.role };
 		const schemaName = collection.compMod.keyspaceName;
 		const schemaData = { schemaName };
 		const idToNameHashTable = generateIdToNameHashTable(jsonSchema);
@@ -84,11 +82,11 @@ module.exports = (app, options) => {
 			drop: (tableName, index) => ddlProvider.dropIndex(tableName, index),
 		});
 
-		return [].concat(indexesScripts).filter(Boolean).join('\n\n');
+		return [indexesScripts].flat().filter(Boolean).join('\n\n');
 	};
 
 	const getAddColumnScript = collection => {
-		const collectionSchema = { ...collection, ...(_.omit(collection?.role, 'properties') || {}) };
+		const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 		const tableName = collectionSchema?.code || collectionSchema?.collectionName || collectionSchema?.name;
 		const schemaName = collectionSchema.compMod?.keyspaceName;
 		const fullName = getTableName(tableName, schemaName);
@@ -110,7 +108,7 @@ module.exports = (app, options) => {
 	};
 
 	const getDeleteColumnScript = collection => {
-		const collectionSchema = { ...collection, ...(_.omit(collection?.role, 'properties') || {}) };
+		const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 		const tableName = collectionSchema?.code || collectionSchema?.collectionName || collectionSchema?.name;
 		const schemaName = collectionSchema.compMod?.keyspaceName;
 		const fullName = getTableName(tableName, schemaName);
@@ -121,33 +119,70 @@ module.exports = (app, options) => {
 	};
 
 	const getModifyColumnScript = collection => {
-		const collectionSchema = { ...collection, ...(_.omit(collection?.role, 'properties') || {}) };
+		const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 		const tableName = collectionSchema?.code || collectionSchema?.collectionName || collectionSchema?.name;
 		const schemaName = collectionSchema.compMod?.keyspaceName;
-		const fullName = getTableName(tableName, schemaName);
+		const fullTableName = getTableName(tableName, schemaName);
 		const schemaData = { schemaName };
 
 		const renameColumnScripts = _.values(collection.properties)
 			.filter(jsonSchema => checkFieldPropertiesChanged(jsonSchema.compMod, ['name']))
 			.map(jsonSchema =>
-				ddlProvider.renameColumn(fullName, jsonSchema.compMod.oldField.name, jsonSchema.compMod.newField.name),
+				ddlProvider.renameColumn(
+					fullTableName,
+					jsonSchema.compMod.oldField.name,
+					jsonSchema.compMod.newField.name,
+				),
 			);
 
-		const changeTypeScripts = _.toPairs(collection.properties)
-			.filter(([name, jsonSchema]) => checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']))
-			.map(([name, jsonSchema]) => {
-				const columnDefinition = createColumnDefinitionBySchema({
-					name,
-					jsonSchema,
-					parentJsonSchema: collectionSchema,
-					ddlProvider,
-					schemaData,
-				});
+		const pairs = _.toPairs(collection.properties);
 
-				return ddlProvider.alterColumn(fullName, columnDefinition);
+		const alterColumnScripts = pairs.reduce((acc, [name, jsonSchema]) => {
+			const fieldTypeChanged = checkFieldPropertiesChanged(jsonSchema.compMod, ['type', 'mode']);
+
+			const columnDefinition = createColumnDefinitionBySchema({
+				name,
+				jsonSchema,
+				parentJsonSchema: collectionSchema,
+				ddlProvider,
+				schemaData,
 			});
 
-		return [...renameColumnScripts, ...changeTypeScripts];
+			if (fieldTypeChanged) {
+				acc.push(
+					ddlProvider.alterColumn({
+						fullTableName,
+						columnDefinition,
+						alterType: fieldTypeChanged,
+					}),
+				);
+			}
+
+			return acc;
+		}, []);
+
+		const alterDefaultScripts = pairs
+			.filter(
+				([, jsonSchema]) =>
+					options?.scriptGenerationOptions?.feActiveOptions?.columnDefaultValues === 'separate' &&
+					jsonSchema.defaultConstraintName,
+			)
+			.map(([name, jsonSchema]) => {
+				return ddlProvider.alterColumnDefault({
+					fullTableName,
+					columnName: name,
+					constraint: { name: jsonSchema.defaultConstraintName, value: jsonSchema.default },
+				});
+			});
+
+		return [...renameColumnScripts, ...alterColumnScripts, ...alterDefaultScripts];
+	};
+
+	const getModifyCollectionKeysScript = collection => {
+		const modifyPkScripts = getModifyPkScripts(collection, options);
+		const modifyUkScripts = getModifyUkScripts(collection, options);
+
+		return [...modifyPkScripts, ...modifyUkScripts].filter(Boolean);
 	};
 
 	const hydrateIndex =
@@ -165,5 +200,8 @@ module.exports = (app, options) => {
 		getAddColumnScript,
 		getDeleteColumnScript,
 		getModifyColumnScript,
+		getModifyCollectionKeysScript,
 	};
 };
+
+module.exports = alterEntityHelper;

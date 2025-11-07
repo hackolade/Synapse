@@ -8,27 +8,14 @@ const { toLower, toUpper } = require('lodash');
 const types = require('./configs/types');
 const defaultTypes = require('./configs/defaultTypes');
 const { decorateType } = require('./helpers/columnDefinitionHelper');
-const getKeyHelper = require('./helpers/keyHelper');
+const keyHelper = require('./helpers/keyHelper');
 
 class DbtProvider {
 	/**
-	 * @type {AppInstance}
-	 */
-	#appInstance;
-
-	/**
-	 * @param {{ appInstance: AppInstance }}
-	 */
-	constructor({ appInstance }) {
-		this.#appInstance = appInstance;
-	}
-
-	/**
-	 * @param {{ appInstance }}
 	 * @returns {DbtProvider}
 	 */
-	static createDbtProvider({ appInstance }) {
-		return new DbtProvider({ appInstance });
+	static createDbtProvider() {
+		return new DbtProvider();
 	}
 
 	/**
@@ -67,8 +54,6 @@ class DbtProvider {
 	 * @returns {ConstraintDto[]}
 	 */
 	getCompositeKeyConstraints({ jsonSchema }) {
-		const keyHelper = getKeyHelper(this.#appInstance);
-
 		return keyHelper.getCompositeKeyConstraints({ jsonSchema });
 	}
 
@@ -77,8 +62,6 @@ class DbtProvider {
 	 * @returns {ConstraintDto[]}
 	 */
 	getColumnConstraints({ columnDefinition, jsonSchema }) {
-		const keyHelper = getKeyHelper(this.#appInstance);
-
 		return keyHelper.getColumnConstraints({ columnDefinition });
 	}
 }
