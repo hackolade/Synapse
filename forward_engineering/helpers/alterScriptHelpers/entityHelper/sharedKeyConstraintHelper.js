@@ -283,7 +283,7 @@ const getAddRegularKeyScripts = (collection, config, options) => {
 	const terminator = getTerminator(options);
 	const collectionSchema = { ...collection, ..._.omit(collection?.role, 'properties') };
 	const tableName = getEntityName(collectionSchema);
-	const schemaName = collection.compMod?.keyspaceName;
+	const schemaName = collectionSchema.compMod?.keyspaceName;
 	const fullName = getTableName(tableName, schemaName);
 
 	const isTableActivated = _.get(collectionSchema, 'isActivated', true);

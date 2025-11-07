@@ -3,44 +3,44 @@ const { commentIfDeactivated } = require('./commentIfDeactivated');
 const { trimBraces } = require('./general');
 const { checkAllKeysDeactivated, divideIntoActivatedAndDeactivated } = require('../utils/general');
 const { assignTemplates } = require('../utils/assignTemplates');
+const templates = require('../configs/templates');
 
-const createKeyConstraint = (templates, terminator, isParentActivated) => keyData => {
-	const partition = keyData.partition ? ` ON [${keyData.partition}]` : '';
-	const columnMapToString = ({ name }) => `[${name}]`.trim();
+const createKeyConstraint =
+	({ terminator, isParentActivated }) =>
+	keyData => {
+		const partition = keyData.partition ? ` ON [${keyData.partition}]` : '';
+		const columnMapToString = ({ name }) => `[${name}]`.trim();
 
-	const isAllColumnsDeactivated = checkAllKeysDeactivated(keyData.columns);
+		const isAllColumnsDeactivated = checkAllKeysDeactivated(keyData.columns);
 
-	const dividedColumns = divideIntoActivatedAndDeactivated(keyData.columns, columnMapToString);
-	const deactivatedColumnsAsString = dividedColumns.deactivatedItems.length
-		? commentIfDeactivated(dividedColumns.deactivatedItems.join(', '), { isActivated: false }, true)
-		: '';
+		const dividedColumns = divideIntoActivatedAndDeactivated(keyData.columns, columnMapToString);
+		const deactivatedColumnsAsString = dividedColumns.deactivatedItems.length
+			? commentIfDeactivated(dividedColumns.deactivatedItems.join(', '), { isActivated: false }, true)
+			: '';
 
-	const columns =
-		!isAllColumnsDeactivated && isParentActivated
-			? ' (' + dividedColumns.activatedItems.join(', ') + deactivatedColumnsAsString + ')'
-			: ' (' + keyData.columns.map(columnMapToString).join(', ') + ')';
+		const columns =
+			!isAllColumnsDeactivated && isParentActivated
+				? ' (' + dividedColumns.activatedItems.join(', ') + deactivatedColumnsAsString + ')'
+				: ' (' + keyData.columns.map(columnMapToString).join(', ') + ')';
 
-	return {
-		statement: assignTemplates(templates.createKeyConstraint, {
-			constraintName: keyData.name ? `CONSTRAINT [${keyData.name}] ` : '',
-			keyType: keyData.keyType,
-			clustered: ' NONCLUSTERED',
-			columns,
-			options: ' NOT ENFORCED',
-			partition,
-			terminator,
-		}),
-		isActivated: !isAllColumnsDeactivated,
+		return {
+			statement: assignTemplates(templates.createKeyConstraint, {
+				constraintName: keyData.name ? `CONSTRAINT [${keyData.name}] ` : '',
+				keyType: keyData.keyType,
+				clustered: ' NONCLUSTERED',
+				columns,
+				options: ' NOT ENFORCED',
+				partition,
+				terminator,
+			}),
+			isActivated: !isAllColumnsDeactivated,
+		};
 	};
-};
 
-const createDefaultConstraint = (templates, terminator) => (constraintData, tableName) => {
-	return assignTemplates(templates.createDefaultConstraint, {
-		tableName,
-		constraintName: constraintData.constraintName,
-		columnName: constraintData.columnName,
-		default: trimBraces(constraintData.value),
-		terminator,
+const createDefaultConstraint = ({ constraint }) => {
+	return assignTemplates(templates.columnDefaultConstraint, {
+		constraintName: constraint.name,
+		default: trimBraces(constraint.value),
 	});
 };
 

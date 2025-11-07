@@ -32,7 +32,9 @@ module.exports = {
 
 	createKeyConstraint: '${constraintName}${keyType}${clustered}${columns}${options}${partition}',
 
-	createDefaultConstraint:
+	columnDefaultConstraint: 'CONSTRAINT [${constraintName}] DEFAULT (${default})',
+
+	alterDefaultConstraint:
 		'ALTER TABLE ${tableName} ADD CONSTRAINT [${constraintName}] DEFAULT (${default}) FOR [${columnName}]${terminator}\n',
 
 	ifNotExistSchema:
@@ -63,7 +65,7 @@ module.exports = {
 
 	addColumn: 'ADD ${script}',
 
-	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}${not_null}',
+	alterColumn: 'ALTER COLUMN [${name}] ${type}${collation}',
 
 	renameColumn: "EXEC sp_rename '${fullTableName}.${oldColumnName}', '${newColumnName}', 'COLUMN';${terminator}",
 

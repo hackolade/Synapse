@@ -178,8 +178,8 @@
 				},
 				"separate": {
 					"default": false,
-					"disabled": false,
-					"disabledLabel": ""
+					"disabled": true,
+					"disabledLabel": "N/A"
 				},
 				"ignore": {
 					"default": false,
