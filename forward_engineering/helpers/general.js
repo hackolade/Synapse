@@ -94,7 +94,7 @@ const getTableOptions = options => {
 		return '';
 	}
 
-	return `WITH (\n\t${optionsStatements.join(',\n\t')}\n)`;
+	return ` WITH (\n\t${optionsStatements.join(',\n\t')}\n)`;
 };
 
 const hasType = type => {
