@@ -457,6 +457,14 @@ const provider = (baseProvider, options, app) => {
 			return commentIfDeactivated(statement, data, isPartOfLine);
 		},
 
+		commentStatement(statement) {
+			return commentIfDeactivated(statement, { isActivated: false });
+		},
+
+		prepareName(name) {
+			return getTableName(name);
+		},
+
 		dropSchema(name) {
 			return assignTemplates(templates.dropSchema, {
 				terminator,
