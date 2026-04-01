@@ -161,5 +161,61 @@ making sure that you maintain a proper JSON format.
 			}
 		],
 		"containerLevelKeys": []
+	},
+	{
+		"lowerTab": "Procedures",
+		"structure": [
+			{
+				"propertyName": "Procedure",
+				"propertyType": "group",
+				"propertyKeyword": "Procedures",
+				"propertyTooltip": "Creates a new stored procedure or alter an existing procedure for the current schema.",
+				"structure": [
+					{
+						"propertyName": "Name",
+						"propertyKeyword": "name",
+						"propertyTooltip": "The name of the procedure.",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Arguments",
+						"propertyKeyword": "inputArgs",
+						"propertyTooltip": "A list of arguments' names and their data types.",
+						"propertyType": "details",
+						"markdown": false,
+						"template": "codeEditor",
+						"templateOptions": {
+							"editorDialect": "sql"
+						}
+					},
+					{
+						"propertyName": "Procedure body",
+						"propertyKeyword": "body",
+						"propertyTooltip": "Valid SQL procedure statement.",
+						"propertyType": "details",
+						"markdown": false,
+						"template": "codeEditor",
+						"templateOptions": {
+							"editorDialect": "sql"
+						}
+					},
+					{
+						"propertyName": "Comments",
+						"propertyKeyword": "description",
+						"propertyType": "details",
+						"template": "textarea"
+					},
+					{
+						"propertyName": "Remarks",
+						"propertyKeyword": "comments",
+						"shouldValidate": false,
+						"propertyTooltip": "comments",
+						"addTimestampButton": false,
+						"propertyType": "details",
+						"template": "textarea"
+					}
+				]
+			}
+		]
 	}
 ]

@@ -42,46 +42,48 @@ const {
 	createDefaultConstraint,
 	generateConstraintsString,
 } = require('./helpers/constraintsHelper');
+const { hydrateProcedures } = require('./helpers/proceduresHelper');
 
 const provider = (baseProvider, options, app) => {
 	const terminator = getTerminator(options);
 
 	return {
-		createSchema({ schemaName, databaseName, ifNotExist, isActivated = true }) {
+		createSchema({ schemaName, databaseName, ifNotExist, procedures = [], isActivated = true }) {
 			const schemaTerminator = ifNotExist ? ';' : terminator;
-			let schemaStatement = commentIfDeactivated(
-				assignTemplates(templates.createSchema, {
-					name: schemaName,
-					terminator: schemaTerminator,
-				}),
-				{ isActivated },
-			);
 
-			if (!databaseName) {
-				return ifNotExist
-					? wrapIfNotExistSchema({ templates, schemaStatement, schemaName, terminator })
-					: schemaStatement;
-			}
+			let databaseStatement = '';
+			let schemaStatement = '';
 
-			const databaseStatement = wrapIfNotExistDatabase({
-				templates,
-				databaseName,
-				terminator,
-				databaseStatement: assignTemplates(templates.createDatabase, {
-					name: databaseName,
-					terminator: schemaTerminator,
-				}),
+			schemaStatement = assignTemplates(templates.createSchema, {
+				name: schemaName,
+				terminator: schemaTerminator,
 			});
 
+			schemaStatement = commentIfDeactivated(schemaStatement, { isActivated });
+
 			if (ifNotExist) {
-				return (
-					databaseStatement +
-					'\n\n' +
-					wrapIfNotExistSchema({ templates, schemaStatement, schemaName, terminator })
-				);
+				schemaStatement = wrapIfNotExistSchema({ templates, schemaStatement, schemaName, terminator });
 			}
 
-			return databaseStatement + '\n\n' + schemaStatement;
+			if (databaseName) {
+				databaseStatement = assignTemplates(templates.createDatabase, {
+					name: databaseName,
+					terminator: schemaTerminator,
+				});
+
+				databaseStatement = wrapIfNotExistDatabase({
+					templates,
+					databaseName,
+					terminator,
+					databaseStatement,
+				});
+			}
+
+			const procedureStatements = procedures.map(procedure =>
+				this.createProcedure({ ...procedure, schemaName, isActivated }),
+			);
+
+			return [databaseStatement, schemaStatement, ...procedureStatements].filter(Boolean).join('\n\n');
 		},
 
 		createTable(
@@ -369,12 +371,13 @@ const provider = (baseProvider, options, app) => {
 			return hydrateTableIndex(indexData, schemaData);
 		},
 
-		hydrateSchema(containerData) {
+		hydrateSchema(containerData, { procedures } = {}) {
 			return {
 				schemaName: containerData.name,
 				databaseName: containerData.databaseName,
 				ifNotExist: containerData.ifNotExist,
 				isActivated: containerData.isActivated,
+				procedures: hydrateProcedures(procedures),
 			};
 		},
 
@@ -598,6 +601,20 @@ const provider = (baseProvider, options, app) => {
 				select_statement: asSelectStatement,
 				terminator: viewTerminator,
 			});
+		},
+
+		createProcedure({ schemaName, isActivated, name, inputArgs, body }) {
+			const procedureName = getTableName(name, schemaName);
+			const args = inputArgs ? `\n${inputArgs.replace(/^\(([\s\S]+)\)$/, '$1')}` : '';
+
+			const procedureStatement = assignTemplates(templates.createProcedure, {
+				name: procedureName,
+				arguments: args,
+				body,
+				terminator,
+			});
+
+			return commentIfDeactivated(procedureStatement, { isActivated });
 		},
 	};
 };
