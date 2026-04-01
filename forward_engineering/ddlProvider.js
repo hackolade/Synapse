@@ -66,14 +66,16 @@ const provider = (baseProvider, options, app) => {
 			}
 
 			if (databaseName) {
+				databaseStatement = assignTemplates(templates.createDatabase, {
+					name: databaseName,
+					terminator: schemaTerminator,
+				});
+
 				databaseStatement = wrapIfNotExistDatabase({
 					templates,
 					databaseName,
 					terminator,
-					databaseStatement: assignTemplates(templates.createDatabase, {
-						name: databaseName,
-						terminator: schemaTerminator,
-					}),
+					databaseStatement,
 				});
 			}
 
