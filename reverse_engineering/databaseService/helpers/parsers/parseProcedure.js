@@ -13,29 +13,20 @@ const { trim } = require('lodash');
  * @property {string} [body]
  */
 
-const createProcedureRegexp =
-	/CREATE(?<orReplace>\s*OR\s*ALTER)?\s*(?:PROC|PROCEDURE)\s*(?:[^\s(]+)\s*(?<inputArgs>\((?:[^()']+|'[^']*'|\([^()]*\))*\)|(?:\s*@\w+[^@]*?)*?)?\s*AS\s*(?<body>[\s\S]+)/i;
+const parseProcedureProperties = statement => {
+	const createProcedureRegexp = /CREATE(?:\s+OR\s+ALTER)?\s+(?:\bPROC|\bPROCEDURE)\s*(?:[^\s(]+)\s+/gi;
+	const procedurePropertiesRegexp =
+		/(?<inputArgs>\((?:[^()']+|'[^']*'|\([^()]*\))*\)|(?:\s*@\w+[^@]*?)*?)?\s*AS\s*(?<body>[\s\S]+)/gi;
 
-/**
- *
- * @param {string} [args]
- * @returns {string|undefined}
- */
-const formatArgs = args => {
-	if (typeof args === 'string') {
-		return args.split(',').map(trim).join(',\n');
-	}
-};
+	const procedureStatement = statement.replace(createProcedureRegexp, '');
+	const { groups } = procedurePropertiesRegexp.exec(procedureStatement);
+	const inputArgs = groups.inputArgs?.split(',').map(trim).join(',\n');
+	const body = groups.body?.replace(/;$/, '');
 
-/**
- *
- * @param {string} [body]
- * @returns {string|undefined}
- */
-const formatBody = body => {
-	if (typeof body === 'string') {
-		return body.replace(/;$/, '');
-	}
+	return {
+		inputArgs,
+		body,
+	};
 };
 
 /**
@@ -47,14 +38,13 @@ const parseProcedure = logger => rawProcedure => {
 	const { schema_name, procedure_name, procedure_body } = rawProcedure;
 
 	try {
-		const result = createProcedureRegexp.exec(procedure_body);
-		const { inputArgs, body } = result.groups;
+		const { inputArgs, body } = parseProcedureProperties(procedure_body);
 
 		return {
 			name: procedure_name,
 			schemaName: schema_name,
-			inputArgs: formatArgs(inputArgs),
-			body: formatBody(body),
+			inputArgs,
+			body,
 		};
 	} catch (error) {
 		logger.log(
