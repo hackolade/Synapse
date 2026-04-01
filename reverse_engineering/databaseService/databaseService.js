@@ -11,6 +11,7 @@ const {
 const {
 	getDatabaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser,
 } = require('../queries/selectedTablesSubQuery/databaseIndexesSubQueryForRetrievingTheTablesSelectedByTheUser');
+const { parseProcedure } = require('./helpers/parsers/parseProcedure');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
@@ -675,6 +676,44 @@ async function getTableRowCount(tableSchema, tableName, currentDbConnectionClien
 	return rowCount;
 }
 
+const getDatabaseProcedures = async ({ connectionClient, dbName, logger }) => {
+	try {
+		const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
+
+		logger.log('info', { message: `Get '${dbName}' database procedures.` }, 'Reverse Engineering');
+
+		const response = await currentDbConnectionClient.query(`
+		SELECT
+				s.name AS schema_name,
+				p.name AS procedure_name,
+				sm.definition AS procedure_body
+		FROM sys.procedures p
+		JOIN sys.schemas s 
+				ON p.schema_id = s.schema_id
+		LEFT JOIN sys.sql_modules sm 
+				ON p.object_id = sm.object_id
+		ORDER BY s.name, p.name;
+		`);
+
+		const rawProcedures = await mapResponse(response);
+
+		return rawProcedures.map(parseProcedure(logger));
+	} catch (error) {
+		logger.log(
+			'error',
+			{ message: error.message, stack: error.stack, error },
+			`Get '${dbName}' database procedures.`,
+		);
+		logger.progress({
+			message: `Warning: failed to reverse-engineer procedures.`,
+			containerName: '',
+			entityName: '',
+		});
+
+		return [];
+	}
+};
+
 module.exports = {
 	getConnectionClient,
 	getObjectsFromDatabase,
@@ -694,4 +733,5 @@ module.exports = {
 	getViewDistributedColumns,
 	queryDistribution,
 	getPartitions,
+	getDatabaseProcedures,
 };

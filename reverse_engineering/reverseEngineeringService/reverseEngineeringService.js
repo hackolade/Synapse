@@ -16,6 +16,7 @@ const {
 	queryDistribution,
 	getPartitions,
 	getTableMaskedColumns,
+	getDatabaseProcedures,
 } = require('../databaseService/databaseService');
 const {
 	transformDatabaseTableInfoToJSON,
@@ -369,10 +370,11 @@ const getPersistence = tableName => {
 const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo, reverseEngineeringOptions) => {
 	const dbName = dbConnectionClient.config.database;
 	progress(logger, `RE data from database "${dbName}"`, dbName);
-	const [databaseIndexes, databaseUDT, dataBasePartitions] = await Promise.all([
+	const [databaseIndexes, databaseUDT, dataBasePartitions, databaseProcedures] = await Promise.all([
 		getDatabaseIndexes({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }),
 		getDatabaseUserDefinedTypes({ connectionClient: dbConnectionClient, dbName, logger }),
 		getPartitions({ connectionClient: dbConnectionClient, tablesInfo, dbName, logger }),
+		getDatabaseProcedures({ connectionClient: dbConnectionClient, dbName, logger }),
 	]);
 
 	return Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
@@ -387,6 +389,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 			const tablePartitions = dataBasePartitions.filter(
 				partition => partition.tableName === tableName && partition.schemaName === schemaName,
 			);
+			const schemaProcedures = databaseProcedures.filter(procedure => procedure.schemaName === schemaName);
 
 			const tableInfo = await getTableInfo({
 				connectionClient: dbConnectionClient,
@@ -514,6 +517,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 				documents: cleanDocuments(reorderedTableRows),
 				bucketInfo: {
 					databaseName: dbName,
+					Procedures: schemaProcedures,
 				},
 				modelDefinitions: {
 					definitions: getUserDefinedTypes(tableInfo, databaseUDT),
