@@ -380,6 +380,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 	return Object.entries(tablesInfo).reduce(async (jsonSchemas, [schemaName, tableNames]) => {
 		progress(logger, 'Fetching database information', dbName);
 		const isSystemIndex = index => /^ClusteredIndex_[a-f0-9]{32}$/m.test(index.name || '');
+		const schemaProcedures = databaseProcedures.filter(procedure => procedure.schemaName === schemaName);
 
 		async function processTable(untrimmedTableName) {
 			const tableName = untrimmedTableName.replace(/ \(v\)$/, '');
@@ -389,7 +390,6 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 			const tablePartitions = dataBasePartitions.filter(
 				partition => partition.tableName === tableName && partition.schemaName === schemaName,
 			);
-			const schemaProcedures = databaseProcedures.filter(procedure => procedure.schemaName === schemaName);
 
 			const tableInfo = await getTableInfo({
 				connectionClient: dbConnectionClient,
