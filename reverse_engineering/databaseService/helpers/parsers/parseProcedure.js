@@ -20,12 +20,12 @@ const { trim } = require('lodash');
  */
 const parseProcedureProperties = statement => {
 	const createProcedureRegexp = /CREATE(?:\s+OR\s+ALTER)?\s+(?:\bPROC\b|\bPROCEDURE\b)\s*(?:[^\s(]+)\s+/i;
-	const inputArgsRegexp = /^\s*(\((?:[^()']+|'[^']*'|\([^()]*\))*\)|(?:(?!AS\b)[^()]+?))(?=\s*\bAS\b)/i;
+	const inputArgsRegexp = /^([\s\S]+)(?=\s+\bAS\b)/i;
 	const bodyRegexp = /\bAS\b\s*([\s\S]+)$/i;
 
 	const procedureString = statement.replace(createProcedureRegexp, '');
-	const inputArgsString = procedureString.match(inputArgsRegexp)?.[1];
-	const bodyString = procedureString.match(bodyRegexp)?.[1];
+	const inputArgsString = inputArgsRegexp.exec(procedureString)?.[1];
+	const bodyString = bodyRegexp.exec(procedureString)?.[1];
 
 	const inputArgs = inputArgsString?.split(',').map(trim).join(',\n');
 	const body = bodyString?.replace(/;$/, '');
