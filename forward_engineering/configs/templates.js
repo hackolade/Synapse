@@ -72,4 +72,6 @@ module.exports = {
 	dropView: 'DROP VIEW IF EXISTS ${name}${terminator}',
 
 	alterView: 'ALTER VIEW ${name}\nAS ${select_statement}${terminator}',
+
+	createProcedure: 'CREATE PROCEDURE ${name}${arguments}\nAS\n${body}${terminator}',
 };
