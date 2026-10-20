@@ -12,7 +12,7 @@ const {
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
 const { logInfo } = require('./helpers/logInfo');
-const { shouldUseExternalBrowser } = require('./helpers/mfaAccessToken');
+const { canRequestUserToMachineAccessToken, shouldUseExternalBrowser } = require('./helpers/mfaAccessToken');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
@@ -60,6 +60,11 @@ module.exports = {
 	},
 
 	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
+		if (canRequestUserToMachineAccessToken({ app, connectionInfo })) {
+			cb(null, {});
+			return;
+		}
+
 		logInfo('Get external browser URL', connectionInfo, logger);
 		const verifier = randomstring.generate(32);
 		const base64Digest = crypto.createHash('sha256').update(verifier).digest('base64');

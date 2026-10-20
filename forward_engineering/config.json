@@ -16,7 +16,6 @@
 		]
 	},
 	"externalBrowserPort": 8080,
-	"userToMachineOAuth": true,
 	"combinedContainers": true,
 	"level": {
 		"container": true,
