@@ -15,7 +15,7 @@ const { parseProcedure } = require('./helpers/parsers/parseProcedure');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
-const getConnectionClient = async (connectionInfo, logger) => {
+const getConnectionClient = async (connectionInfo, logger, app) => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName =
 		isEmail(connectionInfo.userName) && hostName
@@ -48,6 +48,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 		clientId,
 		redirectUri,
 		logger,
+		app,
 	});
 
 	return connection.connect();

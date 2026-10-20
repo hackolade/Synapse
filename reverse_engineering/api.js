@@ -12,6 +12,7 @@ const {
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
 const { logInfo } = require('./helpers/logInfo');
+const { isUserToMachineOauthAvailable } = require('./helpers/mfaAccessToken');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
@@ -22,7 +23,7 @@ module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
 		const client = getClient();
 		if (!client) {
-			await setClient(connectionInfo, logger);
+			await setClient(connectionInfo, logger, app);
 			return getClient();
 		}
 
@@ -37,10 +38,13 @@ module.exports = {
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Test connection', connectionInfo, logger);
-			if (connectionInfo.authMethod === 'Azure Active Directory (MFA)') {
+			if (
+				connectionInfo.authMethod === 'Azure Active Directory (MFA)' &&
+				!isUserToMachineOauthAvailable({ app })
+			) {
 				await this.getExternalBrowserUrl(connectionInfo, logger, callback);
 			} else {
-				await this.connect(connectionInfo, logger);
+				await this.connect(connectionInfo, logger, undefined, app);
 			}
 			callback(null);
 		} catch (error) {
@@ -85,7 +89,7 @@ module.exports = {
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Retrieving databases and tables information', connectionInfo, logger);
-			const client = await this.connect(connectionInfo, logger);
+			const client = await this.connect(connectionInfo, logger, undefined, app);
 			if (!client.config.database) {
 				throw new Error('No database specified');
 			}
