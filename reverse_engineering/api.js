@@ -12,7 +12,7 @@ const {
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
 const { logInfo } = require('./helpers/logInfo');
-const { isUserToMachineOauthAvailable } = require('./helpers/mfaAccessToken');
+const { shouldUseExternalBrowser } = require('./helpers/mfaAccessToken');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
@@ -38,10 +38,7 @@ module.exports = {
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Test connection', connectionInfo, logger);
-			if (
-				connectionInfo.authMethod === 'Azure Active Directory (MFA)' &&
-				!isUserToMachineOauthAvailable({ app })
-			) {
+			if (shouldUseExternalBrowser({ app, connectionInfo })) {
 				await this.getExternalBrowserUrl(connectionInfo, logger, callback);
 			} else {
 				await this.connect(connectionInfo, logger, undefined, app);

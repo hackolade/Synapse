@@ -57,7 +57,11 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 	}
 
 	async connect() {
-		const token = await this.#getToken();
+		const token = await getMfaAccessToken({
+			app: this.app,
+			connectionInfo: this.connectionInfo,
+			logger: this.logger,
+		});
 		logAuthTokenInfo({ token, logger: this.logger });
 		logConnectionHostAndUsername({ authMethod: this.connectionInfo.authMethod, logger: this.logger });
 		return sql.connect({
@@ -72,14 +76,6 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 					token,
 				},
 			},
-		});
-	}
-
-	async #getToken() {
-		return getMfaAccessToken({
-			app: this.app,
-			connectionInfo: this.connectionInfo,
-			logger: this.logger,
 		});
 	}
 }
