@@ -27,7 +27,7 @@ const getAuthorizationQuery = ({ connectionInfo = {} } = {}) => {
 
 const exchangeAuthorizationCode = async ({ app, connectionInfo, logger } = {}) => {
 	try {
-		const { productionClientId, tokenEndpoint } = getEntraOAuthConfig({ app });
+		const { productionClientId, tokenEndpoint, desktopTokenRequestHeaders } = getEntraOAuthConfig({ app });
 		const urlParams = new URLSearchParams();
 
 		urlParams.append('code', connectionInfo?.externalBrowserQuery?.code || '');
@@ -41,7 +41,7 @@ const exchangeAuthorizationCode = async ({ app, connectionInfo, logger } = {}) =
 			headers: {
 				'Accept': 'application/json',
 				'Content-Type': 'application/x-www-form-urlencoded',
-				'Origin': 'http://localhost',
+				...desktopTokenRequestHeaders,
 			},
 			body: urlParams,
 		});
@@ -72,11 +72,6 @@ const getMfaAccessToken = async ({ app, connectionInfo, logger } = {}) => {
 		port: REDIRECT_PORT,
 		failOnPortConflict: true,
 		authorizationQuery: getAuthorizationQuery({ connectionInfo }),
-		tokenRequestOptions: {
-			headers: {
-				Origin: 'http://localhost',
-			},
-		},
 	});
 
 	if (!accessToken) {
