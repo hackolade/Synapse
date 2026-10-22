@@ -39,7 +39,7 @@ const getConnectionClient = async (connectionInfo, logger, app) => {
 
 	const clientId =
 		connectionInfo.authMethod === 'Azure Active Directory (Username / Password)'
-			? getEntraOAuthConfig({ app }).productionClientId
+			? (await getEntraOAuthConfig({ app })).productionClientId
 			: undefined;
 	const redirectUri = 'http://localhost:8080';
 
