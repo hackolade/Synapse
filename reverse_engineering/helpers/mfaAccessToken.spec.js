@@ -56,7 +56,7 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 
 				return {
 					getEntraIdOAuthConfig,
-					async getUserToMachineAccessToken(options) {
+					async browserLoginFlow(options) {
 						calls.push(options);
 
 						return { accessToken: 'sql-access-token' };
@@ -90,8 +90,10 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 					resource: 'https://database.windows.net/',
 					login_hint: 'user name@example.com',
 				},
-				headers: {
-					Origin: 'http://localhost',
+				tokenRequestOptions: {
+					headers: {
+						Origin: 'http://localhost',
+					},
 				},
 			},
 		]);
@@ -103,7 +105,7 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 			require() {
 				return {
 					getEntraIdOAuthConfig,
-					async getUserToMachineAccessToken(options) {
+					async browserLoginFlow(options) {
 						calls.push(options);
 
 						return { accessToken: 'sql-access-token' };
@@ -138,7 +140,7 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 			require() {
 				return {
 					getEntraIdOAuthConfig,
-					async getUserToMachineAccessToken(options) {
+					async browserLoginFlow(options) {
 						calls.push(options);
 
 						return { accessToken: 'sql-access-token' };
@@ -161,7 +163,7 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 			require() {
 				return {
 					getEntraIdOAuthConfig,
-					async getUserToMachineAccessToken() {
+					async browserLoginFlow() {
 						return {};
 					},
 				};
@@ -204,7 +206,7 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 			require() {
 				return {
 					getEntraIdOAuthConfig,
-					async getUserToMachineAccessToken() {
+					async browserLoginFlow() {
 						throw failure;
 					},
 				};
