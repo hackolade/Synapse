@@ -4,6 +4,7 @@ const { getObjectsFromDatabase, getNewConnectionClientByDb } = require('./helper
 const getSampleDocSize = require('../helpers/getSampleDocSize');
 const { logAuthTokenInfo } = require('../helpers/logInfo');
 const { getConnection } = require('./helpers/connection');
+const { getEntraOAuthConfig, resolveAuthorizeTenant } = require('../helpers/entraOAuthConfig');
 const { progress } = require('../helpers/logInfo');
 const {
 	getPartitionsSubQueryForRetrievingTheTablesSelectedByTheUser,
@@ -15,13 +16,13 @@ const { parseProcedure } = require('./helpers/parsers/parseProcedure');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
-const getConnectionClient = async (connectionInfo, logger) => {
+const getConnectionClient = async (connectionInfo, logger, app) => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName =
 		isEmail(connectionInfo.userName) && hostName
 			? `${connectionInfo.userName}@${hostName}`
 			: connectionInfo.userName;
-	const tenantId = connectionInfo.connectionTenantId || connectionInfo.tenantId || 'common';
+	const tenantId = resolveAuthorizeTenant({ connectionInfo });
 	const queryRequestTimeout = Number(connectionInfo.queryRequestTimeout) || QUERY_REQUEST_TIMEOUT;
 
 	const commonConfig = {
@@ -36,7 +37,10 @@ const getConnectionClient = async (connectionInfo, logger) => {
 		password: connectionInfo.userPassword,
 	};
 
-	const clientId = '0dc36597-bc44-49f8-a4a7-ae5401959b85';
+	const clientId =
+		connectionInfo.authMethod === 'Azure Active Directory (Username / Password)'
+			? (await getEntraOAuthConfig({ app })).productionClientId
+			: undefined;
 	const redirectUri = 'http://localhost:8080';
 
 	const connection = getConnection({
@@ -48,6 +52,7 @@ const getConnectionClient = async (connectionInfo, logger) => {
 		clientId,
 		redirectUri,
 		logger,
+		app,
 	});
 
 	return connection.connect();

@@ -1,8 +1,6 @@
-const { hckFetch } = require('@hackolade/fetch');
 const sql = require('mssql');
 const { logAuthTokenInfo, logConnectionHostAndUsername } = require('../../helpers/logInfo');
-const { prepareError } = require('./errorService');
-const { parseResponse } = require('../../helpers/parseResponse');
+const { getMfaAccessToken } = require('../../helpers/mfaAccessToken');
 
 class Connection {
 	constructor({ logger }) {
@@ -51,17 +49,19 @@ class UsernamePasswordConnection extends Connection {
 }
 
 class AzureActiveDirectoryMFAConnection extends Connection {
-	constructor({ connectionInfo, commonConfig, tenantId, clientId, redirectUri, logger }) {
+	constructor({ connectionInfo, commonConfig, logger, app }) {
 		super({ logger });
 		this.connectionInfo = connectionInfo;
 		this.commonConfig = commonConfig;
-		this.tenantId = tenantId;
-		this.clientId = clientId;
-		this.redirectUri = redirectUri;
+		this.app = app;
 	}
 
 	async connect() {
-		const token = await this.#getToken();
+		const token = await getMfaAccessToken({
+			app: this.app,
+			connectionInfo: this.connectionInfo,
+			logger: this.logger,
+		});
 		logAuthTokenInfo({ token, logger: this.logger });
 		logConnectionHostAndUsername({ authMethod: this.connectionInfo.authMethod, logger: this.logger });
 		return sql.connect({
@@ -77,39 +77,6 @@ class AzureActiveDirectoryMFAConnection extends Connection {
 				},
 			},
 		});
-	}
-
-	async #getToken() {
-		try {
-			const urlParams = new URLSearchParams();
-
-			urlParams.append('code', this.connectionInfo?.externalBrowserQuery?.code || '');
-			urlParams.append('client_id', this.clientId);
-			urlParams.append('redirect_uri', this.redirectUri);
-			urlParams.append('grant_type', 'authorization_code');
-			urlParams.append('code_verifier', this.connectionInfo?.proofKey);
-
-			const options = {
-				method: 'POST',
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/x-www-form-urlencoded',
-					'Origin': 'http://localhost',
-				},
-				body: urlParams,
-			};
-
-			const response = await hckFetch(
-				`https://login.microsoftonline.com/organizations/oauth2/v2.0/token`,
-				options,
-			);
-			const responseData = await parseResponse(response);
-
-			return responseData?.access_token || '';
-		} catch (error) {
-			this.logger.log('error', { message: error.message, stack: error.stack, error }, 'MFA auth error');
-			return '';
-		}
 	}
 }
 
