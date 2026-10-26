@@ -95,6 +95,30 @@ describe('getMfaAccessToken', { concurrency: false }, () => {
 		]);
 	});
 
+	it('uses externalBrowserPort from the connection for browserLoginFlow', async () => {
+		const calls = [];
+		const app = {
+			require() {
+				return {
+					getEntraIdOAuthConfig,
+					async browserLoginFlow(options) {
+						calls.push(options);
+
+						return { accessToken: 'sql-access-token' };
+					},
+				};
+			},
+		};
+
+		await getMfaAccessToken({
+			app,
+			connectionInfo: { externalBrowserPort: 8082 },
+			logger: { log() {} },
+		});
+
+		assert.equal(calls[0].port, 8082);
+	});
+
 	it('uses the control-plane tenant when the connection tenant is empty and omits a missing login hint', async () => {
 		const calls = [];
 		const app = {
