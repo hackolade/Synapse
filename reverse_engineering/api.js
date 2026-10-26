@@ -12,8 +12,8 @@ const {
 	getCollectionsRelationships,
 } = require('./reverseEngineeringService/reverseEngineeringService');
 const { logInfo } = require('./helpers/logInfo');
-const { canRequestUserToMachineAccessToken, shouldUseExternalBrowser } = require('./helpers/mfaAccessToken');
-const { getEntraOAuthConfig, resolveAuthorizeTenant } = require('./helpers/entraOAuthConfig');
+const { canSignInWithStudio, shouldUseExternalBrowser } = require('./helpers/mfaAccessToken');
+const { getLegacyEntraOAuthConfig, resolveAuthorizeTenant } = require('./helpers/entraOAuthConfig');
 const filterRelationships = require('./helpers/filterRelationships');
 const getOptionsFromConnectionInfo = require('./helpers/getOptionsFromConnectionInfo');
 const getAdditionalAccountInfo = require('./helpers/getAdditionalAccountInfo');
@@ -61,7 +61,7 @@ module.exports = {
 	},
 
 	async getExternalBrowserUrl(connectionInfo, logger, cb, app) {
-		if (canRequestUserToMachineAccessToken({ app, connectionInfo })) {
+		if (canSignInWithStudio({ app, connectionInfo })) {
 			cb(null, {});
 			return;
 		}
@@ -71,7 +71,7 @@ module.exports = {
 		const base64Digest = crypto.createHash('sha256').update(verifier).digest('base64');
 		const challenge = base64url.fromBase64(base64Digest);
 		const tenantId = resolveAuthorizeTenant({ connectionInfo });
-		const { productionClientId, authorizationEndpoint } = await getEntraOAuthConfig({ app, tenantId });
+		const { productionClientId, authorizationEndpoint } = getLegacyEntraOAuthConfig({ tenantId });
 		const loginHint = connectionInfo.loginHint ? `login_hint=${encodeURIComponent(connectionInfo.loginHint)}&` : '';
 		const redirectPort = connectionInfo.redirectPort ?? connectionInfo.externalBrowserPort ?? 8080;
 		const redirectUrl = `http://localhost:${redirectPort}`;

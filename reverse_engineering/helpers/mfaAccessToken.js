@@ -3,7 +3,7 @@
 const { hckFetch } = require('@hackolade/fetch');
 
 const { parseResponse } = require('./parseResponse');
-const { getEntraOAuthConfig, loadOauthModule, resolveAuthorizeTenant } = require('./entraOAuthConfig');
+const { getLegacyEntraOAuthConfig, loadOauthModule, resolveAuthorizeTenant } = require('./entraOAuthConfig');
 
 const DEFAULT_EXTERNAL_BROWSER_PORT = 8080;
 
@@ -30,9 +30,12 @@ const getAuthorizationQuery = ({ connectionInfo = {} } = {}) => {
 	};
 };
 
-const exchangeAuthorizationCode = async ({ app, connectionInfo, logger } = {}) => {
+const exchangeAuthorizationCode = async ({ connectionInfo, logger } = {}) => {
 	try {
-		const { productionClientId, tokenEndpoint, desktopTokenRequestHeaders } = await getEntraOAuthConfig({ app });
+		const tenantId = resolveAuthorizeTenant({ connectionInfo });
+		const { productionClientId, tokenEndpoint, desktopTokenRequestHeaders } = getLegacyEntraOAuthConfig({
+			tenantId,
+		});
 		const urlParams = new URLSearchParams();
 
 		urlParams.append('code', connectionInfo?.externalBrowserQuery?.code || '');
@@ -64,19 +67,19 @@ const getMfaAccessToken = async ({ app, connectionInfo, logger } = {}) => {
 	const oauth = loadOauthModule({ app });
 
 	if (!oauth) {
-		return exchangeAuthorizationCode({ app, connectionInfo, logger });
+		return exchangeAuthorizationCode({ connectionInfo, logger });
 	}
 
 	const { productionClientId, authorizationEndpoint, tokenEndpoint } = await oauth.getEntraIdOAuthConfig({
 		tenantId: resolveAuthorizeTenant({ connectionInfo }),
 	});
 	const redirectPort = resolveExternalBrowserPort({ connectionInfo });
-	const { accessToken } = await oauth.browserLoginFlow({
+	const { accessToken } = await oauth.signInWithBrowser({
 		authorizationEndpoint,
 		tokenEndpoint,
 		clientId: productionClientId,
 		port: redirectPort,
-		failOnPortConflict: true,
+		failOnPortConflict: false,
 		authorizationQuery: getAuthorizationQuery({ connectionInfo }),
 	});
 
@@ -89,7 +92,7 @@ const getMfaAccessToken = async ({ app, connectionInfo, logger } = {}) => {
 
 const isEntraMfa = ({ connectionInfo } = {}) => connectionInfo?.authMethod === 'Azure Active Directory (MFA)';
 
-const canRequestUserToMachineAccessToken = ({ app, connectionInfo } = {}) => {
+const canSignInWithStudio = ({ app, connectionInfo } = {}) => {
 	if (!isEntraMfa({ connectionInfo })) {
 		return false;
 	}
@@ -98,10 +101,10 @@ const canRequestUserToMachineAccessToken = ({ app, connectionInfo } = {}) => {
 };
 
 const shouldUseExternalBrowser = ({ app, connectionInfo } = {}) =>
-	isEntraMfa({ connectionInfo }) && !canRequestUserToMachineAccessToken({ app, connectionInfo });
+	isEntraMfa({ connectionInfo }) && !loadOauthModule({ app });
 
 module.exports = {
 	getMfaAccessToken,
-	canRequestUserToMachineAccessToken,
+	canSignInWithStudio,
 	shouldUseExternalBrowser,
 };
