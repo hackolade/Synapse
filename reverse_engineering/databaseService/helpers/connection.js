@@ -126,7 +126,7 @@ class AzureActiveDirectoryUsernamePasswordConnection extends Connection {
  *	credentialsConfig,
  *	tenantId,
  * 	clientId,
- * 	redirectUri,
+ *  app,
  *	logger,
  * }} param
  * @returns {Promise<object>}
