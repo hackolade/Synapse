@@ -7,7 +7,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 	const async = app.require('async');
 
 	try {
-		const client = await connect(connectionInfo, logger);
+		const client = await connect(connectionInfo, logger, undefined, app);
 		if (!client.config.database) {
 			throw new Error('No database specified');
 		}
