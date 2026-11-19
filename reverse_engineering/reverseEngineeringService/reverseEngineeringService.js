@@ -409,6 +409,7 @@ const reverseCollectionsToJSON = logger => async (dbConnectionClient, tablesInfo
 							dbName,
 							tableName,
 							tableSchema: schemaName,
+							tableInfo,
 							recordSamplingSettings: reverseEngineeringOptions.recordSamplingSettings,
 							logger,
 						})

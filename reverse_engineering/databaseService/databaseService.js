@@ -16,6 +16,27 @@ const { parseProcedure } = require('./helpers/parsers/parseProcedure');
 
 const QUERY_REQUEST_TIMEOUT = 60000;
 
+// Not needed to detect JSON, and large files make reverse-engineering hang (HCK-18733)
+const BINARY_DATA_TYPES = new Set([
+	'binary',
+	'varbinary',
+	'image',
+	'timestamp',
+	'geography',
+	'geometry',
+	'hierarchyid',
+]);
+
+const quoteName = name => `[${String(name).replaceAll(']', ']]')}]`;
+
+const getTableColumnsList = ({ tableInfo }) =>
+	tableInfo
+		.map(column => {
+			const name = quoteName(column['COLUMN_NAME']);
+			return BINARY_DATA_TYPES.has(column['DATA_TYPE']) ? `NULL AS ${name}` : name;
+		})
+		.join(', ');
+
 const getConnectionClient = async (connectionInfo, logger, app) => {
 	const hostName = getHostName(connectionInfo.host);
 	const userName =
@@ -127,7 +148,15 @@ const queryDistribution = async ({ connectionClient, dbName, tableName, tableSch
 	}
 };
 
-const getTableRow = async ({ connectionClient, dbName, tableName, tableSchema, recordSamplingSettings, logger }) => {
+const getTableRow = async ({
+	connectionClient,
+	dbName,
+	tableName,
+	tableSchema,
+	tableInfo,
+	recordSamplingSettings,
+	logger,
+}) => {
 	const currentDbConnectionClient = await getNewConnectionClientByDb(connectionClient, dbName);
 	try {
 		let amount;
@@ -157,13 +186,15 @@ const getTableRow = async ({ connectionClient, dbName, tableName, tableSchema, r
 			);
 		}
 
+		const request = currentDbConnectionClient
+			.request()
+			.input('tableName', sql.VarChar, tableName)
+			.input('tableSchema', sql.VarChar, tableSchema)
+			.input('amount', sql.Int, amount)
+			.input('columnsList', sql.NVarChar(sql.MAX), getTableColumnsList({ tableInfo }));
+
 		return mapResponse(
-			await currentDbConnectionClient
-				.request()
-				.input('tableName', sql.VarChar, tableName)
-				.input('tableSchema', sql.VarChar, tableSchema)
-				.input('amount', sql.Int, amount)
-				.query`EXEC('SELECT TOP '+ @Amount +' * FROM [' + @TableSchema + '].[' + @TableName + '];');`,
+			await request.query`EXEC('SELECT TOP '+ @Amount +' ' + @ColumnsList + ' FROM [' + @TableSchema + '].[' + @TableName + '];');`,
 		);
 	} catch (error) {
 		logger.log(
